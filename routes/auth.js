@@ -18,6 +18,7 @@ router.get("/register", (req, res) => {
 });
 
 // Handle registration form submission - first step
+// Handle registration form submission - first step
 router.post(
   "/register",
   upload.single('image'), // Handle file upload
@@ -36,9 +37,25 @@ router.post(
     body("password")
       .isLength({ min: 6 }).withMessage("Password must be at least 6 characters long"),
 
-    body("addresses")
+    body("street")
       .trim()
-      .notEmpty().withMessage("Address is required."),
+      .notEmpty().withMessage("Street address is required.")
+      .isLength({ min: 5 }).withMessage("Street address must be at least 5 characters long"),
+
+    body("city")
+      .trim()
+      .notEmpty().withMessage("City is required.")
+      .isLength({ min: 2 }).withMessage("City must be at least 2 characters long"),
+
+    body("state")
+      .trim()
+      .notEmpty().withMessage("State is required.")
+      .isLength({ min: 2 }).withMessage("State must be at least 2 characters long"),
+
+    body("pincode")
+      .trim()
+      .notEmpty().withMessage("Pin code is required.")
+      .matches(/^[0-9]{6}$/).withMessage("Please enter a valid 6-digit pin code"),
 
     body("phone")
       .trim()
@@ -63,7 +80,7 @@ router.post(
         return res.redirect("/register");
       }
 
-      const { name, username, password, addresses, phone, role } = req.body;
+      const { name, username, password, street, city, state, pincode, phone, role } = req.body;
 
       // Check if username (email) already exists
       const existingUser = await User.findOne({ username });
@@ -92,15 +109,26 @@ router.post(
       console.log(`Email OTP for ${username}: ${emailOTP}`); // For testing/debugging
       console.log(`Phone OTP for ${phone}: ${phoneOTP}`); // For testing/debugging
 
+      // Create address object according to User model schema
+      const addressObject = {
+        street: street.trim(),
+        city: city.trim(),
+        state: state.trim(),
+        pincode: pincode.trim(),
+        isDefault: true, // First address is default
+        label: "Home" // Default label
+      };
+
       // Save user data and OTPs
       const userData = {
         name: name.trim(),
         username: username.trim(),
         password, // We'll hash it upon successful verification
-        addresses: [addresses.trim()],
+        addresses: [addressObject], // Store as proper address object
         phone: phone.trim(),
         role: role.trim(),
-        profileImage: req.file ? req.file.path : undefined
+        profileImage: req.file ? req.file.path : undefined,
+        status: 'unverified' // Set initial status as unverified
       };
 
       // Delete any existing OTP documents for this email or phone
