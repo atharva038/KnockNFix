@@ -1,0 +1,94 @@
+<% layout("/layouts/boilerplate.ejs") %>
+
+    <div class="verification-page">
+        <div class="verification-card">
+            <div class="text-center mb-4">
+                <h2 class="verification-title">Verify Login</h2>
+                <p class="text-muted">We've sent a verification code to your phone</p>
+            </div>
+
+            <form action="/verify-login-otp" method="post" class="needs-validation" novalidate>
+                <div class="mb-4">
+                    <p class="phone-display">
+                        <i class="fas fa-mobile-alt me-2"></i>
+                        <span>
+                            <%= phone %>
+                        </span>
+                    </p>
+                </div>
+
+                <!-- OTP Field -->
+                <div class="form-group mb-4">
+                    <label for="otp" class="form-label">Verification Code</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-key"></i>
+                        </span>
+                        <input type="text" id="otp" name="otp" class="form-control" placeholder="Enter 6-digit code"
+                            maxlength="6" pattern="\d{6}" required />
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                    Verify & Login
+                </button>
+
+                <!-- Back to Login Link -->
+                <div class="text-center">
+                    <p class="mb-0">
+                        <a href="/login" class="text-muted">
+                            <i class="fas fa-arrow-left me-1"></i> Back to login
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .verification-page {
+            min-height: calc(100vh - 76px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            background-color: #f8f9fa;
+        }
+
+        .verification-card {
+            width: 100%;
+            max-width: 500px;
+            padding: 3rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .verification-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.75rem;
+        }
+
+        .phone-display {
+            background-color: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            color: #495057;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Auto-format OTP input
+            const otpInput = document.querySelector('input[name="otp"]');
+
+            otpInput.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '').substring(0, 6);
+            });
+        });
+    </script>

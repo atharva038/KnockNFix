@@ -7,19 +7,18 @@ const OTPSchema = new mongoose.Schema({
     },
     phone: {
         type: String,
-        sparse: true
+        required: true // Phone is always required
     },
     emailOTP: {
         type: String,
         required: function () {
-            return !!this.email;
+            // Only require emailOTP if email is provided AND not a temporary customer email
+            return this.email && !this.email.includes('@customer.temp');
         }
     },
     phoneOTP: {
         type: String,
-        required: function () {
-            return !!this.phone;
-        }
+        required: true // Phone OTP is always required
     },
     emailVerified: {
         type: Boolean,

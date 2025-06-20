@@ -12,12 +12,51 @@ const cloudinary = require('cloudinary').v2;
 const { generateOTP, sendEmailOTP, sendSmsOTP } = require('../utils/otp');
 const crypto = require('crypto'); // Add this line to import the crypto module
 const { sendResetEmail } = require("./utils/email"); // Make sure this is also imported
+
+// Debug routes for testing (remove in production)
+router.get('/debug-twilio', (req, res) => {
+  const config = {
+    environment: process.env.NODE_ENV,
+    twilioConfigured: !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN),
+    accountSid: process.env.TWILIO_ACCOUNT_SID ? process.env.TWILIO_ACCOUNT_SID.substring(0, 8) + '...' : 'Not set',
+    hasAuthToken: !!process.env.TWILIO_AUTH_TOKEN,
+    phoneNumber: process.env.TWILIO_PHONE_NUMBER || 'Not set',
+    emailConfigured: !!(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD)
+  };
+
+  res.json(config);
+});
+
+// Test SMS route (remove in production)
+router.get('/test-sms/:phone', async (req, res) => {
+  try {
+    const phone = req.params.phone;
+    const testOTP = generateOTP();
+
+    console.log(`🧪 Testing SMS to: ${phone}`);
+    const result = await sendSmsOTP(phone, testOTP);
+
+    res.json({
+      success: result.success,
+      message: result.success ? 'SMS sent successfully!' : 'SMS failed',
+      error: result.error || null,
+      phone: phone,
+      otp: process.env.NODE_ENV === 'development' ? testOTP : 'Hidden in production'
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      message: 'Test failed',
+      error: error.message
+    });
+  }
+});
+
 // Render registration form
 router.get("/register", (req, res) => {
   res.render("pages/register");
 });
 
-// Handle registration form submission - first step
 router.post(
   "/register",
   upload.single('image'), // Handle file upload
@@ -27,19 +66,6 @@ router.post(
       .notEmpty().withMessage("Name is required.")
       .isLength({ min: 2 }).withMessage("Name must be at least 2 characters long"),
 
-    body("username")
-      .trim()
-      .notEmpty().withMessage("Email is required.")
-      .isEmail().withMessage("Please provide a valid email address.")
-      .normalizeEmail(),
-
-    body("password")
-      .isLength({ min: 6 }).withMessage("Password must be at least 6 characters long"),
-
-    body("addresses")
-      .trim()
-      .notEmpty().withMessage("Address is required."),
-
     body("phone")
       .trim()
       .notEmpty().withMessage("Phone number is required.")
@@ -48,7 +74,24 @@ router.post(
     body("role")
       .trim()
       .notEmpty().withMessage("Role is required.")
-      .isIn(["customer", "provider"]).withMessage("Role must be either customer or provider.")
+      .isIn(["customer", "provider"]).withMessage("Role must be either customer or provider."),
+
+    // Conditional validation for provider fields
+    body("username")
+      .if(body("role").equals("provider"))
+      .trim()
+      .notEmpty().withMessage("Email is required for providers.")
+      .isEmail().withMessage("Please provide a valid email address.")
+      .normalizeEmail(),
+
+    body("password")
+      .if(body("role").equals("provider"))
+      .isLength({ min: 6 }).withMessage("Password must be at least 6 characters long"),
+
+    body("addresses")
+      .if(body("role").equals("provider"))
+      .trim()
+      .notEmpty().withMessage("Address is required for providers.")
   ],
   async (req, res) => {
     try {
@@ -65,17 +108,7 @@ router.post(
 
       const { name, username, password, addresses, phone, role } = req.body;
 
-      // Check if username (email) already exists
-      const existingUser = await User.findOne({ username });
-      if (existingUser) {
-        if (req.file) {
-          await cloudinary.uploader.destroy(req.file.filename);
-        }
-        req.flash("error", "Email already exists");
-        return res.redirect("/register");
-      }
-
-      // Check if phone already exists
+      // Check if phone already exists for both customers and providers
       const existingPhone = await User.findOne({ phone });
       if (existingPhone) {
         if (req.file) {
@@ -85,19 +118,41 @@ router.post(
         return res.redirect("/register");
       }
 
-      // Generate OTPs
-      const emailOTP = generateOTP();
-      const phoneOTP = generateOTP();
+      // For providers, also check email uniqueness
+      if (role === "provider") {
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+          if (req.file) {
+            await cloudinary.uploader.destroy(req.file.filename);
+          }
+          req.flash("error", "Email already exists");
+          return res.redirect("/register");
+        }
+      }
 
-      console.log(`Email OTP for ${username}: ${emailOTP}`); // For testing/debugging
+      // Generate OTPs for both customers and providers
+      const phoneOTP = generateOTP();
+      let emailOTP = null;
+      let email = null;
+
+      // For providers, generate email OTP
+      if (role === "provider") {
+        emailOTP = generateOTP();
+        email = username;
+        console.log(`Email OTP for ${username}: ${emailOTP}`); // For testing/debugging
+      } else {
+        // For customers, use phone as email field in OTP document
+        email = phone + "@customer.temp"; // Temporary email for customers
+      }
+
       console.log(`Phone OTP for ${phone}: ${phoneOTP}`); // For testing/debugging
 
-      // Save user data and OTPs
+      // Prepare user data for both roles
       const userData = {
         name: name.trim(),
-        username: username.trim(),
-        password, // We'll hash it upon successful verification
-        addresses: [addresses.trim()],
+        username: role === "provider" ? username.trim() : phone.trim(), // Use phone as username for customers
+        password: role === "provider" ? password : crypto.randomBytes(8).toString('hex'), // Generate temp password for customers
+        addresses: role === "provider" ? [addresses.trim()] : [], // Empty addresses for customers
         phone: phone.trim(),
         role: role.trim(),
         profileImage: req.file ? req.file.path : undefined
@@ -105,38 +160,81 @@ router.post(
 
       // Delete any existing OTP documents for this email or phone
       await OTP.deleteMany({
-        $or: [{ email: username }, { phone }]
+        $or: [{ email }, { phone }]
       });
 
       // Store OTPs
       const otpDoc = new OTP({
-        email: username,
+        email,
         phone,
-        emailOTP,
+        emailOTP: emailOTP || null, // null for customers
         phoneOTP,
         userData
       });
 
       await otpDoc.save();
 
-      // Send OTPs
-      const emailResult = await sendEmailOTP(username, emailOTP);
-
-      if (!emailResult.success) {
-        throw new Error(`Failed to send email OTP: ${emailResult.error}`);
+      // Send Email OTP for providers
+      if (role === "provider") {
+        try {
+          const emailResult = await sendEmailOTP(username, emailOTP);
+          if (!emailResult.success) {
+            console.warn(`Email OTP sending failed: ${emailResult.error}`);
+            // In production, you might want to throw an error here
+            if (process.env.NODE_ENV === 'production') {
+              throw new Error(`Failed to send email OTP: ${emailResult.error}`);
+            }
+          } else {
+            console.log('✅ Email OTP sent successfully');
+          }
+        } catch (error) {
+          console.error('Email OTP error:', error.message);
+          if (process.env.NODE_ENV === 'production') {
+            throw new Error(`Failed to send email OTP: ${error.message}`);
+          }
+        }
       }
 
-      // Only try to send SMS if Twilio is properly configured
+      // Send SMS OTP for both customers and providers
+      let smsSuccess = false;
+
       if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-        const smsResult = await sendSmsOTP(phone, phoneOTP);
-        if (!smsResult.success) {
-          console.warn(`SMS OTP sending failed: ${smsResult.error}`);
-          // Continue anyway, as we at least sent the email OTP
+        try {
+          const smsResult = await sendSmsOTP(phone, phoneOTP);
+          smsSuccess = smsResult.success;
+
+          if (smsResult.success) {
+            console.log('✅ SMS OTP sent successfully');
+          } else {
+            console.warn(`❌ SMS OTP sending failed: ${smsResult.error}`);
+          }
+        } catch (error) {
+          console.error('❌ SMS sending error:', error.message);
+        }
+      } else {
+        console.warn('⚠️ Twilio credentials not configured');
+      }
+
+      // Handle SMS failure based on environment and role
+      if (!smsSuccess) {
+        if (process.env.NODE_ENV === 'development') {
+          // In development mode, allow registration to continue even if SMS fails
+          console.log(`🚧 [DEV MODE] SMS failed, but continuing registration`);
+          console.log(`📱 Phone OTP for testing: ${phoneOTP}`);
+          console.log(`💡 Use this OTP to complete verification`);
+          // Don't throw error, allow registration to continue
+        } else {
+          // In production, SMS is required for customers
+          if (role === "customer") {
+            throw new Error("Unable to send SMS OTP. Please check your phone number and try again.");
+          }
+          // For providers in production, continue without SMS if they have email
         }
       }
 
       // Store reference in session for verification page
-      req.session.verificationEmail = username;
+      req.session.verificationEmail = email;
+      req.session.userRole = role; // Store role for verification page
 
       // Redirect to verification page
       res.redirect("/verify-otp");
@@ -152,16 +250,191 @@ router.post(
   }
 );
 
+// Modify login to handle phone number login for customers
+router.post("/login", (req, res, next) => {
+  // Check if the username looks like a phone number (10 digits)
+  const isPhoneLogin = /^[0-9]{10}$/.test(req.body.username);
+
+  if (isPhoneLogin) {
+    // For phone number login, find user by phone
+    User.findOne({ phone: req.body.username })
+      .then(async (user) => {
+        if (!user) {
+          req.flash("error", "Phone number not registered");
+          return res.redirect("/login");
+        }
+
+        // For customers with phone login, implement OTP-based login
+        if (user.role === 'customer') {
+          // Generate OTP for customer login
+          const phoneOTP = generateOTP();
+          console.log(`Login OTP for ${user.phone}: ${phoneOTP}`);
+
+          // Store OTP temporarily
+          req.session.loginPhone = user.phone;
+          req.session.loginOTP = phoneOTP;
+
+          // Send SMS OTP
+          let otpSent = false;
+
+          if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+            try {
+              const smsResult = await sendSmsOTP(user.phone, phoneOTP);
+              if (smsResult.success) {
+                otpSent = true;
+                req.flash("success", "OTP sent to your phone number");
+                return res.redirect("/verify-login-otp");
+              } else {
+                console.warn(`Login SMS OTP failed: ${smsResult.error}`);
+              }
+            } catch (error) {
+              console.error('Login SMS error:', error.message);
+            }
+          }
+
+          // Handle SMS failure for login
+          if (!otpSent) {
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`🚧 [DEV LOGIN] Phone OTP for ${user.phone}: ${phoneOTP}`);
+              req.flash("success", "OTP generated (check console for development)");
+              return res.redirect("/verify-login-otp");
+            } else {
+              req.flash("error", "Unable to send OTP. Please try again or contact support.");
+              return res.redirect("/login");
+            }
+          }
+        }
+
+        // For providers, continue with normal authentication
+        req.body.username = user.username;
+        next();
+      })
+      .catch((err) => {
+        return next(err);
+      });
+  } else {
+    // Normal email login
+    next();
+  }
+}, passport.authenticate("local", {
+  failureRedirect: "/login",
+  failureFlash: true
+}), async (req, res) => {
+  try {
+    // Set user ID in session
+    req.session.userId = req.user._id;
+
+    // Handle remember me functionality
+    if (req.body.rememberMe) {
+      const rememberToken = crypto.randomBytes(32).toString('hex');
+
+      req.user.rememberToken = rememberToken;
+      req.user.rememberTokenExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      await req.user.save();
+
+      const encodedUsername = encodeURIComponent(req.body.username);
+
+      res.cookie('username', encodedUsername, {
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
+
+      res.cookie('rememberToken', rememberToken, {
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
+
+      res.cookie('rememberMe', 'true', {
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
+    } else {
+      res.clearCookie('username');
+      res.clearCookie('rememberToken');
+      res.clearCookie('rememberMe');
+    }
+
+    req.flash("success", "Welcome back to KnockNFix! You are logged in");
+    let redirectUrl = res.locals.redirectUrl || "/";
+    return res.redirect(redirectUrl);
+  } catch (err) {
+    console.error("Error during login:", err);
+    return next(err);
+  }
+});
+
+// Add route for customer OTP login verification
+router.get("/verify-login-otp", (req, res) => {
+  const phone = req.session.loginPhone;
+  if (!phone) {
+    req.flash("error", "Please try logging in again");
+    return res.redirect("/login");
+  }
+  res.render("pages/verify-login-otp", { phone });
+});
+
+router.post("/verify-login-otp", async (req, res) => {
+  try {
+    const { otp } = req.body;
+    const phone = req.session.loginPhone;
+    const storedOTP = req.session.loginOTP;
+
+    if (!phone || !storedOTP) {
+      req.flash("error", "Session expired. Please try logging in again.");
+      return res.redirect("/login");
+    }
+
+    if (otp !== storedOTP) {
+      req.flash("error", "Invalid OTP. Please try again.");
+      return res.redirect("/verify-login-otp");
+    }
+
+    // Find user and log them in
+    const user = await User.findOne({ phone });
+    if (!user) {
+      req.flash("error", "User not found.");
+      return res.redirect("/login");
+    }
+
+    req.logIn(user, (err) => {
+      if (err) {
+        return next(err);
+      }
+
+      // Clear session data
+      delete req.session.loginPhone;
+      delete req.session.loginOTP;
+      req.session.userId = user._id;
+
+      req.flash("success", "Welcome back! You are logged in");
+      let redirectUrl = res.locals.redirectUrl || "/";
+      return res.redirect(redirectUrl);
+    });
+
+  } catch (err) {
+    console.error("Error during OTP verification:", err);
+    req.flash("error", "Login failed. Please try again.");
+    res.redirect("/login");
+  }
+});
+
 // OTP Verification page
 router.get("/verify-otp", (req, res) => {
   const email = req.session.verificationEmail;
+  const userRole = req.session.userRole;
 
   if (!email) {
     req.flash("error", "Please register first");
     return res.redirect("/register");
   }
 
-  res.render("pages/verify-otp", { email });
+  res.render("pages/verify-otp", { email, userRole });
 });
 
 // Handle OTP verification
@@ -169,6 +442,7 @@ router.post("/verify-otp", async (req, res) => {
   try {
     const { emailOTP, phoneOTP } = req.body;
     const email = req.session.verificationEmail;
+    const userRole = req.session.userRole;
 
     if (!email) {
       req.flash("error", "Verification session expired. Please register again.");
@@ -183,28 +457,33 @@ router.post("/verify-otp", async (req, res) => {
       return res.redirect("/register");
     }
 
-    // Validate email OTP
-    const isEmailOTPValid = emailOTP === otpDoc.emailOTP;
+    // Validate OTPs based on user role
+    if (userRole === "provider") {
+      // For providers, validate both email and phone OTP
+      const isEmailOTPValid = emailOTP === otpDoc.emailOTP;
+      const isPhoneOTPValid = phoneOTP === otpDoc.phoneOTP;
 
-    // Validate phone OTP
-    const isPhoneOTPValid = phoneOTP === otpDoc.phoneOTP;
+      if (!isEmailOTPValid || !isPhoneOTPValid) {
+        if (!isEmailOTPValid && !isPhoneOTPValid) {
+          req.flash("error", "Both verification codes are invalid.");
+        } else if (!isEmailOTPValid) {
+          req.flash("error", "Email verification code is invalid.");
+        } else {
+          req.flash("error", "Phone verification code is invalid.");
+        }
+        return res.redirect("/verify-otp");
+      }
+    } else {
+      // For customers, only validate phone OTP
+      const isPhoneOTPValid = phoneOTP === otpDoc.phoneOTP;
 
-    if (!isEmailOTPValid && !isPhoneOTPValid) {
-      req.flash("error", "Both verification codes are invalid.");
-      return res.redirect("/verify-otp");
+      if (!isPhoneOTPValid) {
+        req.flash("error", "Phone verification code is invalid.");
+        return res.redirect("/verify-otp");
+      }
     }
 
-    if (!isEmailOTPValid) {
-      req.flash("error", "Email verification code is invalid.");
-      return res.redirect("/verify-otp");
-    }
-
-    if (!isPhoneOTPValid) {
-      req.flash("error", "Phone verification code is invalid.");
-      return res.redirect("/verify-otp");
-    }
-
-    // Both OTPs valid, proceed with user creation
+    // OTPs valid, proceed with user creation
     const userData = otpDoc.userData;
 
     // Create the new user
@@ -235,6 +514,7 @@ router.post("/verify-otp", async (req, res) => {
 
     // Clear verification session
     delete req.session.verificationEmail;
+    delete req.session.userRole;
 
     req.flash("success", "Account verified and created successfully! You can now log in.");
     res.redirect("/login");
@@ -250,6 +530,7 @@ router.post("/verify-otp", async (req, res) => {
 router.post("/resend-otp", async (req, res) => {
   try {
     const email = req.session.verificationEmail;
+    const userRole = req.session.userRole;
 
     if (!email) {
       return res.status(400).json({
@@ -268,40 +549,66 @@ router.post("/resend-otp", async (req, res) => {
     }
 
     // Generate new OTPs
-    const newEmailOTP = generateOTP();
     const newPhoneOTP = generateOTP();
+    let newEmailOTP = null;
 
-    console.log(`New Email OTP for ${email}: ${newEmailOTP}`); // For testing
+    // Only generate email OTP for providers
+    if (userRole === "provider" && !email.includes('@customer.temp')) {
+      newEmailOTP = generateOTP();
+      console.log(`New Email OTP for ${email}: ${newEmailOTP}`); // For testing
+    }
+
     console.log(`New Phone OTP for ${otpDoc.phone}: ${newPhoneOTP}`); // For testing
 
     // Update OTPs
-    otpDoc.emailOTP = newEmailOTP;
+    otpDoc.emailOTP = newEmailOTP; // null for customers, OTP for providers
     otpDoc.phoneOTP = newPhoneOTP;
     otpDoc.createdAt = Date.now(); // Reset expiration timer
     await otpDoc.save();
 
-    // Send new OTPs
-    const emailResult = await sendEmailOTP(email, newEmailOTP);
+    let emailSent = false;
+    let smsSent = false;
 
-    if (!emailResult.success) {
-      throw new Error(`Failed to send email OTP: ${emailResult.error}`);
+    // Send email OTP for providers
+    if (userRole === "provider" && !email.includes('@customer.temp') && newEmailOTP) {
+      try {
+        const emailResult = await sendEmailOTP(email, newEmailOTP);
+        emailSent = emailResult.success;
+
+        if (!emailResult.success) {
+          console.warn(`Email OTP resend failed: ${emailResult.error}`);
+        }
+      } catch (error) {
+        console.error('Email resend error:', error.message);
+      }
     }
 
-    // Only try to send SMS if Twilio is properly configured
-    let smsSuccess = false;
+    // Send SMS OTP for both customers and providers
     if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-      const smsResult = await sendSmsOTP(otpDoc.phone, newPhoneOTP);
-      smsSuccess = smsResult.success;
-      if (!smsResult.success) {
-        console.warn(`SMS OTP sending failed: ${smsResult.error}`);
+      try {
+        const smsResult = await sendSmsOTP(otpDoc.phone, newPhoneOTP);
+        smsSent = smsResult.success;
+
+        if (!smsResult.success) {
+          console.warn(`SMS OTP resend failed: ${smsResult.error}`);
+        }
+      } catch (error) {
+        console.error('SMS resend error:', error.message);
       }
+    }
+
+    // In development, always report success for SMS
+    if (!smsSent && process.env.NODE_ENV === 'development') {
+      console.log(`🚧 [DEV MODE] SMS resend failed, but reporting success`);
+      console.log(`📱 New Phone OTP for testing: ${newPhoneOTP}`);
+      smsSent = true;
     }
 
     res.json({
       success: true,
-      emailSent: true,
-      smsSent: smsSuccess,
-      message: "Verification codes sent successfully"
+      emailSent: emailSent,
+      smsSent: smsSent,
+      message: smsSent || emailSent ? "Verification codes sent successfully" : "Unable to send verification codes"
     });
 
   } catch (err) {
@@ -313,78 +620,11 @@ router.post("/resend-otp", async (req, res) => {
   }
 });
 
-// Login routes remain the same
+// Login routes
 router.get("/login", (req, res) => {
   res.render("pages/login.ejs");
 });
 
-router.post("/login", (req, res, next) => {
-  passport.authenticate("local", (err, user, info) => {
-    if (err) {
-      return next(err);
-    }
-    if (!user) {
-      req.flash("error", info.message || "Login failed");
-      return res.redirect("/login");
-    }
-
-    req.logIn(user, async (err) => {
-      if (err) {
-        return next(err);
-      }
-
-      // Set user ID in session
-      req.session.userId = user._id;
-
-      // Handle remember me functionality
-      if (req.body.rememberMe) {
-        // Generate a secure remember me token instead of storing raw password
-        const rememberToken = crypto.randomBytes(32).toString('hex');
-
-        // Store token in database (add this field to your User model)
-        user.rememberToken = rememberToken;
-        user.rememberTokenExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-        await user.save();
-
-        // Set cookies with encoded values
-        const encodedUsername = encodeURIComponent(req.body.username);
-
-        // Set secure cookies that last for 30 days
-        res.cookie('username', encodedUsername, {
-          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax'
-        });
-
-        res.cookie('rememberToken', rememberToken, {
-          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax'
-        });
-
-        res.cookie('rememberMe', 'true', {
-          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax'
-        });
-      } else {
-        // If remember me is not checked, clear any existing cookies
-        res.clearCookie('username');
-        res.clearCookie('rememberToken');
-        res.clearCookie('rememberMe');
-      }
-
-      req.flash("success", "Welcome back to KnockNFix! You are logged in");
-      let redirectUrl = res.locals.redirectUrl || "/";
-      return res.redirect(redirectUrl);
-    });
-  })(req, res, next);
-});
-
-// Logout route
 // Logout route
 router.get("/logout", async (req, res, next) => {
   try {
@@ -415,9 +655,11 @@ router.get("/logout", async (req, res, next) => {
   }
 });
 
+// Forgot Password routes
 router.get("/forgot-password", (req, res) => {
   res.render("pages/forgot-password");
 });
+
 // Forgot Password route - handle submission
 router.post("/forgot-password", [
   body("email")
@@ -468,6 +710,7 @@ router.post("/forgot-password", [
     res.redirect("/forgot-password");
   }
 });
+
 router.get("/reset-password/:token", async (req, res) => {
   try {
     const { token } = req.params;
@@ -545,6 +788,5 @@ router.post("/reset-password/:token", [
     res.redirect(`/reset-password/${req.params.token}`);
   }
 });
-
 
 module.exports = router;

@@ -10,8 +10,35 @@
       <div class="auth-body">
         <form action="/register" method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
 
-          <!-- Profile Image Section -->
-          <div class="profile-upload mb-4">
+          <!-- Role Selection - Move to top -->
+          <div class="form-group mb-4">
+            <label for="role" class="form-label">I want to join as</label>
+            <div class="role-selector">
+              <div class="role-option">
+                <input type="radio" name="role" id="customer" value="customer" checked />
+                <label for="customer">
+                  <div class="role-icon">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <div class="role-name">Customer</div>
+                  <small>Looking for services</small>
+                </label>
+              </div>
+              <div class="role-option">
+                <input type="radio" name="role" id="provider" value="provider" />
+                <label for="provider">
+                  <div class="role-icon">
+                    <i class="fas fa-tools"></i>
+                  </div>
+                  <div class="role-name">Provider</div>
+                  <small>Offering services</small>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile Image Section - Only for providers -->
+          <div class="profile-upload mb-4" id="profileSection" style="display: none;">
             <div class="profile-preview" id="imagePreview">
               <img src="https://ui-avatars.com/api/?name=User+Preview&background=764ba2&color=fff&size=200"
                 alt="Profile Preview" id="previewImg" />
@@ -41,14 +68,25 @@
                 </div>
               </div>
 
-              <!-- Email Input -->
+              <!-- Phone Input -->
               <div class="form-group mb-3">
+                <label for="phone" class="form-label">Phone Number</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                  <input type="text" name="phone" id="phone" class="form-control" placeholder="10-digit number"
+                    required />
+                </div>
+                <small class="form-text">We'll send a verification code to this number</small>
+              </div>
+
+              <!-- Email Input - Only for providers -->
+              <div class="form-group mb-3 provider-only" style="display: none;">
                 <label for="username" class="form-label">Email Address</label>
                 <div class="input-group has-validation">
                   <span class="input-group-text"><i class="fas fa-envelope" aria-hidden="true"></i></span>
                   <input type="email" name="username" id="username" class="form-control" placeholder="Enter your email"
-                    pattern="[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}" title="Please enter a valid email address"
-                    required />
+                    pattern="[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}"
+                    title="Please enter a valid email address" />
                 </div>
                 <div class="invalid-feedback">
                   Please enter a valid email address.
@@ -56,13 +94,13 @@
                 <small class="form-text">We'll send a verification code to this email</small>
               </div>
 
-              <!-- Password Input -->
-              <div class="form-group mb-3">
+              <!-- Password Input - Only for providers -->
+              <div class="form-group mb-3 provider-only" style="display: none;">
                 <label for="password" class="form-label">Password</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="fas fa-lock"></i></span>
                   <input type="password" name="password" id="password" class="form-control"
-                    placeholder="Create a password" required />
+                    placeholder="Create a password" />
                   <button type="button" class="btn btn-outline-secondary toggle-password" tabindex="-1">
                     <i class="fas fa-eye"></i>
                   </button>
@@ -78,75 +116,39 @@
 
             <!-- Right Column -->
             <div class="col-md-6 ps-md-2">
-              <!-- Phone Input -->
-              <div class="form-group mb-3">
-                <label for="phone" class="form-label">Phone Number</label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                  <input type="text" name="phone" id="phone" class="form-control" placeholder="10-digit number"
-                    required />
-                </div>
-                <small class="form-text">We'll send a verification code to this number</small>
-              </div>
-
-              <!-- Address Input -->
-              <div class="form-group mb-3">
+              <!-- Address Input - Only for providers -->
+              <div class="form-group mb-3 provider-only" style="display: none;">
                 <label for="addresses" class="form-label">Address</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                  <input type="text" name="addresses" id="addresses" class="form-control" placeholder="Your address"
-                    required />
-                </div>
-              </div>
-
-              <!-- Role Selection -->
-              <div class="form-group mb-3">
-                <label for="role" class="form-label">I want to join as</label>
-                <div class="role-selector">
-                  <div class="role-option">
-                    <input type="radio" name="role" id="customer" value="customer" checked />
-                    <label for="customer">
-                      <div class="role-icon">
-                        <i class="fas fa-user"></i>
-                      </div>
-                      <div class="role-name">Customer</div>
-                      <small>Looking for services</small>
-                    </label>
-                  </div>
-                  <div class="role-option">
-                    <input type="radio" name="role" id="provider" value="provider" />
-                    <label for="provider">
-                      <div class="role-icon">
-                        <i class="fas fa-tools"></i>
-                      </div>
-                      <div class="role-name">Provider</div>
-                      <small>Offering services</small>
-                    </label>
-                  </div>
+                  <input type="text" name="addresses" id="addresses" class="form-control" placeholder="Your address" />
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="terms-policy mt-4 mb-4">
+          <!-- Terms checkbox - Only for providers -->
+          <div class="terms-policy mt-4 mb-4 provider-only" style="display: none;">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+              <input class="form-check-input" type="checkbox" id="agreeTerms">
               <label class="form-check-label" for="agreeTerms">
                 I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy"
                   target="_blank">Privacy Policy</a>
               </label>
             </div>
           </div>
-          <!-- Add this before the submit button -->
+
+          <!-- Form status message -->
           <div class="form-status mt-3 mb-2 d-none" id="formStatus">
             <div class="alert alert-warning">
               <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>
               <span id="formStatusMessage">Please complete all required fields correctly.</span>
             </div>
           </div>
+
           <!-- Submit Button -->
           <div class="d-grid gap-2">
-            <button class="btn btn-primary btn-lg" type="submit" id="registerButton" disabled>
+            <button class="btn btn-primary btn-lg" type="submit" id="registerButton">
               Create Account
             </button>
           </div>
@@ -431,6 +433,66 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      const form = document.querySelector('.needs-validation');
+      const customerRadio = document.getElementById('customer');
+      const providerRadio = document.getElementById('provider');
+      const providerFields = document.querySelectorAll('.provider-only');
+      const profileSection = document.getElementById('profileSection');
+      const registerButton = document.getElementById('registerButton');
+      const agreeTerms = document.getElementById('agreeTerms');
+
+      // Function to toggle fields based on role selection
+      function toggleFields() {
+        const isProvider = providerRadio.checked;
+
+        providerFields.forEach(field => {
+          field.style.display = isProvider ? 'block' : 'none';
+
+          // Toggle required attribute for provider fields
+          const inputs = field.querySelectorAll('input');
+          inputs.forEach(input => {
+            if (isProvider) {
+              if (input.id === 'username' || input.id === 'password' || input.id === 'addresses') {
+                input.setAttribute('required', '');
+              }
+              if (input.id === 'agreeTerms') {
+                input.setAttribute('required', '');
+              }
+            } else {
+              input.removeAttribute('required');
+            }
+          });
+        });
+
+        // Toggle profile section
+        profileSection.style.display = isProvider ? 'flex' : 'none';
+
+        // Update button state
+        updateButtonState();
+      }
+
+      // Function to update button state
+      function updateButtonState() {
+        const isProvider = providerRadio.checked;
+        const nameValid = document.getElementById('name').value.trim().length > 0;
+        const phoneValid = document.getElementById('phone').value.trim().length >= 10;
+
+        if (isProvider) {
+          const emailValid = document.getElementById('username').value.trim().length > 0;
+          const passwordValid = document.getElementById('password').value.trim().length > 0;
+          const addressValid = document.getElementById('addresses').value.trim().length > 0;
+          const termsAccepted = agreeTerms.checked;
+
+          registerButton.disabled = !(nameValid && phoneValid && emailValid && passwordValid && addressValid && termsAccepted);
+        } else {
+          registerButton.disabled = !(nameValid && phoneValid);
+        }
+      }
+
+      // Role change handlers
+      customerRadio.addEventListener('change', toggleFields);
+      providerRadio.addEventListener('change', toggleFields);
+
       // Profile image upload
       const imagePreview = document.getElementById('imagePreview');
       const previewImg = document.getElementById('previewImg');
@@ -442,7 +504,6 @@
 
       imageInput.addEventListener('change', function () {
         if (this.files && this.files[0]) {
-          // File size validation (5MB limit)
           if (this.files[0].size > 5 * 1024 * 1024) {
             alert('File size too large. Maximum size is 5MB.');
             this.value = '';
@@ -457,39 +518,14 @@
         }
       });
 
-      const nameInput = document.getElementById('name');
-      nameInput.addEventListener('input', function () {
-        const namePattern = /^[A-Za-z\s]{2,50}$/;
-        const isValid = namePattern.test(this.value.trim());
-        validateField(this, isValid, 'Name should contain only letters and spaces (2-50 characters)');
-      });
-
-      // Email validation
-      const emailInput = document.getElementById('username');
-      emailInput.addEventListener('input', function () {
-        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-        const isValid = emailPattern.test(this.value.trim());
-        validateField(this, isValid, 'Please enter a valid email address');
-      });
-
-      // Address validation
-      const addressInput = document.getElementById('addresses');
-      addressInput.addEventListener('input', function () {
-        const isValid = this.value.trim().length >= 5;
-        validateField(this, isValid, 'Please enter a complete address (minimum 5 characters)');
-      });
-      // Helper function for field validation
+      // Validation functions
       function validateField(field, isValid, errorMessage) {
-        // Clear existing validation classes and feedback
         field.classList.remove('is-valid', 'is-invalid');
-
         const feedbackElement = field.parentNode.parentNode.querySelector('.invalid-feedback');
 
         if (field.value.trim() === '') {
-          // Don't show validation for empty fields until form submission
           if (feedbackElement) feedbackElement.style.display = 'none';
         } else {
-          // Show validation for non-empty fields
           if (isValid) {
             field.classList.add('is-valid');
             if (feedbackElement) feedbackElement.style.display = 'none';
@@ -501,137 +537,106 @@
             }
           }
         }
+        updateButtonState();
       }
 
-      // Form submission validation
-      const form = document.querySelector('.needs-validation');
+      // Name validation
+      const nameInput = document.getElementById('name');
+      nameInput.addEventListener('input', function () {
+        const namePattern = /^[A-Za-z\s]{2,50}$/;
+        const isValid = namePattern.test(this.value.trim());
+        validateField(this, isValid, 'Name should contain only letters and spaces (2-50 characters)');
+      });
+
+      // Phone validation
+      const phoneInput = document.getElementById('phone');
+      phoneInput.addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value.length > 10) {
+          this.value = this.value.slice(0, 10);
+        }
+        updateButtonState();
+      });
+
+      // Email validation (for providers)
+      const emailInput = document.getElementById('username');
+      emailInput.addEventListener('input', function () {
+        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        const isValid = emailPattern.test(this.value.trim());
+        validateField(this, isValid, 'Please enter a valid email address');
+      });
+
+      // Address validation (for providers)
+      const addressInput = document.getElementById('addresses');
+      addressInput.addEventListener('input', function () {
+        const isValid = this.value.trim().length >= 5;
+        validateField(this, isValid, 'Please enter a complete address (minimum 5 characters)');
+      });
+
+      // Password functionality (for providers)
+      const togglePassword = document.querySelector('.toggle-password');
+      const passwordInput = document.getElementById('password');
+
+      if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function () {
+          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passwordInput.setAttribute('type', type);
+          const icon = this.querySelector('i');
+          icon.classList.toggle('fa-eye');
+          icon.classList.toggle('fa-eye-slash');
+        });
+
+        // Password strength meter
+        const passwordStrength = document.getElementById('passwordStrength');
+        const progressBar = passwordStrength.querySelector('.progress-bar');
+        const strengthText = passwordStrength.querySelector('.form-text');
+
+        passwordInput.addEventListener('input', function () {
+          const password = this.value;
+          let strength = 0;
+          let tips = '';
+
+          if (password.length >= 8) strength += 25;
+          if (password.match(/[a-z]/)) strength += 25;
+          if (password.match(/[A-Z]/)) strength += 25;
+          if (password.match(/[0-9]/) || password.match(/[^a-zA-Z0-9]/)) strength += 25;
+
+          progressBar.style.width = `${strength}%`;
+
+          if (strength <= 25) {
+            progressBar.style.backgroundColor = '#dc3545';
+            tips = 'Very weak password. Try adding numbers and symbols.';
+          } else if (strength <= 50) {
+            progressBar.style.backgroundColor = '#ffc107';
+            tips = 'Add uppercase letters and symbols for stronger password.';
+          } else if (strength <= 75) {
+            progressBar.style.backgroundColor = '#17a2b8';
+            tips = 'Good password. Try adding more variety of characters.';
+          } else {
+            progressBar.style.backgroundColor = '#28a745';
+            tips = 'Strong password! Great job.';
+          }
+
+          strengthText.textContent = tips;
+          updateButtonState();
+        });
+      }
+
+      // Terms checkbox handler
+      agreeTerms.addEventListener('change', updateButtonState);
+
+      // Form submission
       form.addEventListener('submit', function (event) {
         if (!form.checkValidity()) {
           event.preventDefault();
           event.stopPropagation();
-
-          // Find and focus the first invalid field
           const invalidField = form.querySelector(':invalid');
           if (invalidField) invalidField.focus();
         }
         form.classList.add('was-validated');
       });
 
-      // Password visibility toggle
-      const togglePassword = document.querySelector('.toggle-password');
-      const passwordInput = document.getElementById('password');
-
-      togglePassword.addEventListener('click', function () {
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-
-        // Toggle icon
-        const icon = this.querySelector('i');
-        icon.classList.toggle('fa-eye');
-        icon.classList.toggle('fa-eye-slash');
-      });
-
-      // Password strength meter
-      const passwordStrength = document.getElementById('passwordStrength');
-      const progressBar = passwordStrength.querySelector('.progress-bar');
-      const strengthText = passwordStrength.querySelector('.form-text');
-
-      passwordInput.addEventListener('input', function () {
-        const password = this.value;
-        let strength = 0;
-        let tips = '';
-
-        // Length check
-        if (password.length >= 8) {
-          strength += 25;
-        }
-
-        // Contains lowercase
-        if (password.match(/[a-z]/)) {
-          strength += 25;
-        }
-
-        // Contains uppercase
-        if (password.match(/[A-Z]/)) {
-          strength += 25;
-        }
-
-        // Contains number or special char
-        if (password.match(/[0-9]/) || password.match(/[^a-zA-Z0-9]/)) {
-          strength += 25;
-        }
-
-        // Update progress bar
-        progressBar.style.width = `${strength}%`;
-
-        // Set color based on strength
-        if (strength <= 25) {
-          progressBar.style.backgroundColor = '#dc3545';
-          tips = 'Very weak password. Try adding numbers and symbols.';
-        } else if (strength <= 50) {
-          progressBar.style.backgroundColor = '#ffc107';
-          tips = 'Add uppercase letters and symbols for stronger password.';
-        } else if (strength <= 75) {
-          progressBar.style.backgroundColor = '#17a2b8';
-          tips = 'Good password. Try adding more variety of characters.';
-        } else {
-          progressBar.style.backgroundColor = '#28a745';
-          tips = 'Strong password! Great job.';
-        }
-
-        strengthText.textContent = tips;
-      });
-
-      // Terms checkbox validation
-      const agreeTerms = document.getElementById('agreeTerms');
-      const registerButton = document.getElementById('registerButton');
-      // Add this to your script
-      function updateFormStatus() {
-        const formFields = form.querySelectorAll('input[required]');
-        const formStatus = document.getElementById('formStatus');
-        const formStatusMessage = document.getElementById('formStatusMessage');
-
-        const incompleteFields = Array.from(formFields)
-          .filter(field => !field.value.trim() || field.classList.contains('is-invalid'))
-          .map(field => field.labels[0]?.textContent || 'Unknown field');
-
-        if (incompleteFields.length > 0) {
-          formStatus.classList.remove('d-none');
-          formStatus.querySelector('.alert').className = 'alert alert-warning';
-          formStatusMessage.textContent = `Please complete these fields: ${incompleteFields.join(', ')}`;
-          return false;
-        } else if (!agreeTerms.checked) {
-          formStatus.classList.remove('d-none');
-          formStatus.querySelector('.alert').className = 'alert alert-info';
-          formStatusMessage.textContent = 'Please agree to the Terms of Service and Privacy Policy';
-          return false;
-        } else {
-          formStatus.classList.add('d-none');
-          return true;
-        }
-      }
-
-      // Call this when any form field changes
-      const formFields = form.querySelectorAll('input');
-      formFields.forEach(field => {
-        field.addEventListener('change', updateFormStatus);
-        field.addEventListener('input', updateFormStatus);
-      });
-      agreeTerms.addEventListener('change', function () {
-        registerButton.disabled = !this.checked;
-      });
-
-      // Phone number validation
-      const phoneInput = document.getElementById('phone');
-
-      phoneInput.addEventListener('input', function () {
-        // Remove non-numeric characters
-        this.value = this.value.replace(/[^0-9]/g, '');
-
-        // Limit to 10 digits
-        if (this.value.length > 10) {
-          this.value = this.value.slice(0, 10);
-        }
-      });
+      // Initialize form state
+      toggleFields();
     });
   </script>
