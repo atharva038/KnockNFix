@@ -89,14 +89,35 @@
                 <small class="form-text">We'll send a verification code to this number</small>
               </div>
 
-              <!-- Address Input -->
+              <!-- Address Input - Updated to match User model -->
               <div class="form-group mb-3">
-                <label for="addresses" class="form-label">Address</label>
+                <label for="street" class="form-label">Street Address</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                  <input type="text" name="addresses" id="addresses" class="form-control" placeholder="Your address"
+                  <input type="text" name="street" id="street" class="form-control" placeholder="Enter street address"
                     required />
                 </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="city" class="form-label">City</label>
+                    <input type="text" name="city" id="city" class="form-control" placeholder="City" required />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="state" class="form-label">State</label>
+                    <input type="text" name="state" id="state" class="form-control" placeholder="State" required />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="pincode" class="form-label">Pin Code</label>
+                <input type="text" name="pincode" id="pincode" class="form-control" placeholder="6-digit pin code" 
+                  pattern="[0-9]{6}" required />
               </div>
 
               <!-- Role Selection -->
@@ -473,17 +494,45 @@
       });
 
       // Address validation
-      const addressInput = document.getElementById('addresses');
-      addressInput.addEventListener('input', function () {
+      const streetInput = document.getElementById('street');
+      streetInput.addEventListener('input', function () {
         const isValid = this.value.trim().length >= 5;
-        validateField(this, isValid, 'Please enter a complete address (minimum 5 characters)');
+        validateField(this, isValid, 'Please enter a complete street address (minimum 5 characters)');
       });
+
+      const cityInput = document.getElementById('city');
+      cityInput.addEventListener('input', function () {
+        const isValid = this.value.trim().length >= 2;
+        validateField(this, isValid, 'Please enter a valid city name');
+      });
+
+      const stateInput = document.getElementById('state');
+      stateInput.addEventListener('input', function () {
+        const isValid = this.value.trim().length >= 2;
+        validateField(this, isValid, 'Please enter a valid state name');
+      });
+
+      const pincodeInput = document.getElementById('pincode');
+      pincodeInput.addEventListener('input', function () {
+        // Remove non-numeric characters
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        // Limit to 6 digits
+        if (this.value.length > 6) {
+          this.value = this.value.slice(0, 6);
+        }
+
+        const isValid = /^[0-9]{6}$/.test(this.value);
+        validateField(this, isValid, 'Please enter a valid 6-digit pin code');
+      });
+
       // Helper function for field validation
       function validateField(field, isValid, errorMessage) {
         // Clear existing validation classes and feedback
         field.classList.remove('is-valid', 'is-invalid');
 
-        const feedbackElement = field.parentNode.parentNode.querySelector('.invalid-feedback');
+        const feedbackElement = field.parentNode.parentNode.querySelector('.invalid-feedback') || 
+                               field.parentNode.querySelector('.invalid-feedback');
 
         if (field.value.trim() === '') {
           // Don't show validation for empty fields until form submission
@@ -585,6 +634,7 @@
       // Terms checkbox validation
       const agreeTerms = document.getElementById('agreeTerms');
       const registerButton = document.getElementById('registerButton');
+      
       // Add this to your script
       function updateFormStatus() {
         const formFields = form.querySelectorAll('input[required]');
@@ -617,6 +667,7 @@
         field.addEventListener('change', updateFormStatus);
         field.addEventListener('input', updateFormStatus);
       });
+      
       agreeTerms.addEventListener('change', function () {
         registerButton.disabled = !this.checked;
       });
