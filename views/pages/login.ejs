@@ -1,530 +1,480 @@
 <% layout("/layouts/boilerplate.ejs") %>
 
-  <div class="auth-page">
-    <div class="auth-card">
-      <!-- Card Header -->
-      <div class="auth-header">
-        <h2>Welcome Back</h2>
-        <p class="text-muted">Log in to your account</p>
-      </div>
-
-      <!-- Login Form -->
-      <div class="auth-body">
-        <!-- Alert for server-side messages -->
-        <% if(error && error.length> 0) { %>
-          <div class="alert alert-danger mb-3">
-            <i class="fas fa-exclamation-circle me-2"></i>
-            <%= error %>
-          </div>
-          <% } %>
-            <% if(success && success.length> 0) { %>
-              <div class="alert alert-success mb-3">
-                <i class="fas fa-check-circle me-2"></i>
-                <%= success %>
-              </div>
-              <% } %>
-
-                <!-- Client-side validation message area -->
-                <div id="validationFeedback" class="alert alert-warning d-none mb-3">
-                  <i class="fas fa-exclamation-triangle me-2"></i>
-                  <span id="validationMessage"></span>
-                </div>
-
-                <form action="/login" method="post" class="needs-validation" id="loginForm" novalidate>
-                  <!-- Email/Phone Field -->
-                  <div class="form-group mb-3">
-                    <label for="username" class="form-label">Email or Phone</label>
-                    <div class="input-group has-validation">
-                      <span class="input-group-text">
-                        <i class="fas fa-user"></i>
-                      </span>
-                      <input type="text" id="username" name="username" class="form-control"
-                        placeholder="Enter your email or phone number" required
-                        pattern="(^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$)|(^[0-9]{10}$)"
-                        title="Enter a valid email address or 10-digit phone number" />
-                      <div class="invalid-feedback">
-                        Please enter a valid email address or 10-digit phone number.
-                      </div>
-                    </div>
-                    <div class="form-text mt-1" id="usernameHint">Use the email or phone you registered with</div>
-                  </div>
-
-                  <!-- Password Field -->
-                  <div class="form-group mb-3">
-                    <label for="password" class="form-label">Password</label>
-                    <div class="input-group has-validation">
-                      <span class="input-group-text">
-                        <i class="fas fa-lock"></i>
-                      </span>
-                      <input type="password" id="password" name="password" class="form-control"
-                        placeholder="Enter your password" required minlength="8"
-                        title="Password must be at least 8 characters" />
-                      <button type="button" class="btn btn-outline-secondary toggle-password" tabindex="-1"
-                        aria-label="Toggle password visibility">
-                        <i class="fas fa-eye"></i>
-                      </button>
-                      <div class="invalid-feedback">
-                        Password must be at least 8 characters.
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Remember Me & Forgot Password -->
-                  <div class="d-flex justify-content-between mb-3">
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe">
-                      <label class="form-check-label" for="rememberMe">
-                        Remember me
-                      </label>
-                    </div>
-                    <a href="/forgot-password" class="forgot-password">Forgot password?</a>
-                  </div>
-
-                  <!-- Submit Button -->
-                  <div class="d-grid">
-                    <button type="submit" class="btn btn-primary" id="loginButton">
-                      <span class="button-text">Sign In</span>
-                      <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" id="loginSpinner"></span>
-                    </button>
-                  </div>
-
-                  <!-- Security Notice -->
-                  <div class="security-notice mt-3">
-                    <small class="text-muted">
-                      <i class="fas fa-shield-alt me-1"></i>
-                      Secure login protected by encryption
-                    </small>
-                  </div>
-                </form>
-      </div>
-
-      <!-- Card Footer -->
-      <div class="auth-footer">
-        <p class="mb-0">Don't have an account? <a href="/register">Sign Up</a></p>
+<div class="auth-container">
+  <div class="auth-card">
+    <!-- Header -->
+    <div class="auth-header">
+      <div class="text-center">
+        <h3 class="mb-1">Welcome Back</h3>
+        <small class="text-light opacity-75"
+          >Sign in to your KnockNFix account</small
+        >
       </div>
     </div>
-  </div>
 
-  <style>
-    .auth-page {
-      min-height: calc(100vh - 76px);
-      margin-bottom: 6rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
-      background-color: #f8f9fa;
-      background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    <div class="auth-body p-4">
+      <!-- Server-side messages -->
+      <% if(error && error.length > 0) { %>
+      <div class="alert alert-danger mb-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <%= error %>
+      </div>
+      <% } %> <% if(success && success.length > 0) { %>
+      <div class="alert alert-success mb-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <%= success %>
+      </div>
+      <% } %>
+
+      <!-- Client-side validation message -->
+      <div
+        id="validationFeedback"
+        class="alert alert-warning d-none mb-3"
+        role="alert"
+      >
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span id="validationMessage"></span>
+      </div>
+
+      <form
+        action="/login"
+        method="post"
+        class="needs-validation"
+        id="loginForm"
+        novalidate
+      >
+        <!-- Mobile Number Field -->
+        <div class="mb-3">
+          <label for="phone" class="form-label">Mobile Number *</label>
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="fas fa-phone"></i>
+            </span>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              class="form-control"
+              placeholder="9876543210"
+              required
+              maxlength="10"
+              autocomplete="off"
+              pattern="[6-9][0-9]{9}"
+              value=""
+            />
+            <div class="invalid-feedback">
+              Please enter a valid 10-digit mobile number starting with 6-9.
+            </div>
+          </div>
+          <small class="form-text text-muted">
+            <i class="fas fa-info-circle me-1"></i>We'll send a verification
+            code to this number
+          </small>
+        </div>
+
+        <!-- Help Link (Removed Remember Me) -->
+        <div class="d-flex justify-content-end align-items-center mb-3">
+          <a href="/help" class="text-decoration-none">
+            <small>Need help?</small>
+          </a>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="d-grid mb-3">
+          <button type="submit" class="btn btn-primary btn-lg" id="loginButton">
+            <span class="button-text">
+              <i class="fas fa-sms me-2"></i>Send OTP
+            </span>
+          </button>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="text-center">
+          <small class="text-muted">
+            <i class="fas fa-shield-alt me-1"></i>
+            Secure OTP-based authentication
+          </small>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="auth-footer text-center py-3 border-top">
+      <small
+        >Don't have an account?
+        <a href="/register" class="text-decoration-none fw-semibold">Sign Up</a>
+      </small>
+    </div>
+  </div>
+</div>
+
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
+  }
+
+  .auth-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    padding: 2rem 1rem 4rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .auth-card {
+    width: 100%;
+    max-width: 450px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 3rem;
+    transition: all 0.3s ease;
+  }
+
+  .auth-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Header Styles */
+  .auth-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 1.5rem 2rem;
+  }
+
+  .auth-header h3 {
+    font-weight: 600;
+    margin: 0;
+  }
+
+  /* Form Styles */
+  .form-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+  }
+
+  .input-group-text {
+    background-color: #f9fafb;
+    border-right: none;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .form-control {
+    border-left: none;
+    font-size: 0.875rem;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+  }
+
+  .input-group:focus-within .input-group-text {
+    border-color: var(--primary-color);
+  }
+
+  /* Button Styles */
+  .btn-primary {
+    background: var(--primary-gradient);
+    border: none;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  }
+
+  .btn-primary:disabled {
+    background: #9ca3af;
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  /* Link Styles */
+  a {
+    color: var(--primary-color);
+    transition: color 0.3s ease;
+  }
+
+  a:hover {
+    color: var(--secondary-color);
+  }
+
+  /* Alert Styles */
+  .alert {
+    border-radius: 8px;
+    font-size: 0.875rem;
+  }
+
+  .alert-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.2);
+    color: #721c24;
+  }
+
+  .alert-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.2);
+    color: #155724;
+  }
+
+  .alert-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-color: rgba(255, 193, 7, 0.2);
+    color: #856404;
+  }
+
+  /* Validation Styles */
+  .form-control.is-valid {
+    border-color: #28a745;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  }
+
+  .form-control.is-invalid {
+    border-color: #dc3545;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  }
+
+  .input-group .form-control.is-valid:focus,
+  .input-group .form-control.is-invalid:focus {
+    z-index: 3;
+  }
+
+  /* Loading State */
+  .loading {
+    opacity: 0.8;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .auth-container {
+      padding: 1rem 0.5rem 3rem 0.5rem;
     }
 
     .auth-card {
-      width: 100%;
-      max-width: 450px;
-      background-color: #fff;
-      border-radius: 20px;
-      box-shadow: 0 15px 35px rgba(50, 50, 93, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .auth-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 25px 45px rgba(50, 50, 93, 0.15), 0 10px 25px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
     }
 
     .auth-header {
-      padding: 1.75rem 2rem;
-      text-align: center;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .auth-header h2 {
-      font-weight: 700;
-      margin-bottom: 0.5rem;
+      padding: 1.25rem 1.5rem;
     }
 
     .auth-body {
-      padding: 2rem;
+      padding: 1.5rem !important;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .auth-container {
+      padding: 0.5rem 0.25rem 2rem 0.25rem;
     }
 
-    .auth-footer {
-      padding: 1rem;
-      text-align: center;
-      border-top: 1px solid #e9ecef;
-      background-color: #f8f9fa;
+    .auth-card {
+      margin-bottom: 1.5rem;
     }
 
-    .form-label {
-      font-weight: 600;
-      color: #495057;
-      margin-bottom: 0.5rem;
+    .auth-header {
+      padding: 1rem 1.25rem;
     }
 
-    .input-group-text {
-      background-color: #f8f9fa;
-      border-right: none;
-      color: #6c757d;
+    .auth-body {
+      padding: 1.25rem !important;
     }
+  }
 
-    .form-control {
-      border-left: none;
-      padding-left: 0;
-    }
+  /* Focus management */
+  .form-control:focus,
+  .btn:focus {
+    outline: none;
+  }
 
-    .form-control:focus {
-      box-shadow: none;
-      border-color: #ced4da;
-    }
+  /* Phone input specific styles */
+  #phone {
+    letter-spacing: 0.5px;
+  }
 
-    .form-control:focus+.input-group-text {
-      border-color: #ced4da;
-    }
+  #phone::placeholder {
+    letter-spacing: normal;
+    color: #9ca3af;
+  }
+</style>
 
-    .toggle-password {
-      border-left: none;
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
-      color: #6c757d;
-    }
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const phoneField = document.getElementById("phone");
+    const loginForm = document.getElementById("loginForm");
+    const loginButton = document.getElementById("loginButton");
+    const validationFeedback = document.getElementById("validationFeedback");
+    const validationMessage = document.getElementById("validationMessage");
 
-    .toggle-password:hover {
-      background-color: transparent;
-      color: #495057;
-    }
+    // **ENSURE PHONE FIELD IS ALWAYS EMPTY ON PAGE LOAD**
+    phoneField.value = "";
 
-    .forgot-password {
-      color: #764ba2;
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.3s;
-    }
+    // **CLEAR ANY STORED DATA FROM PREVIOUS SESSIONS**
+    localStorage.removeItem("rememberedPhone");
+    localStorage.removeItem("rememberMe");
 
-    .forgot-password:hover {
-      color: #667eea;
-      text-decoration: underline;
-    }
+    // Clear browser autofill
+    setTimeout(() => {
+      phoneField.value = "";
+    }, 100);
 
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      padding: 0.75rem 1.5rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      margin-top: 0.5rem;
-    }
+    // Phone input validation and formatting
+    phoneField.addEventListener("input", function (e) {
+      // Remove all non-digit characters
+      let value = this.value.replace(/\D/g, "");
 
-    .btn-primary:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
-    }
+      // Limit to 10 digits
+      value = value.slice(0, 10);
 
-    .form-check-input:checked {
-      background-color: #764ba2;
-      border-color: #764ba2;
-    }
+      // Update the input value
+      this.value = value;
 
-    .auth-footer a {
-      color: #764ba2;
-      font-weight: 600;
-      text-decoration: none;
-    }
-
-    .auth-footer a:hover {
-      text-decoration: underline;
-    }
-
-    .security-notice {
-      text-align: center;
-      font-size: 0.85rem;
-    }
-
-    .form-text {
-      font-size: 0.85rem;
-      color: #6c757d;
-    }
-
-    .alert {
-      border-radius: 10px;
-      font-size: 0.95rem;
-    }
-
-    /* Form validation styles */
-    .was-validated .form-control:valid {
-      border-color: #28a745;
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right calc(0.375em + 0.1875rem) center;
-      background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-    }
-
-    .was-validated .form-control:invalid {
-      border-color: #dc3545;
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right calc(0.375em + 0.1875rem) center;
-      background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-    }
-
-    /* Fix input group validation */
-    .was-validated .input-group .form-control:valid,
-    .was-validated .input-group .form-control:invalid {
-      z-index: 3;
-    }
-
-    @media (max-width: 576px) {
-      .auth-card {
-        border-radius: 15px;
-      }
-
-      .auth-header {
-        padding: 1.5rem;
-      }
-
-      .auth-body {
-        padding: 1.5rem;
-      }
-    }
-
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
-      }
-
-      50% {
-        transform: scale(1.05);
-      }
-
-      100% {
-        transform: scale(1);
-      }
-    }
-
-    .btn-pulse {
-      animation: pulse 1.5s infinite;
-    }
-
-    /* Accessibility improvements */
-    .form-control:focus,
-    .form-check-input:focus,
-    .toggle-password:focus {
-      border-color: #764ba2;
-      box-shadow: 0 0 0 0.25rem rgba(118, 75, 162, 0.25);
-    }
-  </style>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      // Get stored credentials from cookies
-      const username = getCookie("username");
-      const password = getCookie("password");
-      const rememberMe = getCookie("rememberMe");
-
-      const usernameField = document.getElementById("username");
-      const passwordField = document.getElementById("password");
-      const rememberMeCheckbox = document.getElementById("rememberMe");
-      const loginForm = document.getElementById("loginForm");
-
-      // Populate form fields if cookies exist
-      if (username) {
-        usernameField.value = decodeURIComponent(username);
-        usernameField.classList.add('is-valid');
-      }
-
-      if (password) {
-        passwordField.value = decodeURIComponent(password);
-        passwordField.classList.add('is-valid');
-      }
-
-      if (rememberMe === "true") {
-        rememberMeCheckbox.checked = true;
-      }
-
-      // If we have both credentials and remember me is true, auto-submit the form
-      if (username && password && rememberMe === "true") {
-        // Set a flag in sessionStorage to prevent infinite redirect loops
-        if (!sessionStorage.getItem('autoLoginAttempted')) {
-          sessionStorage.setItem('autoLoginAttempted', 'true');
-          // Submit the form automatically
-          if (loginForm) {
-            loginForm.submit();
-          }
-        }
-      }
+      // Validate the phone number
+      validatePhone();
     });
 
-    // Helper function to get a cookie value
-    function getCookie(name) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-      return null;
-    }
-  </script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      // Password visibility toggle
-      const togglePassword = document.querySelector('.toggle-password');
-      const passwordInput = document.getElementById('password');
+    phoneField.addEventListener("blur", function () {
+      validatePhone(true);
+    });
 
-      if (togglePassword && passwordInput) {
-        togglePassword.addEventListener('click', function () {
-          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-          passwordInput.setAttribute('type', type);
-
-          // Toggle icon
-          const icon = this.querySelector('i');
-          icon.classList.toggle('fa-eye');
-          icon.classList.toggle('fa-eye-slash');
-        });
-      }
-
-      // Username field validation (email or phone)
-      const usernameInput = document.getElementById('username');
-      if (usernameInput) {
-        usernameInput.addEventListener('input', function () {
-          validateUsername(this);
-        });
-
-        usernameInput.addEventListener('blur', function () {
-          validateUsername(this, true);
-        });
-      }
-
-      // Password field validation
-      if (passwordInput) {
-        passwordInput.addEventListener('input', function () {
-          validatePassword(this);
-        });
-
-        passwordInput.addEventListener('blur', function () {
-          validatePassword(this, true);
-        });
-      }
-
-      // Form validation
-      const form = document.querySelector('#loginForm');
-      const validationFeedback = document.getElementById('validationFeedback');
-      const validationMessage = document.getElementById('validationMessage');
-      const loginButton = document.getElementById('loginButton');
-      const loginSpinner = document.getElementById('loginSpinner');
-
-      if (form) {
-        form.addEventListener('submit', function (event) {
-          // Clear previous validation messages
-          hideValidationMessage();
-
-          // Check if form is valid
-          if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-
-            // Find the first invalid field
-            const invalidField = form.querySelector(':invalid');
-            if (invalidField) {
-              invalidField.focus();
-
-              // Show validation message
-              showValidationMessage("Please correct the highlighted fields");
-            }
-
-            form.classList.add('was-validated');
-          } else {
-            // Form is valid, show loading state
-            loginButton.disabled = true;
-            loginButton.querySelector('.button-text').textContent = 'Signing In...';
-            loginSpinner.classList.remove('d-none');
-
-            // Add a small delay to allow the user to see the change
-            setTimeout(() => {
-              form.submit();
-            }, 300);
-          }
-        });
-      }
-
-      // Validation functions
-      function validateUsername(field, showError = false) {
-        // Check if email or phone format
-        const value = field.value.trim();
-        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        const phonePattern = /^[0-9]{10}$/;
-
-        const isValid = emailPattern.test(value) || phonePattern.test(value);
-
-        if (value === '') {
-          // Empty field, don't show validation yet unless showError is true
-          if (showError) {
-            field.classList.add('is-invalid');
-            field.setCustomValidity('Please enter your email or phone number');
-          } else {
-            field.classList.remove('is-invalid', 'is-valid');
-            field.setCustomValidity('');
-          }
-        } else if (isValid) {
-          field.classList.add('is-valid');
-          field.classList.remove('is-invalid');
-          field.setCustomValidity('');
-        } else {
-          field.classList.add('is-invalid');
-          field.classList.remove('is-valid');
-          field.setCustomValidity('Please enter a valid email address or 10-digit phone number');
-        }
-      }
-
-      function validatePassword(field, showError = false) {
-        const value = field.value.trim();
-
-        if (value === '') {
-          // Empty field, don't show validation yet unless showError is true
-          if (showError) {
-            field.classList.add('is-invalid');
-            field.setCustomValidity('Please enter your password');
-          } else {
-            field.classList.remove('is-invalid', 'is-valid');
-            field.setCustomValidity('');
-          }
-        } else if (value.length < 8) {
-          field.classList.add('is-invalid');
-          field.classList.remove('is-valid');
-          field.setCustomValidity('Password must be at least 8 characters');
-        } else {
-          field.classList.add('is-valid');
-          field.classList.remove('is-invalid');
-          field.setCustomValidity('');
-        }
-      }
-
-      // Show validation message
-      function showValidationMessage(message) {
-        if (validationFeedback && validationMessage) {
-          validationMessage.textContent = message;
-          validationFeedback.classList.remove('d-none');
-        }
-      }
-
-      // Hide validation message
-      function hideValidationMessage() {
-        if (validationFeedback) {
-          validationFeedback.classList.add('d-none');
-        }
-      }
-
-      // Focus on username field on page load for better UX
-      if (usernameInput && !usernameInput.value) {
-        setTimeout(() => {
-          usernameInput.focus();
-        }, 500);
-      }
-
-      // Add pulse animation to login button after 3 seconds if form is not submitted
+    // Paste event handling
+    phoneField.addEventListener("paste", function (e) {
       setTimeout(() => {
-        if (loginButton && !form.classList.contains('was-validated')) {
-          loginButton.classList.add('btn-pulse');
-
-          loginButton.addEventListener('mouseenter', () => {
-            loginButton.classList.remove('btn-pulse');
-          });
-        }
-      }, 3000);
+        let value = this.value.replace(/\D/g, "");
+        value = value.slice(0, 10);
+        this.value = value;
+        validatePhone(true);
+      }, 0);
     });
-  </script>
+
+    // Form submission
+    loginForm.addEventListener("submit", function (e) {
+      hideValidationMessage();
+
+      const isValid = validatePhone(true);
+
+      if (!isValid) {
+        e.preventDefault();
+        e.stopPropagation();
+        showValidationMessage(
+          "Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9"
+        );
+        phoneField.focus();
+        return false;
+      }
+
+      // Show loading state
+      loginButton.disabled = true;
+      loginButton.querySelector(".button-text").innerHTML =
+        '<i class="fas fa-spinner fa-spin me-2"></i>Sending OTP...';
+      loginButton.classList.add("loading");
+    });
+
+    // Phone validation function
+    function validatePhone(showFeedback = false) {
+      const value = phoneField.value.trim();
+      const phonePattern = /^[6-9]\d{9}$/;
+      const isValid = phonePattern.test(value);
+
+      // Clear previous validation states
+      phoneField.classList.remove("is-valid", "is-invalid");
+      phoneField.setCustomValidity("");
+
+      if (value === "") {
+        if (showFeedback) {
+          phoneField.classList.add("is-invalid");
+          phoneField.setCustomValidity("Mobile number is required");
+        }
+        return false;
+      }
+
+      if (value.length < 10) {
+        if (showFeedback) {
+          phoneField.classList.add("is-invalid");
+          phoneField.setCustomValidity("Mobile number must be 10 digits");
+        }
+        return false;
+      }
+
+      if (!value.match(/^[6-9]/)) {
+        if (showFeedback) {
+          phoneField.classList.add("is-invalid");
+          phoneField.setCustomValidity(
+            "Mobile number must start with 6, 7, 8, or 9"
+          );
+        }
+        return false;
+      }
+
+      if (!isValid) {
+        if (showFeedback) {
+          phoneField.classList.add("is-invalid");
+          phoneField.setCustomValidity("Please enter a valid mobile number");
+        }
+        return false;
+      }
+
+      // Valid phone number
+      phoneField.classList.add("is-valid");
+      phoneField.setCustomValidity("");
+      return true;
+    }
+
+    function showValidationMessage(message) {
+      if (validationMessage && validationFeedback) {
+        validationMessage.textContent = message;
+        validationFeedback.classList.remove("d-none");
+      }
+    }
+
+    function hideValidationMessage() {
+      if (validationFeedback) {
+        validationFeedback.classList.add("d-none");
+      }
+    }
+
+    // Auto-focus on phone field
+    setTimeout(() => {
+      phoneField.focus();
+    }, 300);
+
+    // Clear validation message when user starts typing
+    phoneField.addEventListener("input", function () {
+      hideValidationMessage();
+    });
+
+    // **PREVENT BROWSER AUTOFILL FROM FILLING THE FIELD**
+    phoneField.addEventListener("focus", function () {
+      if (this.value !== "") {
+        this.value = "";
+      }
+    });
+
+    // **ADDITIONAL CLEANUP ON WINDOW LOAD**
+    window.addEventListener("load", function () {
+      phoneField.value = "";
+      phoneField.classList.remove("is-valid", "is-invalid");
+    });
+  });
+</script>

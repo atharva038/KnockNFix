@@ -1,688 +1,1286 @@
 <% layout("/layouts/boilerplate.ejs") %>
 
-  <div class="auth-container">
-    <div class="auth-card">
-      <div class="auth-header">
-        <h2>Create Your Account</h2>
-        <p class="text-muted">Join KnockNFix and get started with our services</p>
-      </div>
+<div class="auth-container">
+  <div class="auth-card">
+    <!-- Compact Header with Role Toggle -->
+    <div class="auth-header">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+          <h4 class="mb-1">Create Your Account</h4>
+          <small class="text-light opacity-75"
+            >Join KnockNFix and get started</small
+          >
+        </div>
 
-      <div class="auth-body">
-        <form action="/register" method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
+        <!-- Compact Role Toggle -->
+        <div class="btn-group btn-group-sm" role="group">
+          <input
+            type="radio"
+            class="btn-check"
+            name="headerRole"
+            id="headerCustomer"
+            value="customer"
+            checked
+          />
+          <label class="btn btn-outline-light" for="headerCustomer">
+            <i class="fas fa-user me-1"></i>Customer
+          </label>
 
-          <!-- Profile Image Section -->
-          <div class="profile-upload mb-4">
-            <div class="profile-preview" id="imagePreview">
-              <img src="https://ui-avatars.com/api/?name=User+Preview&background=764ba2&color=fff&size=200"
-                alt="Profile Preview" id="previewImg" />
-              <div class="upload-overlay">
-                <i class="fas fa-camera"></i>
-                <span>Add Photo</span>
-              </div>
-            </div>
-            <input type="file" name="image" id="image" accept="image/*" class="visually-hidden" />
-            <p class="upload-hint">Click to upload profile photo<br><small>(Optional, max 5MB)</small></p>
-          </div>
-
-          <div class="row">
-            <!-- Left Column -->
-            <div class="col-md-6 pe-md-2">
-              <!-- Name Input -->
-              <div class="form-group mb-3">
-                <label for="name" class="form-label">Full Name</label>
-                <div class="input-group has-validation">
-                  <span class="input-group-text"><i class="fas fa-user" aria-hidden="true"></i></span>
-                  <input type="text" name="name" id="name" class="form-control" placeholder="Enter your full name"
-                    pattern="[A-Za-z\s]{2,50}" title="Name should contain only letters and spaces (2-50 characters)"
-                    required />
-                </div>
-                <div class="invalid-feedback">
-                  Please enter a valid name (only letters and spaces).
-                </div>
-              </div>
-
-              <!-- Email Input -->
-              <div class="form-group mb-3">
-                <label for="username" class="form-label">Email Address</label>
-                <div class="input-group has-validation">
-                  <span class="input-group-text"><i class="fas fa-envelope" aria-hidden="true"></i></span>
-                  <input type="email" name="username" id="username" class="form-control" placeholder="Enter your email"
-                    pattern="[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}" title="Please enter a valid email address"
-                    required />
-                </div>
-                <div class="invalid-feedback">
-                  Please enter a valid email address.
-                </div>
-                <small class="form-text">We'll send a verification code to this email</small>
-              </div>
-
-              <!-- Password Input -->
-              <div class="form-group mb-3">
-                <label for="password" class="form-label">Password</label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                  <input type="password" name="password" id="password" class="form-control"
-                    placeholder="Create a password" required />
-                  <button type="button" class="btn btn-outline-secondary toggle-password" tabindex="-1">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                </div>
-                <div class="password-strength mt-1" id="passwordStrength">
-                  <div class="progress" style="height: 5px;">
-                    <div class="progress-bar" role="progressbar" style="width: 0%"></div>
-                  </div>
-                  <small class="form-text">Use 8+ characters with letters, numbers & symbols</small>
-                </div>
-              </div>
-            </div>
-
-            <!-- Right Column -->
-            <div class="col-md-6 ps-md-2">
-              <!-- Phone Input -->
-              <div class="form-group mb-3">
-                <label for="phone" class="form-label">Phone Number</label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                  <input type="text" name="phone" id="phone" class="form-control" placeholder="10-digit number"
-                    required />
-                </div>
-                <small class="form-text">We'll send a verification code to this number</small>
-              </div>
-
-              <!-- Address Input - Updated to match User model -->
-              <div class="form-group mb-3">
-                <label for="street" class="form-label">Street Address</label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                  <input type="text" name="street" id="street" class="form-control" placeholder="Enter street address"
-                    required />
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="form-group mb-3">
-                    <label for="city" class="form-label">City</label>
-                    <input type="text" name="city" id="city" class="form-control" placeholder="City" required />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-group mb-3">
-                    <label for="state" class="form-label">State</label>
-                    <input type="text" name="state" id="state" class="form-control" placeholder="State" required />
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-group mb-3">
-                <label for="pincode" class="form-label">Pin Code</label>
-                <input type="text" name="pincode" id="pincode" class="form-control" placeholder="6-digit pin code" 
-                  pattern="[0-9]{6}" required />
-              </div>
-
-              <!-- Role Selection -->
-              <div class="form-group mb-3">
-                <label for="role" class="form-label">I want to join as</label>
-                <div class="role-selector">
-                  <div class="role-option">
-                    <input type="radio" name="role" id="customer" value="customer" checked />
-                    <label for="customer">
-                      <div class="role-icon">
-                        <i class="fas fa-user"></i>
-                      </div>
-                      <div class="role-name">Customer</div>
-                      <small>Looking for services</small>
-                    </label>
-                  </div>
-                  <div class="role-option">
-                    <input type="radio" name="role" id="provider" value="provider" />
-                    <label for="provider">
-                      <div class="role-icon">
-                        <i class="fas fa-tools"></i>
-                      </div>
-                      <div class="role-name">Provider</div>
-                      <small>Offering services</small>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="terms-policy mt-4 mb-4">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="agreeTerms" required>
-              <label class="form-check-label" for="agreeTerms">
-                I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy"
-                  target="_blank">Privacy Policy</a>
-              </label>
-            </div>
-          </div>
-          <!-- Add this before the submit button -->
-          <div class="form-status mt-3 mb-2 d-none" id="formStatus">
-            <div class="alert alert-warning">
-              <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>
-              <span id="formStatusMessage">Please complete all required fields correctly.</span>
-            </div>
-          </div>
-          <!-- Submit Button -->
-          <div class="d-grid gap-2">
-            <button class="btn btn-primary btn-lg" type="submit" id="registerButton" disabled>
-              Create Account
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div class="auth-footer">
-        <p>Already have an account? <a href="/login">Sign In</a></p>
+          <input
+            type="radio"
+            class="btn-check"
+            name="headerRole"
+            id="headerProvider"
+            value="provider"
+          />
+          <label class="btn btn-outline-light" for="headerProvider">
+            <i class="fas fa-tools me-1"></i>Provider
+          </label>
+        </div>
       </div>
     </div>
-  </div>
 
-  <style>
+    <div class="auth-body p-4">
+      <form
+        action="/register"
+        method="post"
+        class="needs-validation"
+        enctype="multipart/form-data"
+        novalidate
+      >
+        <input type="hidden" name="role" id="roleInput" value="customer" />
+
+        <!-- Customer Form -->
+        <div id="customerForm" class="role-form active">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="customerName" class="form-label">Full Name *</label>
+              <div class="input-group">
+                <span class="input-group-text"
+                  ><i class="fas fa-user"></i
+                ></span>
+                <input
+                  type="text"
+                  name="name"
+                  id="customerName"
+                  class="form-control"
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+              <div class="invalid-feedback">Please enter a valid name.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="customerPhone" class="form-label"
+                >Phone Number *</label
+              >
+              <div class="input-group">
+                <span class="input-group-text"
+                  ><i class="fas fa-phone"></i
+                ></span>
+                <input
+                  type="text"
+                  name="phone"
+                  id="customerPhone"
+                  class="form-control"
+                  placeholder="Enter 10-digit mobile number"
+                  required
+                />
+              </div>
+              <div class="invalid-feedback">
+                Please enter a valid 10-digit mobile number.
+              </div>
+              <small class="form-text text-muted">
+                <i class="fas fa-sms me-1"></i>We'll send a verification code
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Provider Form -->
+        <div id="providerForm" class="role-form">
+          <div class="row g-3">
+            <!-- Basic Information -->
+            <div class="col-12">
+              <h6 class="text-primary mb-3">
+                <i class="fas fa-user me-2"></i>Basic Information
+              </h6>
+            </div>
+
+            <div class="col-md-4">
+              <label for="providerName" class="form-label">Full Name *</label>
+              <div class="input-group">
+                <span class="input-group-text"
+                  ><i class="fas fa-user"></i
+                ></span>
+                <input
+                  type="text"
+                  name="name"
+                  id="providerName"
+                  class="form-control"
+                  placeholder="Enter your full name"
+                />
+              </div>
+              <div class="invalid-feedback">Please enter a valid name.</div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="providerPhone" class="form-label"
+                >Phone Number *</label
+              >
+              <div class="input-group">
+                <span class="input-group-text"
+                  ><i class="fas fa-phone"></i
+                ></span>
+                <input
+                  type="text"
+                  name="phone"
+                  id="providerPhone"
+                  class="form-control"
+                  placeholder="Enter 10-digit number"
+                />
+              </div>
+              <div class="invalid-feedback">
+                Please enter a valid phone number.
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="email" class="form-label">Email (Optional)</label>
+              <div class="input-group">
+                <span class="input-group-text"
+                  ><i class="fas fa-envelope"></i
+                ></span>
+                <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  class="form-control"
+                  placeholder="Enter email"
+                />
+              </div>
+              <div class="invalid-feedback">Please enter a valid email.</div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="col-12 mt-4">
+              <h6 class="text-primary mb-3">
+                <i class="fas fa-map-marker-alt me-2"></i>Business Address
+              </h6>
+            </div>
+
+            <div class="col-md-6">
+              <label for="street" class="form-label">Street Address *</label>
+              <input
+                type="text"
+                name="street"
+                id="street"
+                class="form-control"
+                placeholder="Enter complete business address"
+              />
+              <div class="invalid-feedback">Please enter a valid address.</div>
+            </div>
+
+            <div class="col-md-3">
+              <label for="city" class="form-label">City *</label>
+              <input
+                type="text"
+                name="city"
+                id="city"
+                class="form-control"
+                placeholder="City"
+              />
+              <div class="invalid-feedback">Please enter city.</div>
+            </div>
+
+            <div class="col-md-3">
+              <label for="state" class="form-label">State *</label>
+              <input
+                type="text"
+                name="state"
+                id="state"
+                class="form-control"
+                placeholder="State"
+              />
+              <div class="invalid-feedback">Please enter state.</div>
+            </div>
+
+            <div class="col-md-3">
+              <label for="pincode" class="form-label">Pin Code *</label>
+              <input
+                type="text"
+                name="pincode"
+                id="pincode"
+                class="form-control"
+                placeholder="6-digit pin"
+                maxlength="6"
+              />
+              <div class="invalid-feedback">
+                Please enter valid 6-digit pin code.
+              </div>
+            </div>
+
+            <!-- Document Information -->
+            <div class="col-12 mt-4">
+              <h6 class="text-primary mb-3">
+                <i class="fas fa-id-card me-2"></i>Document Information
+              </h6>
+            </div>
+
+            <div class="col-md-6">
+              <label for="aadharCard" class="form-label">Aadhar Number *</label>
+              <div class="input-group">
+                <span class="input-group-text"
+                  ><i class="fas fa-id-card"></i
+                ></span>
+                <input
+                  type="text"
+                  name="aadharCard"
+                  id="aadharCard"
+                  class="form-control"
+                  placeholder="Enter 12-digit Aadhar number"
+                  maxlength="12"
+                />
+              </div>
+              <div class="invalid-feedback">
+                Please enter valid 12-digit Aadhar number.
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="panCard" class="form-label">PAN Number *</label>
+              <div class="input-group">
+                <span class="input-group-text"
+                  ><i class="fas fa-credit-card"></i
+                ></span>
+                <input
+                  type="text"
+                  name="panCard"
+                  id="panCard"
+                  class="form-control"
+                  placeholder="ABCDE1234F"
+                  maxlength="10"
+                  style="text-transform: uppercase"
+                />
+              </div>
+              <div class="invalid-feedback">
+                Please enter valid PAN number (Format: ABCDE1234F).
+              </div>
+            </div>
+
+            <!-- Document Photos -->
+            <div class="col-12 mt-4">
+              <h6 class="text-primary mb-3">
+                <i class="fas fa-camera me-2"></i>Document Photos
+              </h6>
+              <p class="text-muted small mb-3">
+                <i class="fas fa-info-circle me-1"></i>
+                Upload clear photos of your documents. All documents will be
+                verified by our team.
+              </p>
+            </div>
+
+            <!-- Profile Photo -->
+            <div class="col-md-4">
+              <label class="form-label">Profile Photo</label>
+              <div class="upload-box" id="profileUpload">
+                <img
+                  src="https://ui-avatars.com/api/?name=Provider&background=6c757d&color=fff&size=80"
+                  alt="Profile"
+                  id="profilePreview"
+                  class="upload-img"
+                />
+                <div class="upload-text">
+                  <i class="fas fa-camera"></i>
+                  <small>Upload</small>
+                </div>
+                <input
+                  type="file"
+                  name="profileImage"
+                  id="profileImage"
+                  accept="image/*"
+                  class="d-none"
+                />
+              </div>
+              <small class="text-muted">Optional</small>
+            </div>
+
+            <!-- Aadhar Photo (around line 161) -->
+            <div class="col-md-4">
+              <label class="form-label">Aadhar Photo *</label>
+              <div class="upload-box required-upload" id="aadharUpload">
+                <img
+                  src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA4MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjZTllY2VmIi8+Cjx0ZXh0IHg9IjQwIiB5PSIyOCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNmM3NTdkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5BYWRoYXI8L3RleHQ+Cjwvc3ZnPgo="
+                  alt="Aadhar"
+                  id="aadharPreview"
+                  class="upload-img"
+                />
+                <div class="upload-text">
+                  <i class="fas fa-id-card"></i>
+                  <small>Upload</small>
+                </div>
+                <input
+                  type="file"
+                  name="aadharImage"
+                  id="aadharImage"
+                  accept="image/*"
+                  class="d-none"
+                />
+              </div>
+              <small class="text-muted">Required</small>
+              <div class="invalid-feedback">
+                Please upload Aadhar document photo.
+              </div>
+            </div>
+
+            <!-- PAN Photo (around line 176) -->
+            <div class="col-md-4">
+              <label class="form-label">PAN Photo *</label>
+              <div class="upload-box required-upload" id="panUpload">
+                <img
+                  src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA4MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjZTllY2VmIi8+Cjx0ZXh0IHg9IjQwIiB5PSIyOCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNmM3NTdkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QQU48L3RleHQ+Cjwvc3ZnPgo="
+                  alt="PAN"
+                  id="panPreview"
+                  class="upload-img"
+                />
+                <div class="upload-text">
+                  <i class="fas fa-credit-card"></i>
+                  <small>Upload</small>
+                </div>
+                <input
+                  type="file"
+                  name="panImage"
+                  id="panImage"
+                  accept="image/*"
+                  class="d-none"
+                />
+              </div>
+              <small class="text-muted">Required</small>
+              <div class="invalid-feedback">
+                Please upload PAN document photo.
+              </div>
+            </div>
+
+            <!-- Verification Notice -->
+            <div class="col-12 mt-3">
+              <div class="alert alert-info py-2">
+                <i class="fas fa-shield-alt me-2"></i>
+                <small>
+                  <strong>Document Verification:</strong>
+                  All documents will be verified by our admin team within 24-48
+                  hours. You'll receive updates via SMS and email.
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terms and Submit Section -->
+        <div class="mt-4 mb-5">
+          <div class="form-check mb-3">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="agreeTerms"
+              required
+            />
+            <label class="form-check-label" for="agreeTerms">
+              I agree to the
+              <a href="/terms" target="_blank" class="text-decoration-none"
+                >Terms of Service</a
+              >
+              and
+              <a href="/privacy" target="_blank" class="text-decoration-none"
+                >Privacy Policy</a
+              >
+            </label>
+            <div class="invalid-feedback">
+              You must agree to terms and conditions.
+            </div>
+          </div>
+
+          <!-- Form Status -->
+          <div class="alert alert-warning d-none" id="formStatus">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="formStatusMessage"
+              >Please complete all required fields.</span
+            >
+          </div>
+
+          <!-- Submit Button -->
+          <div class="d-grid">
+            <button
+              class="btn btn-primary btn-lg"
+              type="submit"
+              id="registerButton"
+              disabled
+            >
+              <i class="fas fa-user-plus me-2"></i>
+              <span id="submitButtonText">Create Customer Account</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="auth-footer text-center py-3 border-top">
+      <small
+        >Already have an account?
+        <a href="/login" class="text-decoration-none">Sign In</a></small
+      >
+    </div>
+  </div>
+</div>
+
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+  }
+
+  .auth-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    padding: 2rem 1rem 4rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .auth-card {
+    width: 100%;
+    max-width: 900px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 3rem;
+  }
+
+  /* Header Styles */
+  .auth-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .auth-header h4 {
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .btn-outline-light {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.75rem;
+    border-color: rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: white;
+  }
+
+  .btn-check:checked + .btn-outline-light {
+    background-color: white;
+    color: var(--secondary-color);
+    border-color: white;
+    font-weight: 600;
+  }
+
+  /* Form Styles */
+  .role-form {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .role-form.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+  }
+
+  .input-group-text {
+    background-color: #f9fafb;
+    border-right: none;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .form-control {
+    border-left: none;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+  }
+
+  .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+  }
+
+  .input-group:focus-within .input-group-text {
+    border-color: var(--primary-color);
+    background-color: rgba(102, 126, 234, 0.05);
+  }
+
+  /* Validation Styles */
+  .form-control.is-valid {
+    border-color: var(--success-color);
+  }
+
+  .form-control.is-invalid {
+    border-color: var(--danger-color);
+  }
+
+  .form-control.is-valid:focus {
+    box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.15);
+  }
+
+  .form-control.is-invalid:focus {
+    box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.15);
+  }
+
+  /* Upload Box Styles */
+  .upload-box {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #f9fafb;
+    position: relative;
+    height: 100px;
+  }
+
+  .upload-box:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(102, 126, 234, 0.05);
+    transform: translateY(-1px);
+  }
+
+  .upload-box.required-upload {
+    border-style: solid;
+    border-color: #d1d5db;
+  }
+
+  .upload-box.has-file {
+    border-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.05);
+  }
+
+  .upload-box.has-error {
+    border-color: var(--danger-color);
+    background-color: rgba(239, 68, 68, 0.05);
+  }
+
+  .upload-img {
+    width: 60px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 0.25rem;
+    border: 1px solid #e5e7eb;
+  }
+
+  .upload-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #6b7280;
+  }
+
+  .upload-text i {
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .upload-text small {
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .upload-box:hover .upload-text {
+    color: var(--primary-color);
+  }
+
+  .upload-box.has-file .upload-text {
+    color: var(--success-color);
+  }
+
+  /* Section Headers */
+  h6.text-primary {
+    color: var(--primary-color) !important;
+    font-weight: 600;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Button Styles */
+  .btn-primary {
+    background: var(--primary-gradient);
+    border: none;
+    font-weight: 600;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .btn-primary:disabled {
+    background: #9ca3af;
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  /* Alert Styles */
+  .alert-info {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.2);
+    color: #1e40af;
+    border-radius: 8px;
+  }
+
+  .alert-warning {
+    background-color: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.2);
+    color: #92400e;
+    border-radius: 8px;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
     .auth-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: calc(100vh - 76px);
-      padding: 2rem;
-      background-color: #f8f9fa;
-      background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      padding: 1rem 0.5rem 3rem 0.5rem;
     }
 
     .auth-card {
-      width: 100%;
-      max-width: 900px;
-      background-color: #fff;
-      border-radius: 20px;
-      box-shadow: 0 15px 35px rgba(50, 50, 93, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .auth-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 25px 45px rgba(50, 50, 93, 0.15), 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    .auth-header {
-      padding: 2rem;
-      text-align: center;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .auth-header h2 {
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .auth-body {
-      padding: 2rem;
-    }
-
-    .auth-footer {
-      padding: 1.5rem;
-      text-align: center;
-      border-top: 1px solid #e9ecef;
-    }
-
-    .form-label {
-      font-weight: 600;
-      color: #495057;
-      margin-bottom: 0.5rem;
-    }
-
-    .input-group-text {
-      background-color: #f8f9fa;
-      border-right: none;
-      color: #6c757d;
-    }
-
-    .form-control {
-      border-left: none;
-      padding-left: 0;
-    }
-
-    .form-control:focus {
-      box-shadow: none;
-      border-color: #ced4da;
-    }
-
-    .form-control:focus+.input-group-text {
-      border-color: #ced4da;
-    }
-
-    .toggle-password {
-      border-left: none;
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
-      color: #6c757d;
-    }
-
-    .toggle-password:hover {
-      background-color: transparent;
-      color: #495057;
-    }
-
-    .profile-upload {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       margin-bottom: 2rem;
     }
 
-    .profile-preview {
-      position: relative;
-      width: 130px;
-      height: 130px;
-      border-radius: 50%;
-      overflow: hidden;
-      margin-bottom: 1rem;
-      cursor: pointer;
-      border: 3px solid #764ba2;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
+    .auth-header {
+      padding: 1rem;
     }
 
-    .profile-preview:hover {
+    .auth-header .d-flex {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+
+    .btn-group {
+      width: 100%;
+    }
+
+    .auth-body {
+      padding: 1.5rem !important;
+    }
+
+    .upload-box {
+      height: 80px;
+      padding: 0.75rem;
+    }
+
+    .upload-img {
+      width: 45px;
+      height: 30px;
+    }
+
+    h6.text-primary {
+      font-size: 0.95rem;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .auth-container {
+      padding: 0.5rem 0.25rem 2rem 0.25rem;
+    }
+
+    .auth-card {
+      margin-bottom: 1.5rem;
+    }
+
+    .auth-body {
+      padding: 1rem !important;
+    }
+
+    .col-md-3,
+    .col-md-4,
+    .col-md-6 {
+      margin-bottom: 1rem;
+    }
+
+    .mt-4.mb-5 {
+      margin-top: 2rem !important;
+      margin-bottom: 2rem !important;
+    }
+  }
+
+  /* Animation for file upload success */
+  @keyframes uploadSuccess {
+    0% {
+      transform: scale(1);
+    }
+    50% {
       transform: scale(1.05);
     }
-
-    .profile-preview:hover .upload-overlay {
-      opacity: 1;
+    100% {
+      transform: scale(1);
     }
+  }
 
-    .profile-preview img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+  .upload-box.has-file {
+    animation: uploadSuccess 0.3s ease;
+  }
+</style>
 
-    .upload-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(118, 75, 162, 0.8);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      padding: 10px;
-    }
+<script>
+  // Create local placeholder images
+  function createPlaceholderSVG(text, width = 80, height = 50) {
+    const svg = `
+      <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="${width}" height="${height}" fill="#e9ecef"/>
+        <text x="${width / 2}" y="${
+      height / 2 + 4
+    }" font-family="Arial, sans-serif" font-size="12" fill="#6c757d" text-anchor="middle">${text}</text>
+      </svg>
+    `;
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
+  }
 
-    .upload-overlay i {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
-    }
+  document.addEventListener("DOMContentLoaded", function () {
+    // Set placeholder images locally
+    document.getElementById("aadharPreview").src =
+      createPlaceholderSVG("Aadhar");
+    document.getElementById("panPreview").src = createPlaceholderSVG("PAN");
 
-    .upload-overlay span {
-      font-size: 0.9rem;
-      font-weight: 600;
-      text-align: center;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-      margin-top: -5px;
-    }
+    // Role switching functionality
+    const headerCustomer = document.getElementById("headerCustomer");
+    const headerProvider = document.getElementById("headerProvider");
+    const roleInput = document.getElementById("roleInput");
+    const customerForm = document.getElementById("customerForm");
+    const providerForm = document.getElementById("providerForm");
+    const submitButtonText = document.getElementById("submitButtonText");
 
-    .upload-hint {
-      font-size: 0.875rem;
-      color: #6c757d;
-      text-align: center;
-      margin-top: 0.5rem;
-    }
+    function switchRole(role) {
+      roleInput.value = role;
 
-    .visually-hidden {
-      position: absolute !important;
-      width: 1px !important;
-      height: 1px !important;
-      padding: 0 !important;
-      margin: -1px !important;
-      overflow: hidden !important;
-      clip: rect(0, 0, 0, 0) !important;
-      white-space: nowrap !important;
-      border: 0 !important;
-    }
+      if (role === "customer") {
+        // Transfer values from provider fields to customer fields
+        const providerName =
+          document.getElementById("providerName").value || "";
+        const providerPhone =
+          document.getElementById("providerPhone").value || "";
 
-    .role-selector {
-      display: flex;
-      gap: 1rem;
-    }
+        if (providerName)
+          document.getElementById("customerName").value = providerName;
+        if (providerPhone)
+          document.getElementById("customerPhone").value = providerPhone;
 
-    .role-option {
-      flex: 1;
-    }
+        customerForm.classList.add("active");
+        providerForm.classList.remove("active");
+        submitButtonText.textContent = "Create Customer Account";
 
-    .role-option input[type="radio"] {
-      display: none;
-    }
+        // IMPORTANT: Disable provider form fields to prevent submission
+        providerForm
+          .querySelectorAll("input, select, textarea")
+          .forEach((input) => {
+            input.disabled = true;
+            input.removeAttribute("required");
+            input.classList.remove("is-invalid", "is-valid");
+          });
 
-    .role-option label {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 1.25rem;
-      border: 2px solid #e9ecef;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
+        // Enable customer form fields
+        customerForm
+          .querySelectorAll("input, select, textarea")
+          .forEach((input) => {
+            input.disabled = false;
+          });
 
-    .role-option input[type="radio"]:checked+label {
-      border-color: #667eea;
-      background-color: rgba(102, 126, 234, 0.05);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-    }
+        // Add customer validation
+        document
+          .getElementById("customerName")
+          .setAttribute("required", "required");
+        document
+          .getElementById("customerPhone")
+          .setAttribute("required", "required");
+      } else {
+        // Transfer values from customer fields to provider fields
+        const customerName =
+          document.getElementById("customerName").value || "";
+        const customerPhone =
+          document.getElementById("customerPhone").value || "";
 
-    .role-icon {
-      font-size: 2rem;
-      margin-bottom: 0.75rem;
-      color: #764ba2;
-      transition: transform 0.3s ease;
-    }
+        if (customerName)
+          document.getElementById("providerName").value = customerName;
+        if (customerPhone)
+          document.getElementById("providerPhone").value = customerPhone;
 
-    .role-option label:hover .role-icon {
-      transform: scale(1.2);
-    }
+        customerForm.classList.remove("active");
+        providerForm.classList.add("active");
+        submitButtonText.textContent = "Create Provider Account";
 
-    .role-name {
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
+        // IMPORTANT: Disable customer form fields to prevent submission
+        customerForm
+          .querySelectorAll("input, select, textarea")
+          .forEach((input) => {
+            input.disabled = true;
+            input.removeAttribute("required");
+            input.classList.remove("is-invalid", "is-valid");
+          });
 
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      padding: 0.75rem 1.5rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
+        // Enable provider form fields
+        providerForm
+          .querySelectorAll("input, select, textarea")
+          .forEach((input) => {
+            input.disabled = false;
+          });
 
-    .btn-primary:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
-    }
+        // Add provider validation
+        const requiredFields = [
+          "providerName",
+          "providerPhone",
+          "aadharCard",
+          "panCard",
+          "street",
+          "city",
+          "state",
+          "pincode",
+        ];
+        requiredFields.forEach((fieldId) => {
+          const field = document.getElementById(fieldId);
+          if (field) field.setAttribute("required", "required");
+        });
 
-    .btn-primary:disabled {
-      background: linear-gradient(135deg, #a5b1e9 0%, #b597cb 100%);
-      transform: none;
-      box-shadow: none;
-    }
-
-    .terms-policy {
-      font-size: 0.875rem;
-    }
-
-    .terms-policy a {
-      color: #764ba2;
-      text-decoration: none;
-    }
-
-    .terms-policy a:hover {
-      text-decoration: underline;
-    }
-
-    .password-strength .progress-bar {
-      transition: width 0.3s ease, background-color 0.3s ease;
-    }
-
-    @media (max-width: 767.98px) {
-      .auth-card {
-        margin: 1rem;
+        // Set document image requirements
+        document
+          .getElementById("aadharImage")
+          .setAttribute("required", "required");
+        document
+          .getElementById("panImage")
+          .setAttribute("required", "required");
       }
 
-      .auth-body {
-        padding: 1.5rem;
-      }
+      // Re-validate transferred fields
+      setTimeout(() => {
+        const activeForm = document.querySelector(".role-form.active");
+        if (!activeForm) return;
 
-      .role-selector {
-        flex-direction: column;
-        gap: 0.75rem;
-      }
-    }
-  </style>
+        const nameField = activeForm.querySelector(
+          'input[name="name"]:not([disabled])'
+        );
+        const phoneField = activeForm.querySelector(
+          'input[name="phone"]:not([disabled])'
+        );
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      // Profile image upload
-      const imagePreview = document.getElementById('imagePreview');
-      const previewImg = document.getElementById('previewImg');
-      const imageInput = document.getElementById('image');
-
-      imagePreview.addEventListener('click', () => {
-        imageInput.click();
-      });
-
-      imageInput.addEventListener('change', function () {
-        if (this.files && this.files[0]) {
-          // File size validation (5MB limit)
-          if (this.files[0].size > 5 * 1024 * 1024) {
-            alert('File size too large. Maximum size is 5MB.');
-            this.value = '';
-            return;
-          }
-
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            previewImg.src = e.target.result;
-          };
-          reader.readAsDataURL(this.files[0]);
-        }
-      });
-
-      const nameInput = document.getElementById('name');
-      nameInput.addEventListener('input', function () {
-        const namePattern = /^[A-Za-z\s]{2,50}$/;
-        const isValid = namePattern.test(this.value.trim());
-        validateField(this, isValid, 'Name should contain only letters and spaces (2-50 characters)');
-      });
-
-      // Email validation
-      const emailInput = document.getElementById('username');
-      emailInput.addEventListener('input', function () {
-        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-        const isValid = emailPattern.test(this.value.trim());
-        validateField(this, isValid, 'Please enter a valid email address');
-      });
-
-      // Address validation
-      const streetInput = document.getElementById('street');
-      streetInput.addEventListener('input', function () {
-        const isValid = this.value.trim().length >= 5;
-        validateField(this, isValid, 'Please enter a complete street address (minimum 5 characters)');
-      });
-
-      const cityInput = document.getElementById('city');
-      cityInput.addEventListener('input', function () {
-        const isValid = this.value.trim().length >= 2;
-        validateField(this, isValid, 'Please enter a valid city name');
-      });
-
-      const stateInput = document.getElementById('state');
-      stateInput.addEventListener('input', function () {
-        const isValid = this.value.trim().length >= 2;
-        validateField(this, isValid, 'Please enter a valid state name');
-      });
-
-      const pincodeInput = document.getElementById('pincode');
-      pincodeInput.addEventListener('input', function () {
-        // Remove non-numeric characters
-        this.value = this.value.replace(/[^0-9]/g, '');
-        
-        // Limit to 6 digits
-        if (this.value.length > 6) {
-          this.value = this.value.slice(0, 6);
+        if (nameField && nameField.value) {
+          const nameValue = nameField.value || "";
+          const isValidName = /^[A-Za-z\s]{2,50}$/.test(nameValue.trim());
+          validateField(nameField, isValidName);
         }
 
-        const isValid = /^[0-9]{6}$/.test(this.value);
-        validateField(this, isValid, 'Please enter a valid 6-digit pin code');
-      });
+        if (phoneField && phoneField.value) {
+          const phoneValue = phoneField.value || "";
+          const isValidPhone = /^[6-9][0-9]{9}$/.test(phoneValue);
+          validateField(phoneField, isValidPhone);
+        }
 
-      // Helper function for field validation
-      function validateField(field, isValid, errorMessage) {
-        // Clear existing validation classes and feedback
-        field.classList.remove('is-valid', 'is-invalid');
+        updateFormStatus();
+      }, 100);
+    }
 
-        const feedbackElement = field.parentNode.parentNode.querySelector('.invalid-feedback') || 
-                               field.parentNode.querySelector('.invalid-feedback');
+    // Role toggle events
+    headerCustomer.addEventListener("change", () => {
+      if (headerCustomer.checked) switchRole("customer");
+    });
+    headerProvider.addEventListener("change", () => {
+      if (headerProvider.checked) switchRole("provider");
+    });
 
-        if (field.value.trim() === '') {
-          // Don't show validation for empty fields until form submission
-          if (feedbackElement) feedbackElement.style.display = 'none';
-        } else {
-          // Show validation for non-empty fields
-          if (isValid) {
-            field.classList.add('is-valid');
-            if (feedbackElement) feedbackElement.style.display = 'none';
-          } else {
-            field.classList.add('is-invalid');
-            if (feedbackElement) {
-              feedbackElement.textContent = errorMessage;
-              feedbackElement.style.display = 'block';
+    // Image upload functionality
+    const uploads = [
+      {card: "profileUpload", input: "profileImage", preview: "profilePreview"},
+      {card: "aadharUpload", input: "aadharImage", preview: "aadharPreview"},
+      {card: "panUpload", input: "panImage", preview: "panPreview"},
+    ];
+
+    uploads.forEach((upload) => {
+      const card = document.getElementById(upload.card);
+      const input = document.getElementById(upload.input);
+      const preview = document.getElementById(upload.preview);
+
+      if (card && input && preview) {
+        card.addEventListener("click", () => input.click());
+
+        input.addEventListener("change", function () {
+          const uploadBox = this.closest(".upload-box");
+
+          if (this.files && this.files[0]) {
+            // File size validation (5MB limit)
+            if (this.files[0].size > 5 * 1024 * 1024) {
+              alert("File too large. Maximum 5MB allowed.");
+              this.value = "";
+              uploadBox.classList.remove("has-file");
+              uploadBox.classList.add("has-error");
+              return;
             }
+
+            // File type validation
+            const allowedTypes = [
+              "image/jpeg",
+              "image/jpg",
+              "image/png",
+              "image/gif",
+            ];
+            if (!allowedTypes.includes(this.files[0].type)) {
+              alert(
+                "Invalid file type. Please upload JPG, PNG, or GIF images only."
+              );
+              this.value = "";
+              uploadBox.classList.remove("has-file");
+              uploadBox.classList.add("has-error");
+              return;
+            }
+
+            // Preview image
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              preview.src = e.target.result;
+              uploadBox.classList.add("has-file");
+              uploadBox.classList.remove("has-error");
+
+              // Clear any validation errors
+              this.classList.remove("is-invalid");
+              this.classList.add("is-valid");
+
+              updateFormStatus();
+            };
+            reader.readAsDataURL(this.files[0]);
+          } else {
+            // Reset to placeholder when no file selected
+            uploadBox.classList.remove("has-file");
+            if (this.hasAttribute("required")) {
+              uploadBox.classList.add("has-error");
+              this.classList.add("is-invalid");
+            }
+
+            // Reset placeholder image
+            if (upload.input === "aadharImage") {
+              preview.src = createPlaceholderSVG("Aadhar");
+            } else if (upload.input === "panImage") {
+              preview.src = createPlaceholderSVG("PAN");
+            }
+
+            updateFormStatus();
           }
+        });
+      }
+    });
+
+    // Validation functions
+    function validateField(field, isValid) {
+      if (!field) return;
+
+      field.classList.remove("is-valid", "is-invalid");
+      const fieldValue = field.value || "";
+
+      if (fieldValue.trim() === "") {
+        if (field.hasAttribute("required")) {
+          field.classList.add("is-invalid");
         }
+        updateFormStatus();
+        return;
       }
 
-      // Form submission validation
-      const form = document.querySelector('.needs-validation');
-      form.addEventListener('submit', function (event) {
-        if (!form.checkValidity()) {
-          event.preventDefault();
-          event.stopPropagation();
+      field.classList.add(isValid ? "is-valid" : "is-invalid");
+      updateFormStatus();
+    }
 
-          // Find and focus the first invalid field
-          const invalidField = form.querySelector(':invalid');
-          if (invalidField) invalidField.focus();
-        }
-        form.classList.add('was-validated');
-      });
+    // Phone validation for both forms
+    document.querySelectorAll('input[name="phone"]').forEach((input) => {
+      input.addEventListener("input", function () {
+        // Ensure value exists before processing
+        const inputValue = this.value || "";
 
-      // Password visibility toggle
-      const togglePassword = document.querySelector('.toggle-password');
-      const passwordInput = document.getElementById('password');
+        // Allow only numbers and limit to 10 digits
+        this.value = inputValue.replace(/[^0-9]/g, "").slice(0, 10);
+        const isValid = /^[6-9][0-9]{9}$/.test(this.value);
+        validateField(this, isValid);
 
-      togglePassword.addEventListener('click', function () {
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-
-        // Toggle icon
-        const icon = this.querySelector('i');
-        icon.classList.toggle('fa-eye');
-        icon.classList.toggle('fa-eye-slash');
-      });
-
-      // Password strength meter
-      const passwordStrength = document.getElementById('passwordStrength');
-      const progressBar = passwordStrength.querySelector('.progress-bar');
-      const strengthText = passwordStrength.querySelector('.form-text');
-
-      passwordInput.addEventListener('input', function () {
-        const password = this.value;
-        let strength = 0;
-        let tips = '';
-
-        // Length check
-        if (password.length >= 8) {
-          strength += 25;
-        }
-
-        // Contains lowercase
-        if (password.match(/[a-z]/)) {
-          strength += 25;
-        }
-
-        // Contains uppercase
-        if (password.match(/[A-Z]/)) {
-          strength += 25;
-        }
-
-        // Contains number or special char
-        if (password.match(/[0-9]/) || password.match(/[^a-zA-Z0-9]/)) {
-          strength += 25;
-        }
-
-        // Update progress bar
-        progressBar.style.width = `${strength}%`;
-
-        // Set color based on strength
-        if (strength <= 25) {
-          progressBar.style.backgroundColor = '#dc3545';
-          tips = 'Very weak password. Try adding numbers and symbols.';
-        } else if (strength <= 50) {
-          progressBar.style.backgroundColor = '#ffc107';
-          tips = 'Add uppercase letters and symbols for stronger password.';
-        } else if (strength <= 75) {
-          progressBar.style.backgroundColor = '#17a2b8';
-          tips = 'Good password. Try adding more variety of characters.';
-        } else {
-          progressBar.style.backgroundColor = '#28a745';
-          tips = 'Strong password! Great job.';
-        }
-
-        strengthText.textContent = tips;
-      });
-
-      // Terms checkbox validation
-      const agreeTerms = document.getElementById('agreeTerms');
-      const registerButton = document.getElementById('registerButton');
-      
-      // Add this to your script
-      function updateFormStatus() {
-        const formFields = form.querySelectorAll('input[required]');
-        const formStatus = document.getElementById('formStatus');
-        const formStatusMessage = document.getElementById('formStatusMessage');
-
-        const incompleteFields = Array.from(formFields)
-          .filter(field => !field.value.trim() || field.classList.contains('is-invalid'))
-          .map(field => field.labels[0]?.textContent || 'Unknown field');
-
-        if (incompleteFields.length > 0) {
-          formStatus.classList.remove('d-none');
-          formStatus.querySelector('.alert').className = 'alert alert-warning';
-          formStatusMessage.textContent = `Please complete these fields: ${incompleteFields.join(', ')}`;
-          return false;
-        } else if (!agreeTerms.checked) {
-          formStatus.classList.remove('d-none');
-          formStatus.querySelector('.alert').className = 'alert alert-info';
-          formStatusMessage.textContent = 'Please agree to the Terms of Service and Privacy Policy';
-          return false;
-        } else {
-          formStatus.classList.add('d-none');
-          return true;
-        }
-      }
-
-      // Call this when any form field changes
-      const formFields = form.querySelectorAll('input');
-      formFields.forEach(field => {
-        field.addEventListener('change', updateFormStatus);
-        field.addEventListener('input', updateFormStatus);
-      });
-      
-      agreeTerms.addEventListener('change', function () {
-        registerButton.disabled = !this.checked;
-      });
-
-      // Phone number validation
-      const phoneInput = document.getElementById('phone');
-
-      phoneInput.addEventListener('input', function () {
-        // Remove non-numeric characters
-        this.value = this.value.replace(/[^0-9]/g, '');
-
-        // Limit to 10 digits
-        if (this.value.length > 10) {
-          this.value = this.value.slice(0, 10);
+        // Sync values between customer and provider phone fields with null checks
+        if (this.id === "customerPhone") {
+          const providerPhone = document.getElementById("providerPhone");
+          if (providerPhone) {
+            providerPhone.value = this.value;
+          }
+        } else if (this.id === "providerPhone") {
+          const customerPhone = document.getElementById("customerPhone");
+          if (customerPhone) {
+            customerPhone.value = this.value;
+          }
         }
       });
     });
-  </script>
+
+    // Name validation for both forms
+    document.querySelectorAll('input[name="name"]').forEach((input) => {
+      input.addEventListener("input", function () {
+        // Check if value exists before calling trim
+        const inputValue = this.value || "";
+        const isValid = /^[A-Za-z\s]{2,50}$/.test(inputValue.trim());
+        validateField(this, isValid);
+
+        // Sync values between customer and provider name fields
+        if (this.id === "customerName") {
+          const providerName = document.getElementById("providerName");
+          if (providerName) {
+            providerName.value = inputValue;
+          }
+        } else if (this.id === "providerName") {
+          const customerName = document.getElementById("customerName");
+          if (customerName) {
+            customerName.value = inputValue;
+          }
+        }
+      });
+    });
+
+    // Email validation (optional field)
+    const emailInput = document.getElementById("email");
+    if (emailInput) {
+      emailInput.addEventListener("input", function () {
+        const emailValue = this.value || "";
+        if (emailValue.trim() === "") {
+          this.classList.remove("is-valid", "is-invalid");
+          updateFormStatus();
+          return;
+        }
+        const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue);
+        validateField(this, isValid);
+      });
+    }
+
+    // Aadhar validation
+    const aadharInput = document.getElementById("aadharCard");
+    if (aadharInput) {
+      aadharInput.addEventListener("input", function () {
+        // Allow only numbers and limit to 12 digits
+        const inputValue = this.value || "";
+        this.value = inputValue.replace(/[^0-9]/g, "").slice(0, 12);
+        const isValid = /^[0-9]{12}$/.test(this.value);
+        validateField(this, isValid);
+      });
+    }
+
+    // PAN validation
+    const panInput = document.getElementById("panCard");
+    if (panInput) {
+      panInput.addEventListener("input", function () {
+        // Format: ABCDE1234F
+        const inputValue = this.value || "";
+        this.value = inputValue
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, "")
+          .slice(0, 10);
+        const isValid = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(this.value);
+        validateField(this, isValid);
+      });
+    }
+
+    // Pin code validation
+    const pincodeInput = document.getElementById("pincode");
+    if (pincodeInput) {
+      pincodeInput.addEventListener("input", function () {
+        // Allow only numbers and limit to 6 digits
+        const inputValue = this.value || "";
+        this.value = inputValue.replace(/[^0-9]/g, "").slice(0, 6);
+        const isValid = /^[0-9]{6}$/.test(this.value);
+        validateField(this, isValid);
+      });
+    }
+
+    // Address validation
+    ["street", "city", "state"].forEach((fieldName) => {
+      const field = document.getElementById(fieldName);
+      if (field) {
+        field.addEventListener("input", function () {
+          const minLength = fieldName === "street" ? 5 : 2;
+          const fieldValue = this.value || "";
+          const isValid = fieldValue.trim().length >= minLength;
+          validateField(this, isValid);
+        });
+      }
+    });
+
+    // Form status and validation
+    const formStatus = document.getElementById("formStatus");
+    const formStatusMessage = document.getElementById("formStatusMessage");
+    const registerButton = document.getElementById("registerButton");
+    const agreeTerms = document.getElementById("agreeTerms");
+
+    function updateFormStatus() {
+      const activeForm = document.querySelector(".role-form.active");
+      if (!activeForm) return;
+
+      const requiredFields = activeForm.querySelectorAll(
+        "input[required]:not([disabled])"
+      );
+
+      // Check text inputs
+      const incompleteTextFields = Array.from(requiredFields).filter(
+        (field) => {
+          if (field.type === "file") return false; // Handle files separately
+          const fieldValue = field.value || "";
+          return !fieldValue.trim() || field.classList.contains("is-invalid");
+        }
+      );
+
+      // Check required file uploads for providers
+      let missingFiles = 0;
+      if (roleInput.value === "provider") {
+        const aadharFile = document.getElementById("aadharImage");
+        const panFile = document.getElementById("panImage");
+
+        if (
+          aadharFile &&
+          aadharFile.hasAttribute("required") &&
+          !aadharFile.disabled &&
+          !aadharFile.files.length
+        )
+          missingFiles++;
+        if (
+          panFile &&
+          panFile.hasAttribute("required") &&
+          !panFile.disabled &&
+          !panFile.files.length
+        )
+          missingFiles++;
+      }
+
+      const totalIssues =
+        incompleteTextFields.length +
+        missingFiles +
+        (agreeTerms.checked ? 0 : 1);
+
+      if (totalIssues > 0) {
+        formStatus.classList.remove("d-none");
+        registerButton.disabled = true;
+
+        if (missingFiles > 0) {
+          formStatusMessage.textContent = `Please upload required document images (${missingFiles} missing)`;
+        } else if (!agreeTerms.checked) {
+          formStatusMessage.textContent =
+            "Please agree to terms and conditions";
+        } else if (incompleteTextFields.length > 0) {
+          formStatusMessage.textContent = `${incompleteTextFields.length} field(s) need to be completed`;
+        } else {
+          formStatusMessage.textContent = "Please complete all required fields";
+        }
+      } else {
+        formStatus.classList.add("d-none");
+        registerButton.disabled = false;
+      }
+    }
+
+    agreeTerms.addEventListener("change", updateFormStatus);
+
+    // Form submission handling
+    document
+      .querySelector(".needs-validation")
+      .addEventListener("submit", function (event) {
+        const activeForm = document.querySelector(".role-form.active");
+        if (!activeForm) {
+          event.preventDefault();
+          return false;
+        }
+
+        const activeFields = activeForm.querySelectorAll(
+          "input[required]:not([disabled])"
+        );
+
+        // Check if all required fields in active form are filled and valid
+        let hasErrors = false;
+
+        activeFields.forEach((field) => {
+          if (!field) return; // Skip if field is null
+
+          if (field.type === "file") {
+            if (!field.files.length) {
+              field.classList.add("is-invalid");
+              hasErrors = true;
+            }
+          } else {
+            const fieldValue = field.value || "";
+            if (!fieldValue.trim() || field.classList.contains("is-invalid")) {
+              field.classList.add("is-invalid");
+              hasErrors = true;
+            }
+          }
+        });
+
+        // Check terms agreement
+        if (!agreeTerms || !agreeTerms.checked) {
+          hasErrors = true;
+        }
+
+        if (hasErrors) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          // Show validation errors
+          this.classList.add("was-validated");
+
+          // Focus on first invalid field in active form
+          const firstInvalid = activeForm.querySelector(
+            ".is-invalid, :invalid"
+          );
+          if (firstInvalid) {
+            firstInvalid.focus();
+            firstInvalid.scrollIntoView({behavior: "smooth", block: "center"});
+          }
+
+          updateFormStatus();
+          return false;
+        }
+
+        // Show loading state
+        const registerButton = document.getElementById("registerButton");
+        if (registerButton) {
+          registerButton.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-2"></i>Creating Account...';
+          registerButton.disabled = true;
+        }
+      });
+
+    // Initialize
+    switchRole("customer");
+    updateFormStatus();
+  });
+</script>
