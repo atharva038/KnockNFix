@@ -44,7 +44,7 @@ const checkRateLimit = (phoneNumber, limitMinutes = 1) => {
   return {allowed: true};
 };
 
-// Send OTP using the approved KnockNFixOTP template
+// Send OTP using the approved KnockNFixOTP template - FORCE SMS
 const sendSmsOTP = async (phoneNumber, skipRateLimit = false) => {
   try {
     // Check rate limiting (unless skipped for resend)
@@ -61,18 +61,15 @@ const sendSmsOTP = async (phoneNumber, skipRateLimit = false) => {
 
     // Check if 2Factor API key is configured
     if (!process.env.TWOFACTOR_API_KEY) {
-      // Development mode fallback - generate dummy OTP for testing
+      // Development mode fallback
       if (process.env.NODE_ENV === "development") {
         const dummyOTP = generateOTP();
         console.log(`📱 [DEV MODE] SMS OTP for ${phoneNumber}: ${dummyOTP}`);
-        console.log(
-          "💡 Use this OTP for testing (2Factor API key not configured)"
-        );
         return {
           success: true,
           dev_mode: true,
           sessionId: `dev_session_${Date.now()}`,
-          otp: dummyOTP, // For development testing
+          otp: dummyOTP,
         };
       }
       throw new Error("2Factor API key not configured");
@@ -80,106 +77,151 @@ const sendSmsOTP = async (phoneNumber, skipRateLimit = false) => {
 
     // Format phone number for 2Factor.in
     let formattedPhone = phoneNumber.toString().trim();
-
-    // Remove any non-digit characters
     formattedPhone = formattedPhone.replace(/\D/g, "");
 
-    // Remove country code if present
     if (formattedPhone.startsWith("91") && formattedPhone.length === 12) {
       formattedPhone = formattedPhone.substring(2);
     }
 
-    // Validate Indian phone number format (exactly 10 digits starting with 6-9)
     if (!/^[6-9]\d{9}$/.test(formattedPhone)) {
-      throw new Error(
-        `Invalid Indian phone number format: ${formattedPhone}. Must be exactly 10 digits starting with 6-9.`
-      );
+      throw new Error(`Invalid Indian phone number format: ${formattedPhone}`);
     }
 
     console.log(
       `📱 Sending SMS OTP to: ${formattedPhone} using KnockNFixOTP template`
     );
 
-    // Use the approved template: KnockNFixOTP
-    const apiUrl = `https://2factor.in/API/V1/${process.env.TWOFACTOR_API_KEY}/SMS/${formattedPhone}/AUTOGEN/KnockNFixOTP`;
+    // **METHOD 1: Try template-based SMS first**
+    const templateUrl = `https://2factor.in/API/V1/${process.env.TWOFACTOR_API_KEY}/SMS/${formattedPhone}/AUTOGEN/KnockNFixOTP`;
 
     console.log(
-      `🔗 API URL: https://2factor.in/API/V1/[API_KEY]/SMS/${formattedPhone}/AUTOGEN/KnockNFixOTP`
-    );
-    console.log(
-      `📱 Phone validation: Input=${phoneNumber}, Formatted=${formattedPhone}, Length=${formattedPhone.length}`
+      `🔗 Template API URL: https://2factor.in/API/V1/[API_KEY]/SMS/${formattedPhone}/AUTOGEN/KnockNFixOTP`
     );
 
-    // Make API request with GET method
-    const response = await axios.get(apiUrl, {
-      timeout: 15000, // 15 second timeout
-      headers: {
-        "User-Agent": "KnockNFix/1.0",
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      const templateResponse = await axios.get(templateUrl, {
+        timeout: 15000,
+        headers: {
+          "User-Agent": "KnockNFix/1.0",
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
 
-    console.log("✅ 2Factor.in SMS API response:", response.data);
+      console.log("✅ Template SMS API response:", templateResponse.data);
 
-    // Check response status
-    if (response.data && response.data.Status === "Success") {
+      if (templateResponse.data && templateResponse.data.Status === "Success") {
+        console.log(
+          `✅ Template SMS OTP sent successfully to ${formattedPhone}`
+        );
+        return {
+          success: true,
+          sessionId: templateResponse.data.Details,
+          provider: "2Factor.in",
+          method: "Template SMS (KnockNFixOTP)",
+          phone: formattedPhone,
+          template: "KnockNFixOTP",
+        };
+      } else {
+        console.warn("⚠️ Template SMS failed, trying manual OTP...");
+        throw new Error("Template SMS failed");
+      }
+    } catch (templateError) {
+      console.warn("⚠️ Template SMS failed:", templateError.message);
+
+      // **METHOD 2: Try manual OTP with SMS-specific endpoint**
+      const manualOTP = generateOTP();
+      const manualSmsUrl = `https://2factor.in/API/V1/${process.env.TWOFACTOR_API_KEY}/SMS/${formattedPhone}/${manualOTP}`;
+
       console.log(
-        `✅ SMS OTP sent successfully to ${formattedPhone} using KnockNFixOTP template`
+        `📱 Trying manual SMS OTP: ${manualOTP} to ${formattedPhone}`
       );
-      return {
-        success: true,
-        sessionId: response.data.Details, // Session ID for verification
-        provider: "2Factor.in",
-        method: "AUTOGEN SMS with KnockNFixOTP template",
-        phone: formattedPhone,
-        template: "KnockNFixOTP",
-      };
-    } else {
-      console.warn(
-        `⚠️ 2Factor.in API returned non-success status:`,
-        response.data
+      console.log(
+        `🔗 Manual SMS URL: https://2factor.in/API/V1/[API_KEY]/SMS/${formattedPhone}/${manualOTP}`
       );
-      throw new Error(
-        response.data?.Details ||
-          "SMS sending failed - invalid response from 2Factor.in"
-      );
+
+      try {
+        const manualResponse = await axios.get(manualSmsUrl, {
+          timeout: 15000,
+          headers: {
+            "User-Agent": "KnockNFix/1.0",
+            Accept: "application/json",
+          },
+        });
+
+        console.log("✅ Manual SMS API response:", manualResponse.data);
+
+        if (manualResponse.data && manualResponse.data.Status === "Success") {
+          console.log(
+            `✅ Manual SMS OTP sent successfully to ${formattedPhone}`
+          );
+          return {
+            success: true,
+            sessionId: manualResponse.data.Details,
+            provider: "2Factor.in",
+            method: "Manual SMS",
+            phone: formattedPhone,
+            otp: manualOTP, // Include OTP for manual verification
+            manual: true,
+          };
+        } else {
+          throw new Error(manualResponse.data?.Details || "Manual SMS failed");
+        }
+      } catch (manualError) {
+        console.error(
+          "❌ Both template and manual SMS failed:",
+          manualError.message
+        );
+
+        // **METHOD 3: Try with explicit SMS type parameter**
+        const explicitSmsUrl = `https://2factor.in/API/V1/${process.env.TWOFACTOR_API_KEY}/SMS/${formattedPhone}/${manualOTP}/SMS`;
+
+        console.log(`📱 Trying explicit SMS type to ${formattedPhone}`);
+
+        try {
+          const explicitResponse = await axios.get(explicitSmsUrl, {
+            timeout: 15000,
+            headers: {
+              "User-Agent": "KnockNFix/1.0",
+              Accept: "application/json",
+            },
+          });
+
+          console.log("✅ Explicit SMS API response:", explicitResponse.data);
+
+          if (
+            explicitResponse.data &&
+            explicitResponse.data.Status === "Success"
+          ) {
+            console.log(
+              `✅ Explicit SMS OTP sent successfully to ${formattedPhone}`
+            );
+            return {
+              success: true,
+              sessionId: explicitResponse.data.Details,
+              provider: "2Factor.in",
+              method: "Explicit SMS",
+              phone: formattedPhone,
+              otp: manualOTP,
+              manual: true,
+            };
+          }
+        } catch (explicitError) {
+          console.error("❌ All SMS methods failed:", explicitError.message);
+        }
+
+        throw new Error("All SMS delivery methods failed");
+      }
     }
   } catch (error) {
     console.error("❌ SMS sending error:", error);
 
-    // Handle different types of errors
     if (error.response) {
-      // API responded with error status
       const errorData = error.response.data;
-      console.error("SMS API Error Response:", errorData);
-
       let errorMessage = "SMS service error";
+
       if (errorData?.Details) {
         errorMessage = errorData.Details;
-
-        // Provide specific error messages for common issues
-        if (errorData.Details.includes("Length Mismatch")) {
-          errorMessage =
-            "Invalid phone number format. Please check your phone number.";
-        } else if (errorData.Details.includes("Invalid Phone Number")) {
-          errorMessage =
-            "Invalid phone number. Please enter a valid 10-digit Indian mobile number.";
-        } else if (errorData.Details.includes("Invalid Template")) {
-          errorMessage =
-            "SMS template error. Please contact support if this persists.";
-        } else if (errorData.Details.includes("Template not found")) {
-          errorMessage = "SMS template not found. Please contact support.";
-        } else if (errorData.Details.includes("Invalid")) {
-          errorMessage =
-            "Invalid request. Please check your phone number format.";
-        }
-      } else if (error.response.status === 401) {
-        errorMessage = "Invalid 2Factor API key";
-      } else if (error.response.status === 429) {
-        errorMessage = "Rate limit exceeded - too many requests";
-      } else if (error.response.status === 400) {
-        errorMessage = "Invalid phone number format or API request";
       }
 
       return {
@@ -187,21 +229,12 @@ const sendSmsOTP = async (phoneNumber, skipRateLimit = false) => {
         error: errorMessage,
         statusCode: error.response.status,
       };
-    } else if (error.request) {
-      // Network error - no response received
-      console.error("Network Error - No response from 2Factor.in API");
-      return {
-        success: false,
-        error:
-          "Network error - unable to reach SMS service. Please check your internet connection.",
-      };
-    } else {
-      // Other error (validation, etc.)
-      return {
-        success: false,
-        error: error.message || "Unknown error occurred while sending SMS",
-      };
     }
+
+    return {
+      success: false,
+      error: error.message || "SMS sending failed",
+    };
   }
 };
 
@@ -268,11 +301,46 @@ const sendSimpleSmsOTP = async (phoneNumber) => {
   }
 };
 
-// Verify AUTOGEN OTP using 2Factor.in API
+// Debug function to test KnockNFixOTP template
+const testKnockNFixTemplate = async (phoneNumber = "9156906881") => {
+  console.log("\n=== KnockNFixOTP Template Test ===");
+  console.log("Template Name: KnockNFixOTP");
+  console.log("Template Status: APPROVED");
+  console.log("Company: KnockNFix");
+  console.log("Sender ID: KNKNFX");
+  console.log(`Testing with phone: ${phoneNumber}`);
+
+  // Test phone validation
+  const validation = validatePhoneNumber(phoneNumber);
+  console.log("Phone validation:", validation);
+
+  if (!validation.isValid) {
+    console.log("❌ Phone number is invalid, skipping SMS test");
+    return;
+  }
+
+  // Test template SMS sending
+  console.log("Testing KnockNFixOTP template SMS...");
+  const smsResult = await sendSmsOTP(phoneNumber);
+  console.log("Template SMS Result:", smsResult);
+
+  if (smsResult.success && smsResult.dev_mode && smsResult.otp) {
+    console.log(`💡 Use this OTP for testing: ${smsResult.otp}`);
+
+    // Test OTP verification in dev mode
+    const verifyResult = await verifyOTPWithProvider(
+      smsResult.sessionId,
+      smsResult.otp
+    );
+    console.log("Verification Result:", verifyResult);
+  }
+
+  console.log("====================================\n");
+};
+// Verify OTP - handle both AUTOGEN and manual OTPs
 const verifyOTPWithProvider = async (sessionId, otp) => {
   try {
     if (!process.env.TWOFACTOR_API_KEY) {
-      // Development mode - accept any 6-digit OTP
       if (process.env.NODE_ENV === "development") {
         if (/^\d{6}$/.test(otp)) {
           console.log(
@@ -296,6 +364,12 @@ const verifyOTPWithProvider = async (sessionId, otp) => {
     console.log(
       `🔍 Verifying OTP with 2Factor.in. Session ID: ${sessionId}, OTP: ${otp}`
     );
+
+    // **For manual OTPs, we might need to use different verification**
+    if (sessionId.includes("manual") || sessionId.includes("explicit")) {
+      // For manual OTPs, the session ID might work differently
+      console.log("🔍 Using standard verification for manual OTP");
+    }
 
     const apiUrl = `https://2factor.in/API/V1/${process.env.TWOFACTOR_API_KEY}/SMS/VERIFY/${sessionId}/${otp}`;
 
@@ -378,43 +452,6 @@ const resendOTP = async (phoneNumber) => {
       error: error.message || "Failed to resend OTP",
     };
   }
-};
-
-// Debug function to test KnockNFixOTP template
-const testKnockNFixTemplate = async (phoneNumber = "9156906881") => {
-  console.log("\n=== KnockNFixOTP Template Test ===");
-  console.log("Template Name: KnockNFixOTP");
-  console.log("Template Status: APPROVED");
-  console.log("Company: KnockNFix");
-  console.log("Sender ID: KNKNFX");
-  console.log(`Testing with phone: ${phoneNumber}`);
-
-  // Test phone validation
-  const validation = validatePhoneNumber(phoneNumber);
-  console.log("Phone validation:", validation);
-
-  if (!validation.isValid) {
-    console.log("❌ Phone number is invalid, skipping SMS test");
-    return;
-  }
-
-  // Test template SMS sending
-  console.log("Testing KnockNFixOTP template SMS...");
-  const smsResult = await sendSmsOTP(phoneNumber);
-  console.log("Template SMS Result:", smsResult);
-
-  if (smsResult.success && smsResult.dev_mode && smsResult.otp) {
-    console.log(`💡 Use this OTP for testing: ${smsResult.otp}`);
-
-    // Test OTP verification in dev mode
-    const verifyResult = await verifyOTPWithProvider(
-      smsResult.sessionId,
-      smsResult.otp
-    );
-    console.log("Verification Result:", verifyResult);
-  }
-
-  console.log("====================================\n");
 };
 
 // Debug function to test phone number formatting

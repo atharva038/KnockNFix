@@ -5,6 +5,7 @@ const ServiceProvider = require("../models/ServiceProvider");
 const cloudinary = require("cloudinary").v2;
 const {sendSmsOTP, verifyOTPWithProvider, resendOTP} = require("../utils/otp");
 const crypto = require("crypto");
+const {notifyAdminNewProvider} = require("../utils/adminNotifications");
 
 const authController = {
   // Render registration form
@@ -316,7 +317,6 @@ const authController = {
     });
   },
 
-  // Handle OTP verification
   handleVerifyOTP: async (req, res) => {
     try {
       const {phoneOTP} = req.body;
@@ -382,8 +382,14 @@ const authController = {
       const tempPassword = crypto.randomBytes(16).toString("hex");
       const registeredUser = await User.register(newUser, tempPassword);
 
+      // 🔥 UPDATE: Different status based on role
+      let userStatus = "active";
+      if (userData.role === "provider") {
+        userStatus = "pending_approval"; // Providers need admin approval
+      }
+
       await User.findByIdAndUpdate(registeredUser._id, {
-        status: "active",
+        status: userStatus,
         isPhoneVerified: true,
       });
 
@@ -412,7 +418,12 @@ const authController = {
           panCard: userData.providerData.panCard,
           aadharImage: userData.providerData.aadharImage,
           panImage: userData.providerData.panImage,
-          isVerified: false,
+          // 🔥 NEW: Set to pending with no access
+          verificationStatus: "pending",
+          canRegisterServices: false,
+          dashboardAccess: false,
+          canReceiveBookings: false,
+          canAccessPayouts: false,
           businessAddress: userData.addresses[0],
           documentVerification: {
             aadharVerified: false,
@@ -420,9 +431,14 @@ const authController = {
             imagesVerified: false,
             allDocumentsVerified: false,
           },
+          // Legacy fields for backward compatibility
+          isVerified: false,
         });
 
         await newProvider.save();
+
+        // 🔥 NEW: Notify admin about new provider registration
+        await notifyAdminNewProvider(registeredUser._id);
       }
 
       await OTP.deleteOne({phone});
@@ -431,10 +447,11 @@ const authController = {
       delete req.session.userRole;
       delete req.session.otpSessionId;
 
+      // 🔥 UPDATE: Different success messages
       const successMessage =
         userData.role === "customer"
           ? "🎉 Account created successfully! You can now log in."
-          : "🎉 Provider account created successfully! Your documents will be verified by admin before service activation.";
+          : "🎉 Provider account created successfully! Your account is pending admin approval. You will be notified once verified.";
 
       req.flash("success", successMessage);
       res.redirect("/login");
@@ -575,7 +592,7 @@ const authController = {
     });
   },
 
-  // Handle login
+  // 🔥 UPDATED: Handle login with approval status checks
   handleLogin: async (req, res, next) => {
     try {
       const {phone} = req.body;
@@ -586,11 +603,40 @@ const authController = {
         return res.redirect("/login");
       }
 
+      // 🔥 NEW: Check user status before allowing login
+      if (user.status === "pending_approval") {
+        req.flash(
+          "error",
+          "⏳ Your account is pending admin approval. Please wait for verification."
+        );
+        return res.redirect("/login");
+      }
+
+      if (user.status === "rejected") {
+        const reason =
+          user.approvalStatus?.rejectionReason ||
+          "Please contact support for details.";
+        req.flash(
+          "error",
+          `❌ Your account has been rejected. Reason: ${reason}`
+        );
+        return res.redirect("/login");
+      }
+
+      if (user.status === "suspended") {
+        req.flash(
+          "error",
+          "🚫 Your account has been suspended. Please contact support."
+        );
+        return res.redirect("/login");
+      }
+
       if (user.status !== "active") {
         req.flash("error", "Account is not active. Please contact support.");
         return res.redirect("/login");
       }
 
+      // ... rest of existing login code ...
       const smsResult = await sendSmsOTP(phone);
 
       if (!smsResult.success) {
@@ -677,7 +723,6 @@ const authController = {
     }
   },
 
-  // Handle login OTP verification
   handleVerifyLoginOTP: async (req, res, next) => {
     try {
       const {phoneOTP} = req.body;
@@ -753,6 +798,22 @@ const authController = {
         return res.redirect("/register");
       }
 
+      // 🔥 ADDITIONAL CHECK: Verify user status again during login verification
+      if (user.status === "pending_approval") {
+        req.flash("error", "⏳ Your account is still pending admin approval.");
+        return res.redirect("/login");
+      }
+
+      if (user.status === "rejected") {
+        const reason =
+          user.approvalStatus?.rejectionReason || "Please contact support.";
+        req.flash(
+          "error",
+          `❌ Your account has been rejected. Reason: ${reason}`
+        );
+        return res.redirect("/login");
+      }
+
       if (user.status !== "active") {
         req.flash("error", "Account is not active. Please contact support.");
         return res.redirect("/login");
@@ -777,7 +838,23 @@ const authController = {
         delete req.session.loginUserId;
 
         req.flash("success", `Welcome back, ${user.name}!`);
-        return res.redirect("/");
+
+        // 🔥 NEW: Redirect based on user role and status
+        if (user.role === "provider") {
+          // Check if provider has dashboard access
+          const serviceProvider = await ServiceProvider.findOne({
+            user: user._id,
+          });
+          if (serviceProvider && serviceProvider.dashboardAccess) {
+            return res.redirect("/provider/dashboard");
+          } else {
+            return res.redirect("/provider/pending-approval");
+          }
+        } else if (user.role === "admin") {
+          return res.redirect("/admin/dashboard");
+        } else {
+          return res.redirect("/");
+        }
       });
     } catch (err) {
       req.flash("error", "Login verification failed. Please try again.");
@@ -1040,6 +1117,7 @@ const authController = {
 
   // API METHODS
 
+  // 🔥 UPDATED: API Login with approval checks
   handleLoginAPI: async (req, res) => {
     try {
       const phone = authController.extractValue(req.body.phone);
@@ -1059,13 +1137,44 @@ const authController = {
         });
       }
 
+      // 🔥 NEW: Check user status for API login
+      if (user.status === "pending_approval") {
+        return res.status(403).json({
+          success: false,
+          error:
+            "⏳ Your account is pending admin approval. Please wait for verification.",
+          status: "pending_approval",
+        });
+      }
+
+      if (user.status === "rejected") {
+        const reason =
+          user.approvalStatus?.rejectionReason ||
+          "Please contact support for details.";
+        return res.status(403).json({
+          success: false,
+          error: `❌ Your account has been rejected. Reason: ${reason}`,
+          status: "rejected",
+        });
+      }
+
+      if (user.status === "suspended") {
+        return res.status(403).json({
+          success: false,
+          error: "🚫 Your account has been suspended. Please contact support.",
+          status: "suspended",
+        });
+      }
+
       if (user.status !== "active") {
         return res.status(403).json({
           success: false,
           error: "Account is not active. Please contact support.",
+          status: user.status,
         });
       }
 
+      // ... rest of existing API login code ...
       const smsResult = await sendSmsOTP(phone);
 
       if (!smsResult.success) {
@@ -1106,7 +1215,7 @@ const authController = {
     }
   },
 
-  // API version of handleVerifyLoginOTP
+  // 🔥 FIXED: API version of handleVerifyLoginOTP with status checks
   handleVerifyLoginOTPAPI: async (req, res) => {
     try {
       const {phoneOTP} = req.body;
@@ -1157,6 +1266,33 @@ const authController = {
         });
       }
 
+      // 🔥 FIX: Check user status again during API login verification
+      if (user.status === "pending_approval") {
+        return res.status(403).json({
+          success: false,
+          error: "⏳ Your account is still pending admin approval.",
+          status: "pending_approval",
+        });
+      }
+
+      if (user.status === "rejected") {
+        const reason =
+          user.approvalStatus?.rejectionReason || "Please contact support.";
+        return res.status(403).json({
+          success: false,
+          error: `❌ Your account has been rejected. Reason: ${reason}`,
+          status: "rejected",
+        });
+      }
+
+      if (user.status !== "active") {
+        return res.status(403).json({
+          success: false,
+          error: "Account is not active. Please contact support.",
+          status: user.status,
+        });
+      }
+
       await User.findByIdAndUpdate(user._id, {lastLogin: new Date()});
 
       delete req.session.loginPhone;
@@ -1166,9 +1302,18 @@ const authController = {
 
       req.session.userId = user._id;
 
+      // 🔥 FIX: Smart redirection based on role and permissions
       let redirectUrl = "/";
       if (user.role === "provider") {
-        redirectUrl = "/provider/dashboard";
+        // Check if provider has dashboard access
+        const serviceProvider = await ServiceProvider.findOne({user: user._id});
+        if (serviceProvider && serviceProvider.dashboardAccess) {
+          redirectUrl = "/provider/dashboard";
+        } else {
+          redirectUrl = "/provider/pending-approval";
+        }
+      } else if (user.role === "admin") {
+        redirectUrl = "/admin/dashboard";
       } else if (user.role === "customer") {
         redirectUrl = "/customer/dashboard";
       }
@@ -1181,6 +1326,7 @@ const authController = {
           name: user.name,
           phone: user.phone,
           role: user.role,
+          status: user.status, // 🔥 ADD STATUS
         },
         redirectUrl: redirectUrl,
       });
@@ -1371,7 +1517,7 @@ const authController = {
     }
   },
 
-  // API version of handleVerifyOTP
+  // 🔥 FIXED: API version of handleVerifyOTP with admin approval workflow
   handleVerifyOTPAPI: async (req, res) => {
     try {
       const {phoneOTP} = req.body;
@@ -1438,20 +1584,26 @@ const authController = {
       const tempPassword = crypto.randomBytes(16).toString("hex");
       const registeredUser = await User.register(newUser, tempPassword);
 
+      // 🔥 FIX: Different status based on role (same as web version)
+      let userStatus = "active";
+      if (userData.role === "provider") {
+        userStatus = "pending_approval"; // Providers need admin approval
+      }
+
       await User.findByIdAndUpdate(registeredUser._id, {
-        status: "active",
+        status: userStatus,
         isPhoneVerified: true,
       });
 
       if (userData.role === "provider") {
         if (
           !userData.providerData ||
-          !userData.providerData.aadharImage ||
-          !userData.providerData.panImage
+          !userData.providerData.aadharCard ||
+          !userData.providerData.panCard
         ) {
           return res.status(400).json({
             success: false,
-            error: "Required document images missing. Please register again.",
+            error: "Required provider data missing. Please register again.",
           });
         }
 
@@ -1461,9 +1613,14 @@ const authController = {
           portfolio: [],
           aadharCard: userData.providerData.aadharCard,
           panCard: userData.providerData.panCard,
-          aadharImage: userData.providerData.aadharImage,
-          panImage: userData.providerData.panImage,
-          isVerified: false,
+          aadharImage: userData.providerData.aadharImage || null,
+          panImage: userData.providerData.panImage || null,
+          // 🔥 FIX: Set to pending with no access (same as web version)
+          verificationStatus: "pending",
+          canRegisterServices: false,
+          dashboardAccess: false,
+          canReceiveBookings: false,
+          canAccessPayouts: false,
           businessAddress: userData.addresses[0],
           documentVerification: {
             aadharVerified: false,
@@ -1471,8 +1628,14 @@ const authController = {
             imagesVerified: false,
             allDocumentsVerified: false,
           },
+          // Legacy fields for backward compatibility
+          isVerified: false,
         });
+
         await newProvider.save();
+
+        // 🔥 FIX: Notify admin about new provider registration
+        await notifyAdminNewProvider(registeredUser._id);
       }
 
       await OTP.deleteOne({phone});
@@ -1480,10 +1643,11 @@ const authController = {
       delete req.session.userRole;
       delete req.session.otpSessionId;
 
+      // 🔥 FIX: Different success messages (same as web version)
       const successMessage =
         userData.role === "customer"
           ? "🎉 Account created successfully! You can now log in."
-          : "🎉 Provider account created successfully! Your documents will be verified by admin before service activation.";
+          : "🎉 Provider account created successfully! Your account is pending admin approval. You will be notified once verified.";
 
       return res.json({
         success: true,
@@ -1494,6 +1658,7 @@ const authController = {
           phone: registeredUser.phone,
           role: registeredUser.role,
           isPhoneVerified: true,
+          status: userStatus, // 🔥 ADD STATUS
         },
       });
     } catch (err) {

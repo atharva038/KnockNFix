@@ -1,0 +1,965 @@
+<% layout('/layouts/admin-layout') %>
+
+<div class="container-fluid">
+  <!-- Back Button and Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <a href="/admin/pending-providers" class="btn btn-outline-secondary me-3">
+        <i class="fas fa-arrow-left"></i> Back to Pending Providers
+      </a>
+      <h1 class="h3 mb-0 text-gray-800 d-inline">
+        <i class="fas fa-user-circle"></i> Provider Details
+      </h1>
+    </div>
+    <div class="action-buttons">
+      <button class="btn btn-success me-2" onclick="showApprovalModal('<%= provider.user._id %>', '<%= provider.user.name.replace(/'/g, "\\'") %>')">
+        <i class="fas fa-check"></i> Approve Provider
+      </button>
+      <button class="btn btn-danger" onclick="showRejectionModal('<%= provider.user._id %>', '<%= provider.user.name.replace(/'/g, "\\'") %>')">
+        <i class="fas fa-times"></i> Reject Provider
+      </button>
+    </div>
+  </div>
+
+  <!-- Provider Status Badge -->
+  <div class="mb-4">
+    <span class="badge bg-warning fs-6">
+      <i class="fas fa-clock"></i> Pending Approval
+    </span>
+    <small class="text-muted ms-2">
+      Registered on <%= new Date(provider.registrationDate).toLocaleDateString('en-IN', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) %>
+    </small>
+  </div>
+
+  <div class="row">
+    <!-- Basic Information Card -->
+    <div class="col-lg-4 mb-4">
+      <div class="card shadow h-100">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-user"></i> Basic Information
+          </h5>
+        </div>
+        <div class="card-body text-center">
+          <!-- Profile Image -->
+          <div class="profile-image-container mb-3">
+            <% if (provider.user.profileImage) { %>
+            <img src="<%= provider.user.profileImage %>" alt="Profile" class="profile-image rounded-circle shadow" onclick="showImageModal('<%= provider.user.profileImage %>', 'Profile Picture')">
+            <% } else { %>
+            <div class="profile-image rounded-circle bg-primary text-white d-flex align-items-center justify-content-center">
+              <%= provider.user.name.charAt(0).toUpperCase() %>
+            </div>
+            <% } %>
+          </div>
+
+          <!-- Basic Details -->
+          <h4 class="mb-2"><%= provider.user.name %></h4>
+
+          <div class="info-grid text-start">
+            <div class="info-item">
+              <i class="fas fa-phone text-primary"></i>
+              <strong>Phone:</strong>
+              <span><%= provider.user.phone %></span>
+            </div>
+
+            <% if (provider.user.email) { %>
+            <div class="info-item">
+              <i class="fas fa-envelope text-primary"></i>
+              <strong>Email:</strong>
+              <span><%= provider.user.email %></span>
+            </div>
+            <% } %>
+
+            <div class="info-item">
+              <i class="fas fa-venus-mars text-primary"></i>
+              <strong>Gender:</strong>
+              <span><%= provider.user.gender || 'Not specified' %></span>
+            </div>
+
+            <% if (provider.user.dateOfBirth) { %>
+            <div class="info-item">
+              <i class="fas fa-birthday-cake text-primary"></i>
+              <strong>Date of Birth:</strong>
+              <span><%= new Date(provider.user.dateOfBirth).toLocaleDateString('en-IN') %></span>
+            </div>
+            <% } %>
+
+            <div class="info-item">
+              <i class="fas fa-calendar-plus text-primary"></i>
+              <strong>Joined:</strong>
+              <span><%= new Date(provider.user.createdAt).toLocaleDateString('en-IN') %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Business Information Card -->
+    <div class="col-lg-8 mb-4">
+      <div class="card shadow h-100">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-building"></i> Business Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <!-- Business Details -->
+            <div class="col-md-6">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-briefcase"></i> Business Details
+              </h6>
+
+              <div class="info-grid">
+                <% if (provider.serviceProvider) { %>
+                <div class="info-item">
+                  <i class="fas fa-store text-info"></i>
+                  <strong>Business Name:</strong>
+                  <span><%= provider.serviceProvider.businessName || 'Not provided' %></span>
+                </div>
+
+                <div class="info-item">
+                  <i class="fas fa-tools text-info"></i>
+                  <strong>Experience:</strong>
+                  <span><%= provider.serviceProvider.experience || 'Not specified' %> years</span>
+                </div>
+
+                <div class="info-item">
+                  <i class="fas fa-certificate text-info"></i>
+                  <strong>Skills:</strong>
+                  <span>
+                    <% if (provider.serviceProvider.skills && provider.serviceProvider.skills.length > 0) { %>
+                    <% provider.serviceProvider.skills.forEach(function(skill, index) { %>
+                    <span class="badge bg-secondary me-1"><%= skill %></span>
+                    <% }); %>
+                    <% } else { %>
+                    Not specified
+                    <% } %>
+                  </span>
+                </div>
+
+                <% if (provider.serviceProvider.description) { %>
+                <div class="info-item">
+                  <i class="fas fa-info-circle text-info"></i>
+                  <strong>Description:</strong>
+                  <span><%= provider.serviceProvider.description %></span>
+                </div>
+                <% } %>
+                <% } else { %>
+                <p class="text-muted">No business information provided</p>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="col-md-6">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-map-marker-alt"></i> Business Address
+              </h6>
+
+              <% if (provider.businessAddress) { %>
+              <div class="address-card p-3 bg-light rounded">
+                <div class="info-item">
+                  <i class="fas fa-road text-info"></i>
+                  <strong>Street:</strong>
+                  <span><%= provider.businessAddress.street %></span>
+                </div>
+
+                <div class="info-item">
+                  <i class="fas fa-city text-info"></i>
+                  <strong>City:</strong>
+                  <span><%= provider.businessAddress.city %></span>
+                </div>
+
+                <div class="info-item">
+                  <i class="fas fa-flag text-info"></i>
+                  <strong>State:</strong>
+                  <span><%= provider.businessAddress.state %></span>
+                </div>
+
+                <div class="info-item">
+                  <i class="fas fa-mail-bulk text-info"></i>
+                  <strong>Pincode:</strong>
+                  <span><%= provider.businessAddress.pincode %></span>
+                </div>
+
+                <% if (provider.businessAddress.landmark) { %>
+                <div class="info-item">
+                  <i class="fas fa-map-pin text-info"></i>
+                  <strong>Landmark:</strong>
+                  <span><%= provider.businessAddress.landmark %></span>
+                </div>
+                <% } %>
+              </div>
+              <% } else { %>
+              <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                No business address provided
+              </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documents Verification Section -->
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0">
+            <i class="fas fa-file-alt"></i> Document Verification
+          </h5>
+        </div>
+        <div class="card-body">
+          <% if (provider.serviceProvider) { %>
+          <div class="row">
+            <!-- Aadhar Card -->
+            <div class="col-lg-6 mb-4">
+              <div class="document-card border rounded p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">
+                    <i class="fas fa-id-card text-primary"></i> Aadhar Card
+                  </h6>
+                  <% if (provider.serviceProvider.aadharCard && provider.serviceProvider.aadharImage) { %>
+                  <span class="badge bg-success">
+                    <i class="fas fa-check"></i> Complete
+                  </span>
+                  <% } else { %>
+                  <span class="badge bg-danger">
+                    <i class="fas fa-times"></i> Incomplete
+                  </span>
+                  <% } %>
+                </div>
+
+                <div class="document-info">
+                  <div class="info-item">
+                    <strong>Aadhar Number:</strong>
+                    <span>
+                      <% if (provider.serviceProvider.aadharCard) { %>
+                      •••• •••• •••• <%= provider.serviceProvider.aadharCard.slice(-4) %>
+                      <% } else { %>
+                      <span class="text-danger">Not provided</span>
+                      <% } %>
+                    </span>
+                  </div>
+
+                  <div class="info-item">
+                    <strong>Document Image:</strong>
+                    <% if (provider.serviceProvider.aadharImage) { %>
+                    <div class="document-image-container mt-2">
+                      <img src="<%= provider.serviceProvider.aadharImage %>" alt="Aadhar Card" class="document-image img-thumbnail" onclick="showImageModal('<%= provider.serviceProvider.aadharImage %>', 'Aadhar Card')">
+                      <div class="image-overlay">
+                        <i class="fas fa-search-plus"></i>
+                        Click to view full image
+                      </div>
+                    </div>
+                    <% } else { %>
+                    <div class="alert alert-warning mt-2 mb-0">
+                      <i class="fas fa-exclamation-triangle"></i>
+                      No image uploaded
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PAN Card -->
+            <div class="col-lg-6 mb-4">
+              <div class="document-card border rounded p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">
+                    <i class="fas fa-credit-card text-primary"></i> PAN Card
+                  </h6>
+                  <% if (provider.serviceProvider.panCard && provider.serviceProvider.panImage) { %>
+                  <span class="badge bg-success">
+                    <i class="fas fa-check"></i> Complete
+                  </span>
+                  <% } else { %>
+                  <span class="badge bg-danger">
+                    <i class="fas fa-times"></i> Incomplete
+                  </span>
+                  <% } %>
+                </div>
+
+                <div class="document-info">
+                  <div class="info-item">
+                    <strong>PAN Number:</strong>
+                    <span>
+                      <% if (provider.serviceProvider.panCard) { %>
+                      <%= provider.serviceProvider.panCard %>
+                      <% } else { %>
+                      <span class="text-danger">Not provided</span>
+                      <% } %>
+                    </span>
+                  </div>
+
+                  <div class="info-item">
+                    <strong>Document Image:</strong>
+                    <% if (provider.serviceProvider.panImage) { %>
+                    <div class="document-image-container mt-2">
+                      <img src="<%= provider.serviceProvider.panImage %>" alt="PAN Card" class="document-image img-thumbnail" onclick="showImageModal('<%= provider.serviceProvider.panImage %>', 'PAN Card')">
+                      <div class="image-overlay">
+                        <i class="fas fa-search-plus"></i>
+                        Click to view full image
+                      </div>
+                    </div>
+                    <% } else { %>
+                    <div class="alert alert-warning mt-2 mb-0">
+                      <i class="fas fa-exclamation-triangle"></i>
+                      No image uploaded
+                    </div>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bank Details (if available) -->
+            <% if (provider.serviceProvider.bankDetails) { %>
+            <div class="col-12 mb-4">
+              <div class="document-card border rounded p-3">
+                <h6 class="mb-3">
+                  <i class="fas fa-university text-primary"></i> Bank Details
+                </h6>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="info-item">
+                      <strong>Account Holder Name:</strong>
+                      <span><%= provider.serviceProvider.bankDetails.accountHolderName || 'Not provided' %></span>
+                    </div>
+
+                    <div class="info-item">
+                      <strong>Account Number:</strong>
+                      <span>
+                        <% if (provider.serviceProvider.bankDetails.accountNumber) { %>
+                        •••••••<%= provider.serviceProvider.bankDetails.accountNumber.slice(-4) %>
+                        <% } else { %>
+                        Not provided
+                        <% } %>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="info-item">
+                      <strong>Bank Name:</strong>
+                      <span><%= provider.serviceProvider.bankDetails.bankName || 'Not provided' %></span>
+                    </div>
+
+                    <div class="info-item">
+                      <strong>IFSC Code:</strong>
+                      <span><%= provider.serviceProvider.bankDetails.ifscCode || 'Not provided' %></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <% } %>
+          </div>
+          <% } else { %>
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i>
+            <strong>No Document Information:</strong> This provider has not submitted any documents for verification.
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Services Information (if available) -->
+  <% if (provider.services && provider.services.length > 0) { %>
+  <div class="row">
+    <div class="col-12 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-tools"></i> Registered Services
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <% provider.services.forEach(function(service) { %>
+            <div class="col-lg-4 col-md-6 mb-3">
+              <div class="service-card border rounded p-3">
+                <h6 class="mb-2"><%= service.name %></h6>
+                <p class="text-muted mb-2"><%= service.description %></p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-primary fw-bold">₹<%= service.price %></span>
+                  <span class="badge bg-info"><%= service.category.name %></span>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Action Buttons -->
+  <div class="row">
+    <div class="col-12">
+      <div class="text-center">
+        <button class="btn btn-success btn-lg me-3" onclick="showApprovalModal('<%= provider.user._id %>', '<%= provider.user.name.replace(/'/g, "\\'") %>')">
+          <i class="fas fa-check"></i> Approve Provider
+        </button>
+        <button class="btn btn-danger btn-lg me-3" onclick="showRejectionModal('<%= provider.user._id %>', '<%= provider.user.name.replace(/'/g, "\\'") %>')">
+          <i class="fas fa-times"></i> Reject Provider
+        </button>
+        <a href="/admin/pending-providers" class="btn btn-secondary btn-lg">
+          <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Viewer Modal -->
+<div class="modal fade" id="imageViewerModal" tabindex="-1" aria-labelledby="imageViewerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="imageViewerTitle">Document Image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="imageViewerImg" src="" alt="Document" class="img-fluid rounded shadow">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <a id="downloadImageBtn" href="" download class="btn btn-primary">
+          <i class="fas fa-download"></i> Download
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Approval Modal -->
+<div class="modal fade" id="approvalModal" tabindex="-1" aria-labelledby="approvalModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="approvalModalLabel">
+          <i class="fas fa-check-circle"></i> Approve Provider
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="approvalForm">
+          <input type="hidden" id="approveProviderId" name="providerId">
+
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            You are about to approve <strong id="approveProviderName"></strong>.
+            Please select the permissions to grant.
+          </div>
+
+          <h6 class="mb-3">Grant Permissions:</h6>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="grantDashboardAccess" name="grantDashboardAccess" value="true" checked>
+                <label class="form-check-label" for="grantDashboardAccess">
+                  <strong>Dashboard Access</strong>
+                  <br><small class="text-muted">Allow access to provider dashboard</small>
+                </label>
+              </div>
+
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="grantServiceRegistration" name="grantServiceRegistration" value="true" checked>
+                <label class="form-check-label" for="grantServiceRegistration">
+                  <strong>Service Registration</strong>
+                  <br><small class="text-muted">Allow adding new services</small>
+                </label>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="grantBookingAccess" name="grantBookingAccess" value="true" checked>
+                <label class="form-check-label" for="grantBookingAccess">
+                  <strong>Receive Bookings</strong>
+                  <br><small class="text-muted">Allow receiving customer bookings</small>
+                </label>
+              </div>
+
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="grantPayoutAccess" name="grantPayoutAccess" value="true">
+                <label class="form-check-label" for="grantPayoutAccess">
+                  <strong>Payout Access</strong>
+                  <br><small class="text-muted">Allow accessing payout features</small>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="approvalNotes" class="form-label">Notes (Optional):</label>
+            <textarea class="form-control" id="approvalNotes" name="notes" rows="3" placeholder="Add any notes about this approval..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="approveProvider()">
+          <i class="fas fa-check"></i> Approve Provider
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rejection Modal -->
+<div class="modal fade" id="rejectionModal" tabindex="-1" aria-labelledby="rejectionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="rejectionModalLabel">
+          <i class="fas fa-times-circle"></i> Reject Provider
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="rejectionForm">
+          <input type="hidden" id="rejectProviderId" name="providerId">
+
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            You are about to reject <strong id="rejectProviderName"></strong>.
+            This action will prevent them from accessing the platform.
+          </div>
+
+          <div class="mb-3">
+            <label for="rejectionReason" class="form-label">Rejection Reason: <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="rejectionReason" name="reason" rows="4" required placeholder="Please provide a detailed reason for rejection (minimum 10 characters)..."></textarea>
+            <small class="text-muted">This reason will be communicated to the provider.</small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" onclick="rejectProvider()">
+          <i class="fas fa-times"></i> Reject Provider
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 🔧 SIMPLIFIED MODAL SYSTEM - Bootstrap 5 Compatible
+  let currentModalInstance = null;
+
+  // Force close all modals
+  function forceCloseAllModals() {
+    console.log('🔧 Force closing all modals');
+
+    // Close any open modal instances
+    document.querySelectorAll('.modal.show').forEach(modal => {
+      const instance = bootstrap.Modal.getInstance(modal);
+      if (instance) {
+        console.log('Closing modal:', modal.id);
+        instance.hide();
+      }
+    });
+
+    // Clean up DOM
+    setTimeout(() => {
+      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('padding-right');
+
+      // Reset all modals
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      });
+
+      currentModalInstance = null;
+    }, 100);
+  }
+
+  // Show Image Modal
+  function showImageModal(imageSrc, title) {
+    console.log('🖼️ Opening image modal:', title);
+
+    const titleEl = document.getElementById('imageViewerTitle');
+    const imgEl = document.getElementById('imageViewerImg');
+    const downloadEl = document.getElementById('downloadImageBtn');
+
+    if (titleEl && imgEl && downloadEl) {
+      titleEl.textContent = title;
+      imgEl.src = imageSrc;
+      downloadEl.href = imageSrc;
+
+      const modal = new bootstrap.Modal(document.getElementById('imageViewerModal'));
+      modal.show();
+    }
+  }
+
+  // Show Approval Modal
+  function showApprovalModal(providerId, providerName) {
+    console.log('✅ Opening approval modal for:', providerId, providerName);
+
+    forceCloseAllModals();
+
+    setTimeout(() => {
+      const providerIdEl = document.getElementById('approveProviderId');
+      const providerNameEl = document.getElementById('approveProviderName');
+
+      if (!providerIdEl || !providerNameEl) {
+        console.error('❌ Approval modal elements not found!');
+        showAlert('error', 'Modal elements not found. Please refresh the page.');
+        return;
+      }
+
+      providerIdEl.value = providerId;
+      providerNameEl.textContent = providerName;
+
+      // Reset form and set default checkboxes
+      const form = document.getElementById('approvalForm');
+      if (form) {
+        form.reset();
+        document.getElementById('grantDashboardAccess').checked = true;
+        document.getElementById('grantServiceRegistration').checked = true;
+        document.getElementById('grantBookingAccess').checked = true;
+      }
+
+      const modal = new bootstrap.Modal(document.getElementById('approvalModal'), {
+        backdrop: 'static',
+        keyboard: false
+      });
+      currentModalInstance = modal;
+      modal.show();
+
+      console.log('✅ Approval modal opened successfully');
+    }, 300);
+  }
+
+  // Show Rejection Modal
+  function showRejectionModal(providerId, providerName) {
+    console.log('❌ Opening rejection modal for:', providerId, providerName);
+
+    forceCloseAllModals();
+
+    setTimeout(() => {
+      const providerIdEl = document.getElementById('rejectProviderId');
+      const providerNameEl = document.getElementById('rejectProviderName');
+      const reasonEl = document.getElementById('rejectionReason');
+
+      if (!providerIdEl || !providerNameEl || !reasonEl) {
+        console.error('❌ Rejection modal elements not found!');
+        showAlert('error', 'Modal elements not found. Please refresh the page.');
+        return;
+      }
+
+      providerIdEl.value = providerId;
+      providerNameEl.textContent = providerName;
+      reasonEl.value = '';
+
+      const modal = new bootstrap.Modal(document.getElementById('rejectionModal'), {
+        backdrop: 'static',
+        keyboard: false
+      });
+      currentModalInstance = modal;
+      modal.show();
+
+      console.log('✅ Rejection modal opened successfully');
+    }, 300);
+  }
+
+  // Approve Provider
+  async function approveProvider() {
+    const form = document.getElementById('approvalForm');
+    const providerId = document.getElementById('approveProviderId').value;
+
+    if (!form || !providerId) {
+      showAlert('error', 'Form data not found');
+      return;
+    }
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+
+    try {
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Approving...';
+      btn.disabled = true;
+
+      const formData = new FormData(form);
+      const response = await fetch(`/admin/approve-provider/${providerId}`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showAlert('success', data.message);
+        forceCloseAllModals();
+
+        // Redirect to pending providers page after success
+        setTimeout(() => {
+          window.location.href = '/admin/pending-providers';
+        }, 2000);
+      } else {
+        throw new Error(data.error || 'Failed to approve provider');
+      }
+    } catch (error) {
+      console.error('❌ Approval error:', error);
+      showAlert('error', error.message);
+    } finally {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  }
+
+  // Reject Provider
+  async function rejectProvider() {
+    const reasonEl = document.getElementById('rejectionReason');
+    const providerIdEl = document.getElementById('rejectProviderId');
+
+    if (!reasonEl || !providerIdEl) {
+      showAlert('error', 'Form elements not found');
+      return;
+    }
+
+    const reason = reasonEl.value.trim();
+    const providerId = providerIdEl.value;
+
+    if (reason.length < 10) {
+      showAlert('error', 'Rejection reason must be at least 10 characters long');
+      reasonEl.focus();
+      return;
+    }
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+
+    try {
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
+      btn.disabled = true;
+
+      const response = await fetch(`/admin/reject-provider/${providerId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          reason
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showAlert('success', data.message);
+        forceCloseAllModals();
+
+        // Redirect to pending providers page after success
+        setTimeout(() => {
+          window.location.href = '/admin/pending-providers';
+        }, 2000);
+      } else {
+        throw new Error(data.error || 'Failed to reject provider');
+      }
+    } catch (error) {
+      console.error('❌ Rejection error:', error);
+      showAlert('error', error.message);
+    } finally {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  }
+
+  // Show Alert
+  function showAlert(type, message) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+    // Remove existing alerts
+    document.querySelectorAll('.alert-toast').forEach(alert => alert.remove());
+
+    const alertEl = document.createElement('div');
+    alertEl.className = `alert ${alertClass} alert-dismissible fade show alert-toast position-fixed`;
+    alertEl.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertEl.innerHTML = `
+        <i class="fas ${icon}"></i> ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(alertEl);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (alertEl.parentNode) {
+        const bsAlert = new bootstrap.Alert(alertEl);
+        bsAlert.close();
+      }
+    }, 5000);
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎉 Provider Details System initialized successfully!');
+  });
+</script>
+
+<style>
+  /* Minimal custom styles using Bootstrap classes */
+  .profile-image-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .profile-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .profile-image:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  .info-grid {
+    text-align: left;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+  }
+
+  .info-item i {
+    width: 20px;
+    margin-right: 10px;
+  }
+
+  .info-item strong {
+    min-width: 120px;
+    margin-right: 10px;
+  }
+
+  .document-card {
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+  }
+
+  .document-card:hover {
+    background: #e9ecef;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .document-image-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .document-image {
+    width: 200px;
+    height: 120px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .document-image:hover {
+    transform: scale(1.02);
+  }
+
+  .image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 0.25rem;
+  }
+
+  .document-image-container:hover .image-overlay {
+    opacity: 1;
+  }
+
+  .service-card {
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+  }
+
+  .service-card:hover {
+    background: #e9ecef;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .address-card {
+    background: #f8f9fa;
+    border-left: 4px solid #17a2b8;
+  }
+
+  .alert-toast {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .action-buttons .btn {
+    min-width: 140px;
+  }
+
+  @media (max-width: 768px) {
+    .action-buttons {
+      margin-top: 1rem;
+    }
+
+    .action-buttons .btn {
+      display: block;
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+
+    .document-image {
+      width: 100%;
+      max-width: 250px;
+    }
+
+    .info-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .info-item strong {
+      min-width: auto;
+      margin-bottom: 0.25rem;
+    }
+  }
+</style>

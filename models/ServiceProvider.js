@@ -27,7 +27,7 @@ const serviceProviderSchema = new mongoose.Schema(
       uppercase: true,
     },
 
-    // NEW: Document Images for verification
+    // Document Images for verification
     aadharImage: {
       type: String, // Cloudinary URL
       required: true,
@@ -40,7 +40,60 @@ const serviceProviderSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // NEW: Enhanced document verification
+    // 🔥 ENHANCED VERIFICATION STATUS
+    verificationStatus: {
+      type: String,
+      enum: ["pending", "documents_verified", "approved", "rejected"],
+      default: "pending",
+    },
+
+    // 🔥 ADMIN VERIFICATION DETAILS
+    adminVerification: {
+      verifiedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+      },
+      verifiedAt: {
+        type: Date,
+        default: null,
+      },
+      verificationNotes: {
+        type: String,
+        default: null,
+      },
+      documentsApproved: {
+        type: Boolean,
+        default: false,
+      },
+      rejectionReason: {
+        type: String,
+        default: null,
+      },
+    },
+
+    // 🔥 ACCESS CONTROL FLAGS
+    canRegisterServices: {
+      type: Boolean,
+      default: false,
+    },
+
+    dashboardAccess: {
+      type: Boolean,
+      default: false,
+    },
+
+    canReceiveBookings: {
+      type: Boolean,
+      default: false,
+    },
+
+    canAccessPayouts: {
+      type: Boolean,
+      default: false,
+    },
+
+    // Enhanced document verification
     documentVerification: {
       aadharVerified: {type: Boolean, default: false},
       panVerified: {type: Boolean, default: false},
@@ -51,16 +104,10 @@ const serviceProviderSchema = new mongoose.Schema(
       rejectionReason: {type: String, trim: true},
     },
 
-    // Admin verification status (keep for backward compatibility)
+    // Keep legacy fields for backward compatibility
     isVerified: {
       type: Boolean,
       default: false,
-    },
-
-    verificationStatus: {
-      type: String,
-      enum: ["pending", "verified", "rejected"],
-      default: "pending",
     },
 
     verificationNotes: {
@@ -322,6 +369,73 @@ const serviceProviderSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+
+    // 🔥 NEW: APPROVAL WORKFLOW FIELDS
+    approvalWorkflow: {
+      documentsSubmittedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      documentsReviewedAt: {
+        type: Date,
+        default: null,
+      },
+      approvedAt: {
+        type: Date,
+        default: null,
+      },
+      rejectedAt: {
+        type: Date,
+        default: null,
+      },
+      lastStatusChange: {
+        type: Date,
+        default: Date.now,
+      },
+      statusHistory: [
+        {
+          status: {
+            type: String,
+            enum: ["pending", "documents_verified", "approved", "rejected"],
+          },
+          changedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+          },
+          changedAt: {
+            type: Date,
+            default: Date.now,
+          },
+          notes: {
+            type: String,
+          },
+        },
+      ],
+    },
+
+    // 🔥 NEW: NOTIFICATION SETTINGS
+    notifications: {
+      approvalStatusChange: {
+        type: Boolean,
+        default: true,
+      },
+      newBookingReceived: {
+        type: Boolean,
+        default: true,
+      },
+      paymentReceived: {
+        type: Boolean,
+        default: true,
+      },
+      emailNotifications: {
+        type: Boolean,
+        default: true,
+      },
+      smsNotifications: {
+        type: Boolean,
+        default: true,
+      },
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt
@@ -333,12 +447,17 @@ serviceProviderSchema.index({user: 1});
 serviceProviderSchema.index({aadharCard: 1});
 serviceProviderSchema.index({panCard: 1});
 serviceProviderSchema.index({isVerified: 1});
-serviceProviderSchema.index({verificationStatus: 1});
+serviceProviderSchema.index({verificationStatus: 1}); // 🔥 NEW INDEX
 serviceProviderSchema.index({isActive: 1});
 serviceProviderSchema.index({"businessAddress.coordinates": "2dsphere"});
 serviceProviderSchema.index({averageRating: -1});
 serviceProviderSchema.index({completedBookings: -1});
-serviceProviderSchema.index({"documentVerification.allDocumentsVerified": 1}); // NEW INDEX
+serviceProviderSchema.index({"documentVerification.allDocumentsVerified": 1});
+serviceProviderSchema.index({"adminVerification.verifiedBy": 1}); // 🔥 NEW INDEX
+serviceProviderSchema.index({"adminVerification.verifiedAt": 1}); // 🔥 NEW INDEX
+serviceProviderSchema.index({canRegisterServices: 1}); // 🔥 NEW INDEX
+serviceProviderSchema.index({dashboardAccess: 1}); // 🔥 NEW INDEX
+serviceProviderSchema.index({canReceiveBookings: 1}); // 🔥 NEW INDEX
 
 // Pre-save middleware
 serviceProviderSchema.pre("save", function (next) {
@@ -356,9 +475,44 @@ serviceProviderSchema.pre("save", function (next) {
 
     // Sync with legacy isVerified field for backward compatibility
     this.isVerified = this.documentVerification.allDocumentsVerified;
-    this.verificationStatus = this.documentVerification.allDocumentsVerified
-      ? "verified"
-      : "pending";
+  }
+
+  // 🔥 UPDATE APPROVAL WORKFLOW
+  if (this.isModified("verificationStatus")) {
+    this.approvalWorkflow.lastStatusChange = new Date();
+
+    // Add to status history
+    if (!this.approvalWorkflow.statusHistory) {
+      this.approvalWorkflow.statusHistory = [];
+    }
+
+    this.approvalWorkflow.statusHistory.push({
+      status: this.verificationStatus,
+      changedAt: new Date(),
+      changedBy: this.adminVerification?.verifiedBy || null,
+      notes: this.adminVerification?.verificationNotes || null,
+    });
+
+    // Update specific timestamps based on status
+    switch (this.verificationStatus) {
+      case "documents_verified":
+        this.approvalWorkflow.documentsReviewedAt = new Date();
+        break;
+      case "approved":
+        this.approvalWorkflow.approvedAt = new Date();
+        this.canRegisterServices = true;
+        this.dashboardAccess = true;
+        this.canReceiveBookings = true;
+        this.canAccessPayouts = true;
+        break;
+      case "rejected":
+        this.approvalWorkflow.rejectedAt = new Date();
+        this.canRegisterServices = false;
+        this.dashboardAccess = false;
+        this.canReceiveBookings = false;
+        this.canAccessPayouts = false;
+        break;
+    }
   }
 
   // Update profile completion score
@@ -374,8 +528,8 @@ serviceProviderSchema.methods.updateProfileCompletionScore = function () {
   // Basic info (40 points)
   if (this.aadharCard) score += 8;
   if (this.panCard) score += 8;
-  if (this.aadharImage) score += 6; // NEW
-  if (this.panImage) score += 6; // NEW
+  if (this.aadharImage) score += 6;
+  if (this.panImage) score += 6;
   if (this.businessAddress && this.businessAddress.street) score += 6;
   if (this.isVerified) score += 6;
 
@@ -415,7 +569,113 @@ serviceProviderSchema.methods.updateLastActive = function () {
   return this.save();
 };
 
-// NEW: Enhanced verification methods
+// 🔥 NEW: ADMIN APPROVAL METHODS
+serviceProviderSchema.methods.approveProvider = function (adminId, notes) {
+  this.verificationStatus = "approved";
+  this.adminVerification = {
+    verifiedBy: adminId,
+    verifiedAt: new Date(),
+    verificationNotes: notes,
+    documentsApproved: true,
+  };
+
+  // Enable all access permissions
+  this.canRegisterServices = true;
+  this.dashboardAccess = true;
+  this.canReceiveBookings = true;
+  this.canAccessPayouts = true;
+
+  // Update document verification
+  this.documentVerification = {
+    aadharVerified: true,
+    panVerified: true,
+    imagesVerified: true,
+    allDocumentsVerified: true,
+    verificationDate: new Date(),
+    verificationNotes: notes,
+  };
+
+  // Legacy fields for backward compatibility
+  this.isVerified = true;
+  this.verifiedAt = new Date();
+  this.verifiedBy = adminId;
+  if (notes) this.verificationNotes = notes;
+
+  return this.save();
+};
+
+serviceProviderSchema.methods.rejectProvider = function (
+  adminId,
+  reason,
+  notes
+) {
+  this.verificationStatus = "rejected";
+  this.adminVerification = {
+    verifiedBy: adminId,
+    verifiedAt: new Date(),
+    verificationNotes: notes,
+    documentsApproved: false,
+    rejectionReason: reason,
+  };
+
+  // Disable all access permissions
+  this.canRegisterServices = false;
+  this.dashboardAccess = false;
+  this.canReceiveBookings = false;
+  this.canAccessPayouts = false;
+
+  // Update document verification
+  this.documentVerification = {
+    aadharVerified: false,
+    panVerified: false,
+    imagesVerified: false,
+    allDocumentsVerified: false,
+    rejectionReason: reason,
+  };
+
+  // Legacy fields
+  this.isVerified = false;
+  this.verifiedBy = adminId;
+  this.verificationNotes = notes;
+
+  return this.save();
+};
+
+serviceProviderSchema.methods.grantDashboardAccess = function (adminId) {
+  this.dashboardAccess = true;
+  this.adminVerification.verifiedBy = adminId;
+  this.adminVerification.verifiedAt = new Date();
+  return this.save();
+};
+
+serviceProviderSchema.methods.revokeDashboardAccess = function (
+  adminId,
+  reason
+) {
+  this.dashboardAccess = false;
+  this.canRegisterServices = false;
+  this.canReceiveBookings = false;
+  this.adminVerification.rejectionReason = reason;
+  return this.save();
+};
+
+serviceProviderSchema.methods.enableServiceRegistration = function (adminId) {
+  this.canRegisterServices = true;
+  this.adminVerification.verifiedBy = adminId;
+  this.adminVerification.verifiedAt = new Date();
+  return this.save();
+};
+
+serviceProviderSchema.methods.disableServiceRegistration = function (
+  adminId,
+  reason
+) {
+  this.canRegisterServices = false;
+  this.adminVerification.rejectionReason = reason;
+  return this.save();
+};
+
+// Enhanced verification methods
 serviceProviderSchema.methods.verifyDocument = function (
   documentType,
   adminId,
@@ -434,6 +694,8 @@ serviceProviderSchema.methods.verifyDocument = function (
 };
 
 serviceProviderSchema.methods.verifyAllDocuments = function (adminId, notes) {
+  this.verificationStatus = "documents_verified"; // 🔥 UPDATED STATUS
+
   this.documentVerification = {
     aadharVerified: true,
     panVerified: true,
@@ -443,9 +705,15 @@ serviceProviderSchema.methods.verifyAllDocuments = function (adminId, notes) {
     verificationNotes: notes,
   };
 
+  this.adminVerification = {
+    verifiedBy: adminId,
+    verifiedAt: new Date(),
+    verificationNotes: notes,
+    documentsApproved: true,
+  };
+
   // Legacy fields for backward compatibility
   this.isVerified = true;
-  this.verificationStatus = "verified";
   this.verifiedAt = new Date();
   this.verifiedBy = adminId;
   if (notes) this.verificationNotes = notes;
@@ -455,25 +723,11 @@ serviceProviderSchema.methods.verifyAllDocuments = function (adminId, notes) {
 
 // Legacy methods (keep for backward compatibility)
 serviceProviderSchema.methods.verify = function (adminId, notes) {
-  return this.verifyAllDocuments(adminId, notes);
+  return this.approveProvider(adminId, notes);
 };
 
 serviceProviderSchema.methods.reject = function (adminId, notes) {
-  this.documentVerification = {
-    aadharVerified: false,
-    panVerified: false,
-    imagesVerified: false,
-    allDocumentsVerified: false,
-    rejectionReason: notes,
-  };
-
-  // Legacy fields
-  this.isVerified = false;
-  this.verificationStatus = "rejected";
-  this.verifiedBy = adminId;
-  this.verificationNotes = notes;
-
-  return this.save();
+  return this.rejectProvider(adminId, notes, notes);
 };
 
 // Static methods
@@ -494,7 +748,63 @@ serviceProviderSchema.statics.findFullyVerified = function () {
 };
 
 serviceProviderSchema.statics.findPendingVerification = function () {
-  return this.find({verificationStatus: "pending"});
+  return this.find({verificationStatus: "pending"})
+    .populate("user", "name phone email createdAt")
+    .sort({createdAt: -1});
+};
+
+// 🔥 NEW STATIC METHODS FOR ADMIN APPROVAL WORKFLOW
+serviceProviderSchema.statics.findPendingApproval = function () {
+  return this.find({
+    verificationStatus: {$in: ["pending", "documents_verified"]},
+  })
+    .populate("user", "name phone email createdAt addresses")
+    .populate("adminVerification.verifiedBy", "name email")
+    .sort({createdAt: -1});
+};
+
+serviceProviderSchema.statics.findApprovedProviders = function () {
+  return this.find({
+    verificationStatus: "approved",
+    isActive: true,
+  })
+    .populate("user", "name phone email")
+    .populate("adminVerification.verifiedBy", "name email")
+    .sort({"adminVerification.verifiedAt": -1});
+};
+
+serviceProviderSchema.statics.findRejectedProviders = function () {
+  return this.find({
+    verificationStatus: "rejected",
+  })
+    .populate("user", "name phone email")
+    .populate("adminVerification.verifiedBy", "name email")
+    .sort({"adminVerification.verifiedAt": -1});
+};
+
+serviceProviderSchema.statics.findWithDashboardAccess = function () {
+  return this.find({
+    dashboardAccess: true,
+    isActive: true,
+  });
+};
+
+serviceProviderSchema.statics.findWithServiceRegistrationAccess = function () {
+  return this.find({
+    canRegisterServices: true,
+    isActive: true,
+  });
+};
+
+serviceProviderSchema.statics.getApprovalStats = function () {
+  return this.aggregate([
+    {
+      $group: {
+        _id: "$verificationStatus",
+        count: {$sum: 1},
+      },
+    },
+  ]);
 };
 
 serviceProviderSchema.statics.findByAadhar = function (aadharCard) {
@@ -519,8 +829,9 @@ serviceProviderSchema.statics.findInArea = function (
         $maxDistance: radiusInKm * 1000, // Convert km to meters
       },
     },
-    isVerified: true,
+    verificationStatus: "approved", // 🔥 ONLY APPROVED PROVIDERS
     isActive: true,
+    canReceiveBookings: true,
   });
 };
 
@@ -528,17 +839,35 @@ serviceProviderSchema.statics.findInArea = function (
 serviceProviderSchema.virtual("verificationStatusDisplay").get(function () {
   switch (this.verificationStatus) {
     case "pending":
-      return "Verification Pending";
-    case "verified":
-      return "Verified";
+      return "Pending Admin Review";
+    case "documents_verified":
+      return "Documents Verified - Awaiting Final Approval";
+    case "approved":
+      return "Approved & Active";
     case "rejected":
       return "Verification Rejected";
     default:
-      return "Unknown";
+      return "Unknown Status";
   }
 });
 
-// NEW: Virtual for document verification progress
+// 🔥 NEW VIRTUAL FOR APPROVAL PROGRESS
+serviceProviderSchema.virtual("approvalProgress").get(function () {
+  switch (this.verificationStatus) {
+    case "pending":
+      return 25;
+    case "documents_verified":
+      return 75;
+    case "approved":
+      return 100;
+    case "rejected":
+      return 0;
+    default:
+      return 0;
+  }
+});
+
+// Virtual for document verification progress
 serviceProviderSchema.virtual("documentVerificationProgress").get(function () {
   if (!this.documentVerification) return 0;
 
@@ -555,5 +884,60 @@ serviceProviderSchema.virtual("completionRate").get(function () {
   if (this.totalBookings === 0) return 0;
   return Math.round((this.completedBookings / this.totalBookings) * 100);
 });
+
+// 🔥 NEW VIRTUAL FOR ACCESS PERMISSIONS SUMMARY
+serviceProviderSchema.virtual("accessPermissions").get(function () {
+  return {
+    dashboardAccess: this.dashboardAccess,
+    canRegisterServices: this.canRegisterServices,
+    canReceiveBookings: this.canReceiveBookings,
+    canAccessPayouts: this.canAccessPayouts,
+    isFullyEnabled:
+      this.dashboardAccess &&
+      this.canRegisterServices &&
+      this.canReceiveBookings,
+  };
+});
+
+// 🔥 NEW VIRTUAL FOR APPROVAL TIMELINE
+serviceProviderSchema.virtual("approvalTimeline").get(function () {
+  const timeline = [];
+
+  if (this.approvalWorkflow?.documentsSubmittedAt) {
+    timeline.push({
+      step: "Documents Submitted",
+      date: this.approvalWorkflow.documentsSubmittedAt,
+      status: "completed",
+    });
+  }
+
+  if (this.approvalWorkflow?.documentsReviewedAt) {
+    timeline.push({
+      step: "Documents Reviewed",
+      date: this.approvalWorkflow.documentsReviewedAt,
+      status: "completed",
+    });
+  }
+
+  if (this.approvalWorkflow?.approvedAt) {
+    timeline.push({
+      step: "Provider Approved",
+      date: this.approvalWorkflow.approvedAt,
+      status: "completed",
+    });
+  } else if (this.approvalWorkflow?.rejectedAt) {
+    timeline.push({
+      step: "Provider Rejected",
+      date: this.approvalWorkflow.rejectedAt,
+      status: "rejected",
+    });
+  }
+
+  return timeline;
+});
+
+// Set virtual fields to be included in JSON output
+serviceProviderSchema.set("toJSON", {virtuals: true});
+serviceProviderSchema.set("toObject", {virtuals: true});
 
 module.exports = mongoose.model("ServiceProvider", serviceProviderSchema);

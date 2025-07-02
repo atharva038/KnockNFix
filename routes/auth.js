@@ -384,7 +384,7 @@ router.post(
 
 router.post(
   "/api/verify-login-otp",
-  body("otp")
+  body("phoneOTP") // ✅ Changed from "otp" to "phoneOTP"
     .trim()
     .notEmpty()
     .withMessage("OTP is required.")
