@@ -585,8 +585,12 @@ const authController = {
     }
   },
 
-  // Show login page
   showLogin: (req, res) => {
+    // Check for logout success message
+    if (req.query.logout === "success") {
+      req.flash("success", "👋 User logged out successfully");
+    }
+
     res.render("pages/login", {
       title: "Login - KnockNFix",
     });
@@ -1008,7 +1012,6 @@ const authController = {
     }
   },
 
-  // Handle logout
   handleLogout: async (req, res, next) => {
     try {
       req.logout((err) => {
@@ -1020,10 +1023,9 @@ const authController = {
           if (err) {
             // Silent error handling
           }
+          // Redirect with success message in URL
+          res.redirect("/login?logout=success");
         });
-
-        req.flash("success", "👋 User logged out successfully");
-        res.redirect("/login");
       });
     } catch (err) {
       return next(err);
