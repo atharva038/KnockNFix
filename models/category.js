@@ -10,6 +10,10 @@ const categorySchema = new mongoose.Schema({
     type: String, // Field for the category image URL
     required: true, // Ensure an image is provided
   },
+  description: {
+    type: String,
+    required: false, // Set to true if you want it mandatory
+  },
   isActive: {
     type: Boolean,
     default: true

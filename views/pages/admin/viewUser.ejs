@@ -1,0 +1,162 @@
+<% layout('/layouts/admin-layout') %>
+
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="card shadow border-0">
+            <div class="card-header bg-gradient-primary text-white d-flex align-items-center">
+                <i class="fas fa-user-circle fa-2x me-3"></i>
+                <h4 class="mb-0">User Details</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-user me-2 text-primary"></i><strong>Name:</strong></span>
+                        <span><%= user.name %></span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-envelope me-2 text-primary"></i><strong>Email:</strong></span>
+                        <span><%= user.email %></span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-phone me-2 text-primary"></i><strong>Phone:</strong></span>
+                        <span><%= user.phone || 'Not provided' %></span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-user-tag me-2 text-primary"></i><strong>Role:</strong></span>
+                        <span class="badge bg-info text-dark text-capitalize"><%= user.role %></span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-toggle-on me-2 text-primary"></i><strong>Status:</strong></span>
+                        <span class="badge bg-<%= user.status === 'active' ? 'success' : (user.status === 'inactive' ? 'danger' : 'warning') %> text-capitalize">
+                            <%= user.status %>
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-calendar-alt me-2 text-primary"></i><strong>Joined:</strong></span>
+                        <span><%= user.createdAt ? new Date(user.createdAt).toLocaleString() : '' %></span>
+                    </li>
+                </ul>
+
+                <% if (user.role === 'customer') { %>
+                    <h5 class="mt-4 mb-3">
+                        <i class="fas fa-calendar-check me-2 text-primary"></i>
+                        Booking History
+                        <span class="badge bg-secondary ms-2"><%= bookings.length %></span>
+                    </h5>
+                    <% if (bookings && bookings.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Service</th>
+                                        <th>Provider</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% bookings.forEach(booking => { %>
+                                        <tr>
+                                            <td><%= booking.service?.name || 'N/A' %></td>
+                                            <td><%= booking.provider?.user?.name || 'N/A' %></td>
+                                            <td><%= booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString() : 'N/A' %></td>
+                                            <td>
+                                                <span class="badge bg-<%= booking.status === 'completed' ? 'success' : (booking.status === 'cancelled' ? 'danger' : 'warning') %>">
+                                                    <%= booking.status %>
+                                                </span>
+                                            </td>
+                                            <td>₹<%= booking.totalAmount || booking.totalCost || 0 %></td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No bookings found for this customer.
+                        </div>
+                    <% } %>
+                <% } %>
+
+                <% if (user.role === 'provider') { %>
+                    <h5 class="mt-4 mb-3">
+                        <i class="fas fa-tools me-2 text-primary"></i>
+                        Services Provided
+                        <span class="badge bg-secondary ms-2"><%= providerServices.length %></span>
+                    </h5>
+                    <% if (providerServices && providerServices.length > 0) { %>
+                        <div class="row">
+                            <% providerServices.forEach(service => { %>
+                                <div class="col-md-12 mb-3">
+                                    <div class="card border-left-primary">
+                                        <div class="card-body">
+                                            <div class="row align-items-center">
+                                                <div class="col-8">
+                                                    <h6 class="card-title mb-1"><%= service.name %></h6>
+                                                    <p class="text-muted small mb-1">
+                                                        <strong>Category:</strong> <%= service.category?.name || 'N/A' %>
+                                                    </p>
+                                                    <p class="text-muted small mb-0">
+                                                        <strong>Price:</strong> ₹<%= service.price || 0 %>
+                                                    </p>
+                                                </div>
+                                                <div class="col-4 text-end">
+                                                    <div class="text-primary">
+                                                        <h4 class="mb-0"><%= service.bookingCount || 0 %></h4>
+                                                        <small class="text-muted">Bookings</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No services added by this provider yet.
+                        </div>
+                    <% } %>
+                <% } %>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="/admin/users" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Users
+                    </a>
+                    <% if (user.role === 'provider') { %>
+                        <a href="/admin/provider/<%= user._id %>" class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i> View Provider Details
+                        </a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+    }
+    
+    .border-left-primary {
+        border-left: 4px solid #007bff;
+    }
+    
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    
+    .card {
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>

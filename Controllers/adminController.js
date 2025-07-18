@@ -438,35 +438,102 @@ const adminController = {
         return u;
       });
 
-      // Categorize users
-      const customers = users.filter((user) => user.role === "customer");
-      const providers = users.filter((user) => user.role === "provider");
-      const pendingProviders = providers.filter(
-        (user) => user.status === "pending_approval"
-      );
-      const activeProviders = providers.filter(
-        (user) => user.status === "active"
-      );
-      const rejectedProviders = providers.filter(
-        (user) => user.status === "rejected"
-      );
+      showUserDetails: async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Fetch the user
+      const user = await User.findById(userId).lean();
+      if (!user) {
+        req.flash("error", "User not found");
+        return res.redirect("/admin/users");
+      }
 
-      res.render("pages/admin/users", {
-        users,
-        customers,
-        providers,
-        pendingProviders,
-        activeProviders,
-        rejectedProviders,
+      let bookings = [];
+      let providerServices = [];
+
+      // If user is a customer, fetch their bookings
+      if (user.role === "customer") {
+        bookings = await Booking.find({ customer: userId })
+          .populate("service")
+          .populate({
+            path: "provider",
+            populate: { path: "user" }
+          })
+          .sort({ createdAt: -1 })
+          .lean();
+      }
+
+      // If user is a provider, fetch their services and booking counts
+      if (user.role === "provider") {
+        // First find the ServiceProvider record
+        const serviceProvider = await ServiceProvider.findOne({ user: userId }).lean();
+        
+        if (serviceProvider) {
+          // Fetch services provided by this provider
+          const services = await Service.find({ provider: serviceProvider._id })
+            .populate("category")
+            .lean();
+
+          // For each service, get the booking count
+          providerServices = await Promise.all(
+            services.map(async (service) => {
+              const bookingCount = await Booking.countDocuments({ 
+                service: service._id 
+              });
+              
+              return {
+                ...service,
+                bookingCount
+              };
+            })
+          );
+        }
+      }
+
+      res.render("pages/admin/user-details", {
+        user,
+        bookings,
+        providerServices,
         currentPath: req.path,
-        title: "User Management - Admin",
+        title: `${user.name} - User Details - Admin`,
       });
     } catch (err) {
-      console.error("Error fetching users:", err);
-      req.flash("error", "Failed to load users");
-      res.redirect("/admin/dashboard");
+      console.error("Error fetching user details:", err);
+      req.flash("error", "Failed to load user details");
+      res.redirect("/admin/users");
     }
-  },
+  }
+
+        // Categorize users
+        const customers = users.filter((user) => user.role === "customer");
+        const providers = users.filter((user) => user.role === "provider");
+        const pendingProviders = providers.filter(
+          (user) => user.status === "pending_approval"
+        );
+        const activeProviders = providers.filter(
+          (user) => user.status === "active"
+        );
+        const rejectedProviders = providers.filter(
+          (user) => user.status === "rejected"
+        );
+
+        res.render("pages/admin/users", {
+          users,
+          customers,
+          providers,
+          pendingProviders,
+          activeProviders,
+          rejectedProviders,
+          currentPath: req.path,
+          title: "User Management - Admin",
+        });
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        req.flash("error", "Failed to load users");
+        res.redirect("/admin/dashboard");
+      }
+    },
 
   // Categories Management
   showCategories: async (req, res) => {

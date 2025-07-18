@@ -28,15 +28,31 @@ const serviceSchema = new mongoose.Schema({
       ref: "ServiceProvider",
     },
   ],
+  price: {
+    type: Number,
+    required: true,
+  },
   duration: {
     type: Number, // Duration in minutes
-    default: 60,  // Default value
+    required: true,
   },
   category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Category", // Reference to Category
     required: true,
   },
+  tags: {
+    type: [String],
+    default: [], // Array of tags for the service
+  },
+  isActive: { 
+    type: Boolean, 
+    default: true 
+  }
+
+
+  
+  
 });
 
 const Service = mongoose.model("Service", serviceSchema);

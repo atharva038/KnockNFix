@@ -1,0 +1,102 @@
+<% layout('/layouts/admin-layout') %>
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Edit Service</h4>
+        </div>
+        <div class="card-body">
+            <form action="/admin/editService/<%= service._id %>" method="POST" enctype="multipart/form-data">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Service Name</label>
+                        <input type="text" class="form-control" name="name" value="<%= service.name %>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" name="category" id="categorySelect" required>
+                            <% if (typeof categories !== 'undefined') { %>
+                                <% categories.forEach(cat => { %>
+                                    <option 
+                                        value="<%= cat._id %>" 
+                                        data-baseprice="<%= cat.basePrice %>" 
+                                        data-esttime="<%= cat.estTime %>"
+                                        <%= service.category && (service.category._id == cat._id || service.category == cat._id) ? 'selected' : '' %>>
+                                        <%= cat.name %>
+                                    </option>
+                                <% }) %>
+                            <% } else { %>
+                                <option value="">No categories found</option>
+                            <% } %>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="description" rows="3" required><%= service.description %></textarea>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Price</label>
+                        <input type="number" class="form-control" name="price" value="<%= service.price %>" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Time</label>
+                        <input type="text" class="form-control" name="duration" value="<%= service.duration %>" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Tags <span class="text-muted">(comma separated)</span></label>
+                        <input type="text" class="form-control" name="tags" value="<%= Array.isArray(service.tags) ? service.tags.join(', ') : (service.tags || '') %>">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Image</label>
+                    <input type="file" class="form-control" name="image" accept="image/*" onchange="previewImage(event)">
+                    <div class="mt-2">
+                        <% if (service.img) { %>
+                            <img id="imgPreview" src="<%= service.img %>" alt="Service Image" style="max-width:120px; border-radius:8px;">
+                        <% } else { %>
+                            <img id="imgPreview" src="#" alt="Preview" style="display:none; max-width:120px; border-radius:8px;">
+                        <% } %>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <a href="/admin/services" class="btn btn-secondary me-2">
+                        <i class="fas fa-arrow-left me-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i> Update Service
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+function previewImage(event) {
+    const imgPreview = document.getElementById('imgPreview');
+    const [file] = event.target.files;
+    if (file) {
+        imgPreview.src = URL.createObjectURL(file);
+        imgPreview.style.display = 'block';
+    }
+}
+
+// Auto-fill price and time when category changes
+document.getElementById('categorySelect').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    const basePrice = selected.getAttribute('data-baseprice');
+    const estTime = selected.getAttribute('data-esttime');
+    if (basePrice) document.querySelector('input[name="price"]').value = basePrice;
+    if (estTime) document.querySelector('input[name="duration"]').value = estTime;
+});
+
+// Optionally, trigger change on page load to fill fields if needed
+window.addEventListener('DOMContentLoaded', function() {
+    const select = document.getElementById('categorySelect');
+    if (select) {
+        const event = new Event('change');
+        select.dispatchEvent(event);
+    }
+});
+
+</script>

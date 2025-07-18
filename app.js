@@ -159,6 +159,9 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use('/uploads', express.static('uploads'));
+
+
 // Auto-login middleware using remember me cookies
 app.use(async (req, res, next) => {
   // Only proceed if user is not already logged in and cookies exist

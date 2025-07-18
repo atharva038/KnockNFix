@@ -98,7 +98,7 @@
   </div>
 </div>
 
-<% locals.pageScript = `
+<script>
   // Image preview
   const imageInput = document.getElementById('image');
   const imagePreview = document.getElementById('imagePreview');
@@ -140,7 +140,7 @@
         previewImg.src = '/img/placeholder-image.png';
         imageInput.value = '';
       } else {
-        previewImg.src = '${category.image && category.image.url ? category.image.url : '/img/placeholder-image.png'}';
+        previewImg.src = '<%= category.image && category.image.url ? category.image.url : "/img/placeholder-image.png" %>';
       }
     });
   }
@@ -165,7 +165,7 @@
         }, false)
       })
   })()
-` %>
+</script>
 
 <style>
   .image-upload-container {

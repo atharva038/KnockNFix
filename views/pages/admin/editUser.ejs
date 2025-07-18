@@ -1,0 +1,42 @@
+<% layout('/layouts/admin-layout') %>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Edit User</h4>
+        </div>
+        <div class="card-body">
+            <form action="/admin/users/edit/<%= user._id %>" method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <input type="text" name="name" class="form-control" value="<%= user.name %>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" value="<%= user.email %>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Phone</label>
+                    <input type="text" name="phone" class="form-control" value="<%= user.phone %>">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Role</label>
+                    <select name="role" class="form-select">
+                        <option value="customer" <%= user.role === 'customer' ? 'selected' : '' %>>Customer</option>
+                        <option value="provider" <%= user.role === 'provider' ? 'selected' : '' %>>Provider</option>
+                        <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="active" <%= user.status === 'active' ? 'selected' : '' %>>Active</option>
+                        <option value="inactive" <%= user.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                        <option value="unverified" <%= user.status === 'unverified' ? 'selected' : '' %>>Unverified</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Update User</button>
+                <a href="/admin/users" class="btn btn-secondary ms-2">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>

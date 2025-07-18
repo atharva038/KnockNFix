@@ -2,7 +2,7 @@ const Service = require("../models/Service");
 const User = require("../models/User");
 const Category = require("../models/category");
 const ServiceProvider = require("../models/ServiceProvider");
-const calculateDistance = require('../utils/distance');
+const {calculateDistance} = require('../utils/distance');
 
 // Get all services/categories
 exports.getAllServices = async (req, res) => {

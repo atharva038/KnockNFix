@@ -5,6 +5,7 @@
 
 // Import required dependencies
 const cloudinary = require('cloudinary').v2;  // Import Cloudinary SDK v2
+// const cloudinary = require('../../config/cloudinary'); 
 const { CloudinaryStorage } = require('multer-storage-cloudinary');  // Import CloudinaryStorage for Multer
 const multer = require('multer');  // Import Multer for file upload handling
 
@@ -38,7 +39,7 @@ const storage = new CloudinaryStorage({
  * Create Multer middleware with Cloudinary storage
  * This will be used to handle file uploads in route handlers
  */
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
 /**
  * Export the configured modules

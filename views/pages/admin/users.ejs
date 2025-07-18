@@ -155,8 +155,7 @@
                                                 </td>
                                                 <td>
                                                     <div class="d-flex gap-1">
-                                                        <a href="/admin/users/<%= user._id %>"
-                                                            class="btn btn-sm btn-outline-info" title="View">
+                                                        <a href="/admin/users/<%= user._id %>" class="btn btn-sm btn-outline-info" title="View">
                                                             <i class="fas fa-eye"></i>
                                                         </a>
                                                         <div class="dropdown">
@@ -184,13 +183,9 @@
                                                                     <hr class="dropdown-divider">
                                                                 </li>
                                                                 <li>
-                                                                    <button
-                                                                        class="dropdown-item text-danger delete-user"
-                                                                        data-user-id="<%= user._id %>"
-                                                                        data-user-name="<%= user.name %>">
-                                                                        <i class="fas fa-trash-alt me-1"></i> Delete
-                                                                        Account
-                                                                    </button>
+                                                                    <form method="POST" action="/admin/users/<%= user._id %>?_method=DELETE" class="d-inline">
+                                                                      <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                                                    </form>
                                                                 </li>
                                                             </ul>
                                                         </div>
@@ -331,7 +326,7 @@
                     <div class="modal-body">
                         <p>Are you sure you want to delete the user account for <strong id="deleteUserName"></strong>?
                         </p>
-                        <p class="text-danger fw-bold mb-0">This action cannot be undone. All user data will be
+                        <p class="text-danger fw-bold mb-0">Thi s action cannot be undone. All user data will be
                             permanently deleted.</p>
                     </div>
                     <div class="modal-footer">
@@ -344,10 +339,34 @@
                 </div>
             </div>
         </div>
+        <!-- Toast notifications -->
+            <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 5">
+                <div id="exportToast" class="toast align-items-center text-white bg-primary border-0" role="alert"
+                    aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body" id="exportToastMessage">
+                            Exporting users...
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                            aria-label="Close"></button>
+                    </div>
+                </div>
 
-       <!-- Replace the problematic pageScript section around line 348 with this corrected version -->
-<% locals.pageScript = `
-// Filter users based on tab selection
+                <div id="statusToast" class="toast align-items-center text-white bg-success border-0" role="alert"
+                    aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body" id="statusToastMessage">
+                            User status updated successfully
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                            aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+
+<script>
+
+
 document.getElementById('customers-tab').addEventListener('click', function() {
     filterUsersByRole('customer');
 });
@@ -363,27 +382,28 @@ const searchBtn = document.getElementById('searchBtn');
 function searchUsers() {
     const searchTerm = searchInput.value.toLowerCase().trim();
     const userRows = document.querySelectorAll('.user-row');
-    
+    let visibleRows = [];
+
     userRows.forEach(row => {
         const name = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
         const email = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
-        
+
         if (name.includes(searchTerm) || email.includes(searchTerm)) {
             row.style.display = '';
+            visibleRows.push(row);
         } else {
             row.style.display = 'none';
         }
-        
-        // Update empty state based on visible rows
-        const visibleRows = Array.from(userRows).filter(r => r.style.display !== 'none');
-        const emptyStateRow = row.closest('tbody').querySelector('tr td[colspan="8"]')?.closest('tr');
-        
-        if (visibleRows.length === 0 && !emptyStateRow) {
-            // No rows visible and no empty state exists, so create one
-            const tbody = row.closest('tbody');
+    });
+
+    // Empty state logic (run once)
+    const tbody = document.querySelector('#all-users tbody');
+    let emptyStateRow = tbody.querySelector('tr.empty-search-results');
+    if (visibleRows.length === 0) {
+        if (!emptyStateRow) {
             const tr = document.createElement('tr');
             tr.className = 'empty-search-results';
-            tr.innerHTML = \`
+            tr.innerHTML = `
             <td colspan="8" class="text-center py-4">
                 <div class="empty-state">
                     <i class="fas fa-search fa-3x mb-3"></i>
@@ -394,13 +414,12 @@ function searchUsers() {
                     </button>
                 </div>
             </td>
-            \`;
+            `;
             tbody.appendChild(tr);
-        } else if (visibleRows.length > 0 && emptyStateRow) {
-            // Rows visible but empty state exists, so remove it
-            emptyStateRow.remove();
         }
-    });
+    } else if (emptyStateRow) {
+        emptyStateRow.remove();
+    }
 }
 
 searchInput.addEventListener('input', searchUsers);
@@ -414,47 +433,76 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Filter by dropdown selections
-const filterItems = document.querySelectorAll('.filter-item');
-filterItems.forEach(item => {
-    item.addEventListener('click', function(e) {
-        e.preventDefault();
-        const filter = this.getAttribute('data-filter');
-        
-        if (filter === 'all') {
-            document.querySelectorAll('.user-row').forEach(row => {
-                row.style.display = '';
-            });
-        } else if (filter === 'customer' || filter === 'provider') {
-            filterUsersByRole(filter);
-        } else {
-            // Filter by status
-            document.querySelectorAll('.user-row').forEach(row => {
-                if (row.getAttribute('data-status') === filter) {
-                    row.style.display = '';
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter by dropdown selections
+    const filterItems = document.querySelectorAll('.filter-item');
+    filterItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const filter = this.getAttribute('data-filter');
+
+            // Always switch to All Users tab when filtering
+            document.getElementById('all-users-tab').click();
+
+            const userRows = document.querySelectorAll('#all-users .user-row');
+            let visibleRows = [];
+
+            userRows.forEach(row => {
+                let show = false;
+                if (filter === 'all') {
+                    show = true;
+                } else if (filter === 'customer' || filter === 'provider') {
+                    show = row.getAttribute('data-role') === filter;
                 } else {
-                    row.style.display = 'none';
+                    show = row.getAttribute('data-status') === filter;
                 }
+                row.style.display = show ? '' : 'none';
+                if (show) visibleRows.push(row);
             });
-        }
+
+            // Empty state logic
+            const tbody = document.querySelector('#all-users tbody');
+            let emptyStateRow = tbody.querySelector('tr.empty-search-results');
+            if (visibleRows.length === 0) {
+                if (!emptyStateRow) {
+                    const tr = document.createElement('tr');
+                    tr.className = 'empty-search-results';
+                    tr.innerHTML = `
+                    <td colspan="8" class="text-center py-4">
+                        <div class="empty-state">
+                            <i class="fas fa-users fa-3x mb-3"></i>
+                            <h5>No users found</h5>
+                            <p class="text-muted">No users match your filter criteria</p>
+                            <button class="btn btn-outline-secondary mt-2 clear-search">
+                                <i class="fas fa-times me-1"></i> Clear Filter
+                            </button>
+                        </div>
+                    </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            } else if (emptyStateRow) {
+                emptyStateRow.remove();
+            }
+        });
     });
 });
 
 function filterUsersByRole(roleType) {
     const targetTab = document.getElementById(roleType === 'customer' ? 'customers' : 'providers');
-    
+
     // Clone the users table structure
     const originalTable = document.getElementById('usersTable');
     const clonedTable = originalTable.cloneNode(true);
-    
+
     // Clear existing rows
     const tbody = clonedTable.querySelector('tbody');
     tbody.innerHTML = '';
-    
+
     // Filter and add rows for the selected role
     const userRows = document.querySelectorAll('#all-users .user-row');
     let rowCount = 0;
-    
+
     userRows.forEach(row => {
         if (row.getAttribute('data-role') === roleType) {
             const clonedRow = row.cloneNode(true);
@@ -462,22 +510,22 @@ function filterUsersByRole(roleType) {
             rowCount++;
         }
     });
-    
+
     // Add empty state if no rows match
     if (rowCount === 0) {
         const emptyRow = document.createElement('tr');
-        emptyRow.innerHTML = \`
+        emptyRow.innerHTML = `
         <td colspan="8" class="text-center py-4">
             <div class="empty-state">
                 <i class="fas fa-users fa-3x mb-3"></i>
-                <h5>No \${roleType === 'customer' ? 'customers' : 'service providers'} found</h5>
-                <p class="text-muted">No \${roleType === 'customer' ? 'customers' : 'service providers'} accounts exist in the system.</p>
+                <h5>No ${roleType === 'customer' ? 'customers' : 'service providers'} found</h5>
+                <p class="text-muted">No ${roleType === 'customer' ? 'customers' : 'service providers'} accounts exist in the system.</p>
             </div>
         </td>
-        \`;
+        `;
         tbody.appendChild(emptyRow);
     }
-    
+
     // Update the tab content
     targetTab.innerHTML = '';
     const tableResponsive = document.createElement('div');
@@ -490,32 +538,40 @@ function filterUsersByRole(roleType) {
 document.getElementById('exportBtn').addEventListener('click', function() {
     const form = document.getElementById('exportForm');
     const format = form.querySelector('input[name="exportFormat"]:checked').value;
-    const userType = form.querySelector('select[name="userType"]').value;
-    const fields = Array.from(form.querySelectorAll('input[name="fields"]:checked')).map(field => field.value);
-    
-    // In a real implementation, this would submit to a server endpoint
-    const exportData = {
-        format,
-        userType,
-        fields
-    };
-    
-    console.log('Export request:', exportData);
-    
-    // Display a toast notification
-    const toast = new bootstrap.Toast(document.getElementById('exportToast'));
-    document.getElementById('exportToastMessage').textContent = \`Exporting users as \${format.toUpperCase()}\`;
-    toast.show();
-    
+
+    if (format === 'csv') {
+        exportTableToCSV('users.csv');
+    } else if (format === 'excel') {
+        window.location.href = '/admin/users/export?format=excel';
+    } else {
+        alert('Only CSV export is supported in this demo. For Excel or PDF, backend implementation is needed.');
+    }
+
     // Close the modal
     const exportModal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
     exportModal.hide();
-    
-    // In a real app, this would be an API call
-    setTimeout(() => {
-        alert(\`Users exported as \${format.toUpperCase()}\`);
-    }, 1000);
 });
+
+// CSV export function (already in your code)
+function exportTableToCSV(filename) {
+    const rows = document.querySelectorAll('#usersTable tr');
+    let csv = [];
+    rows.forEach(row => {
+        let cols = row.querySelectorAll('td, th');
+        let rowData = [];
+        cols.forEach(col => rowData.push('"' + col.innerText.replace(/"/g, '""') + '"'));
+        csv.push(rowData.join(','));
+    });
+    // Download CSV
+    const csvFile = new Blob([csv.join('\n')], { type: 'text/csv' });
+    const downloadLink = document.createElement('a');
+    downloadLink.download = filename;
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
 
 // Delete user functionality
 const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
@@ -524,16 +580,7 @@ const deleteUserBtns = document.querySelectorAll('.delete-user');
 deleteUserBtns.forEach(btn => {
     btn.addEventListener('click', function() {
         const userId = this.getAttribute('data-user-id');
-        const userName = this.getAttribute('data-user-name');
-        
-        // Set the user name in the modal
-        document.getElementById('deleteUserName').textContent = userName;
-        
-        // Set the form action
-        document.getElementById('deleteForm').action = \`/admin/users/\${userId}?_method=DELETE\`;
-        
-        // Show the modal
-        deleteModal.show();
+        document.getElementById('deleteForm').action = `/admin/users/${userId}?_method=DELETE`;
     });
 });
 
@@ -545,9 +592,9 @@ statusToggles.forEach(btn => {
         const userId = this.getAttribute('data-user-id');
         const currentStatus = this.getAttribute('data-current-status');
         const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-        
+
         // In a real application, this would be an API call
-        fetch(\`/admin/users/\${userId}/status\`, {
+        fetch(`/admin/users/${userId}/status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -560,24 +607,29 @@ statusToggles.forEach(btn => {
                 // Update the UI
                 const row = this.closest('tr');
                 const statusBadge = row.querySelector('td:nth-child(7) .badge');
-                
+
                 statusBadge.classList.remove('bg-success', 'bg-danger');
                 statusBadge.classList.add(newStatus === 'active' ? 'bg-success' : 'bg-danger');
                 statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
-                
+
                 // Update the button
                 this.setAttribute('data-current-status', newStatus);
-                this.innerHTML = \`
-                <i class="fas fa-\${newStatus === 'active' ? 'lock' : 'unlock'} me-1"></i>
-                \${newStatus === 'active' ? 'Deactivate' : 'Activate'} Account
-                \`;
+                this.innerHTML = `
+                <i class="fas fa-${newStatus === 'active' ? 'lock' : 'unlock'} me-1"></i>
+                ${newStatus === 'active' ? 'Deactivate' : 'Activate'} Account
+                `;
                 this.classList.remove('text-warning', 'text-success');
                 this.classList.add(newStatus === 'active' ? 'text-warning' : 'text-success');
-                
+
                 // Show toast notification
                 const toast = new bootstrap.Toast(document.getElementById('statusToast'));
-                document.getElementById('statusToastMessage').textContent = \`User account \${newStatus === 'active' ? 'activated' : 'deactivated'} successfully\`;
+                document.getElementById('statusToastMessage').textContent = `User account ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`;
                 toast.show();
+
+                // Reload the page after the toast is hidden
+                document.getElementById('statusToast').addEventListener('hidden.bs.toast', function() {
+                    window.location.reload();
+                });
             }
         })
         .catch(error => {
@@ -586,7 +638,7 @@ statusToggles.forEach(btn => {
         });
     });
 });
-`; %>
+</script>
 
             <style>
                 .user-avatar {
@@ -616,27 +668,6 @@ statusToggles.forEach(btn => {
                 }
             </style>
 
-            <!-- Toast notifications -->
-            <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 5">
-                <div id="exportToast" class="toast align-items-center text-white bg-primary border-0" role="alert"
-                    aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body" id="exportToastMessage">
-                            Exporting users...
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                            aria-label="Close"></button>
-                    </div>
-                </div>
+            
 
-                <div id="statusToast" class="toast align-items-center text-white bg-success border-0" role="alert"
-                    aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body" id="statusToastMessage">
-                            User status updated successfully
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                            aria-label="Close"></button>
-                    </div>
-                </div>
-            </div>
+<!-- Place this just before the closing </body> or at the end of your file -->

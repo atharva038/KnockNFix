@@ -1,0 +1,13 @@
+router.post('/admin/services/:id/toggle', async (req, res) => {
+    try {
+        const service = await Service.findById(req.params.id);
+        if (!service) return res.status(404).json({ success: false, message: 'Service not found' });
+
+        service.isActive = !service.isActive;
+        await service.save();
+
+        res.json({ success: true, isActive: service.isActive });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});

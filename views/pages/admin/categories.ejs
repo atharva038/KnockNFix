@@ -7,8 +7,8 @@ locals.breadcrumbs = [{
   text: "Categories", 
   active: true 
 }]; 
-%>
-        <div class="admin-section-header">
+%> 
+        <div class="admin-section-header"> 
             <h2><i class="fas fa-th-large me-2"></i>Service Categories</h2>
             <div>
                 <a href="/admin/addCategory" class="btn btn-primary">
@@ -74,10 +74,10 @@ locals.breadcrumbs = [{
                                                 </a>
                                                 <!-- Replace lines 75-79 with this correct toggle button for categories -->
 <button type="button"
-class="btn btn-sm <%= category.isActive ? 'btn-outline-warning' : 'btn-outline-success' %>"
-onclick="toggleCategoryStatus('/admin/categories/<%= category._id %>/toggle', this)"
-data-status="<%= category.isActive ? 'active' : 'inactive' %>">
-<i class="fas <%= category.isActive ? 'fa-eye-slash' : 'fa-eye' %>"></i>
+    class="btn btn-sm <%= category.isActive ? 'btn-outline-warning' : 'btn-outline-success' %>"
+    onclick="toggleStatus('/admin/categories/<%= category._id %>/toggle', this)"
+    data-status="<%= category.isActive ? 'active' : 'inactive' %>">
+    <i class="fas <%= category.isActive ? 'fa-eye-slash' : 'fa-eye' %>"></i>
 </button>
 <button type="button" class="btn btn-sm btn-outline-danger"
 data-bs-toggle="modal" data-bs-target="#deleteModal<%= category._id %>">
