@@ -11,16 +11,33 @@
   <div class="location-bar d-none d-lg-flex">
     <div class="location-input-container">
       <i class="fas fa-map-marker-alt location-icon"></i>
-      <input type="text" id="navbar-location" class="location-input" placeholder="Detecting location..." readonly>
-      <button type="button" id="change-location-btn" class="change-location-btn">
+      <input
+        type="text"
+        id="navbar-location"
+        class="location-input"
+        placeholder="Detecting location..."
+        readonly
+      />
+      <button
+        type="button"
+        id="change-location-btn"
+        class="change-location-btn"
+      >
         <i class="fas fa-edit"></i>
       </button>
     </div>
   </div>
 
   <!-- Toggle Button -->
-  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
-    aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+  <button
+    class="navbar-toggler"
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#navbarNavAltMarkup"
+    aria-controls="navbarNavAltMarkup"
+    aria-expanded="false"
+    aria-label="Toggle navigation"
+  >
     <span class="toggler-icon">
       <i class="fas fa-bars"></i>
     </span>
@@ -32,9 +49,18 @@
     <div class="mobile-location-bar d-lg-none">
       <div class="location-input-container mobile">
         <i class="fas fa-map-marker-alt location-icon"></i>
-        <input type="text" id="mobile-navbar-location" class="location-input" placeholder="Detecting location..."
-          readonly>
-        <button type="button" id="mobile-change-location-btn" class="change-location-btn">
+        <input
+          type="text"
+          id="mobile-navbar-location"
+          class="location-input"
+          placeholder="Detecting location..."
+          readonly
+        />
+        <button
+          type="button"
+          id="mobile-change-location-btn"
+          class="change-location-btn"
+        >
           <i class="fas fa-edit"></i>
         </button>
       </div>
@@ -55,60 +81,81 @@
         </a>
       </li>
       <% if (typeof currProvider !=="undefined" && currProvider) { %>
-        <li class="nav-item">
-          <a class="nav-link" href="/dashboard">
-            <i class="fas fa-columns nav-icon"></i>
-            <span>Dashboard</span>
-          </a>
-        </li>
-        <% } %>
-          <% if (typeof currCustomer !=="undefined" && currCustomer) { %>
-            <li class="nav-item">
-              <a class="nav-link" href="/dashboard">
-                <i class="fas fa-user-circle nav-icon"></i>
-                <span>Dashboard</span>
-              </a>
-            </li>
-            <% } %>
+      <li class="nav-item">
+        <a class="nav-link" href="/dashboard">
+          <i class="fas fa-columns nav-icon"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <% } %> <% if (typeof currCustomer !=="undefined" && currCustomer) { %>
+      <li class="nav-item">
+        <a class="nav-link" href="/dashboard">
+          <i class="fas fa-user-circle nav-icon"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <% } %>
     </ul>
 
     <!-- Right-aligned Auth Links -->
     <div class="navbar-nav auth-links">
       <% if(!currUser){ %>
-        <a class="nav-link login-link" href="/login">
-          <i class="fas fa-sign-in-alt me-1"></i> Login
-        </a>
-        <a class="signup-btn" href="/register">
-          <i class="fas fa-user-plus me-1"></i> Sign Up
-        </a>
-        <% } else { %>
-          <a class="logout-btn" href="/logout">
-            <i class="fas fa-sign-out-alt me-1"></i> Logout
-          </a>
-          <% } %>
+      <a class="nav-link login-link" href="/login">
+        <i class="fas fa-sign-in-alt me-1"></i> Login
+      </a>
+      <a class="signup-btn" href="/register">
+        <i class="fas fa-user-plus me-1"></i> Sign Up
+      </a>
+      <% } else { %>
+      <a class="logout-btn" href="/logout">
+        <i class="fas fa-sign-out-alt me-1"></i> Logout
+      </a>
+      <% } %>
     </div>
   </div>
 </nav>
 
 <!-- Location Change Modal -->
-<div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-hidden="true">
+<div
+  class="modal fade"
+  id="locationModal"
+  tabindex="-1"
+  aria-labelledby="locationModalLabel"
+  aria-hidden="true"
+>
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="locationModalLabel">
           <i class="fas fa-map-marker-alt me-2"></i>Change Location
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
       </div>
       <div class="modal-body">
         <div class="location-search-container">
-          <label for="location-search" class="form-label">Search for your city or area</label>
+          <label for="location-search" class="form-label"
+            >Search for your city or area</label
+          >
           <div class="input-group">
             <span class="input-group-text">
               <i class="fas fa-search"></i>
             </span>
-            <input type="text" class="form-control" id="location-search" placeholder="Enter city, area, or pincode">
-            <button class="btn btn-outline-secondary" type="button" id="detect-current-location">
+            <input
+              type="text"
+              class="form-control"
+              id="location-search"
+              placeholder="Enter city, area, or pincode"
+            />
+            <button
+              class="btn btn-outline-secondary"
+              type="button"
+              id="detect-current-location"
+            >
               <i class="fas fa-location-arrow"></i>
             </button>
           </div>
@@ -116,16 +163,17 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="save-location-btn">Save Location</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary" id="save-location-btn">
+          Save Location
+        </button>
       </div>
     </div>
   </div>
 </div>
-
 <style>
-  /* Completely rewritten navbar styles without container dependency */
-
   /* Core navbar styling */
   .navbar {
     background-color: rgba(255, 255, 255, 0.95);
@@ -256,7 +304,7 @@
   }
 
   .nav-link::before {
-    content: '';
+    content: "";
     position: absolute;
     bottom: 0;
     left: 50%;
@@ -642,66 +690,108 @@
 <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    console.log('DOM loaded - initializing navbar');
-
+  document.addEventListener("DOMContentLoaded", function () {
     // Initialize location functionality
     initializeLocationBar();
 
     function initializeLocationBar() {
-      console.log('Initializing location bar');
-
-      const locationInput = document.getElementById('navbar-location');
-      const mobileLocationInput = document.getElementById('mobile-navbar-location');
-      const changeLocationBtn = document.getElementById('change-location-btn');
-      const mobileChangeLocationBtn = document.getElementById('mobile-change-location-btn');
+      const locationInput = document.getElementById("navbar-location");
+      const mobileLocationInput = document.getElementById(
+        "mobile-navbar-location"
+      );
+      const changeLocationBtn = document.getElementById("change-location-btn");
+      const mobileChangeLocationBtn = document.getElementById(
+        "mobile-change-location-btn"
+      );
 
       // Check if location modal exists before creating instance
-      const locationModalElement = document.getElementById('locationModal');
-      const locationModal = locationModalElement ? new bootstrap.Modal(locationModalElement) : null;
+      const locationModalElement = document.getElementById("locationModal");
+      const locationModal = locationModalElement
+        ? new bootstrap.Modal(locationModalElement)
+        : null;
 
-      const locationSearch = document.getElementById('location-search');
-      const locationSuggestions = document.getElementById('location-suggestions');
-      const detectLocationBtn = document.getElementById('detect-current-location');
-      const saveLocationBtn = document.getElementById('save-location-btn');
+      const locationSearch = document.getElementById("location-search");
+      const locationSuggestions = document.getElementById(
+        "location-suggestions"
+      );
+      const detectLocationBtn = document.getElementById(
+        "detect-current-location"
+      );
+      const saveLocationBtn = document.getElementById("save-location-btn");
 
       let currentLocation = null;
       let selectedLocation = null;
       let searchTimeout = null;
 
-      console.log('Elements found:', {
-        locationInput: !!locationInput,
-        mobileLocationInput: !!mobileLocationInput,
-        changeLocationBtn: !!changeLocationBtn,
-        mobileChangeLocationBtn: !!mobileChangeLocationBtn,
-        locationModal: !!locationModal,
-        locationSearch: !!locationSearch,
-        detectLocationBtn: !!detectLocationBtn,
-        saveLocationBtn: !!saveLocationBtn
-      });
+      // Modal event listeners for accessibility
+      if (locationModalElement) {
+        // Clear focus and reset when modal is hidden
+        locationModalElement.addEventListener("hidden.bs.modal", function () {
+          const focusedElement = locationModalElement.querySelector(":focus");
+          if (focusedElement) {
+            focusedElement.blur();
+          }
+          resetModalState();
+        });
+
+        // Set proper focus when modal is shown
+        locationModalElement.addEventListener("shown.bs.modal", function () {
+          if (locationSearch) {
+            setTimeout(() => {
+              locationSearch.focus();
+            }, 100);
+          }
+        });
+
+        // Handle focus trap when modal is hiding
+        locationModalElement.addEventListener("hide.bs.modal", function () {
+          const focusedElement = locationModalElement.querySelector(":focus");
+          if (focusedElement) {
+            focusedElement.blur();
+          }
+        });
+      }
+
+      // Reset modal state function
+      function resetModalState() {
+        if (locationSearch) {
+          locationSearch.value = "";
+          locationSearch.disabled = false;
+          locationSearch.placeholder = "Enter city, area, or pincode";
+        }
+
+        if (detectLocationBtn) {
+          detectLocationBtn.innerHTML = '<i class="fas fa-location-arrow"></i>';
+          detectLocationBtn.disabled = false;
+        }
+
+        if (locationSuggestions) {
+          locationSuggestions.style.display = "none";
+          locationSuggestions.innerHTML = "";
+        }
+
+        selectedLocation = null;
+      }
 
       // Initialize location display and check for first visit
       initializeLocationDisplay();
 
       // Event listeners
       if (changeLocationBtn && locationModal) {
-        changeLocationBtn.addEventListener('click', function () {
-          console.log('Desktop change location clicked');
+        changeLocationBtn.addEventListener("click", function () {
           locationModal.show();
         });
       }
 
       if (mobileChangeLocationBtn && locationModal) {
-        mobileChangeLocationBtn.addEventListener('click', function () {
-          console.log('Mobile change location clicked');
+        mobileChangeLocationBtn.addEventListener("click", function () {
           locationModal.show();
         });
       }
 
       // Make location inputs clickable to open modal
       if (locationInput) {
-        locationInput.addEventListener('click', function () {
-          console.log('Desktop location input clicked');
+        locationInput.addEventListener("click", function () {
           if (locationModal) {
             locationModal.show();
           }
@@ -709,8 +799,7 @@
       }
 
       if (mobileLocationInput) {
-        mobileLocationInput.addEventListener('click', function () {
-          console.log('Mobile location input clicked');
+        mobileLocationInput.addEventListener("click", function () {
           if (locationModal) {
             locationModal.show();
           }
@@ -718,46 +807,46 @@
       }
 
       if (locationSearch) {
-        locationSearch.addEventListener('input', function () {
+        locationSearch.addEventListener("input", function () {
           clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(function () { searchLocations(); }, 300);
+          searchTimeout = setTimeout(function () {
+            searchLocations();
+          }, 300);
         });
       }
 
       if (detectLocationBtn) {
-        detectLocationBtn.addEventListener('click', function () {
-          console.log('Detect location button clicked');
-          detectUserLocation();
+        detectLocationBtn.addEventListener("click", function () {
+          detectUserLocationInModal();
         });
       }
 
       if (saveLocationBtn) {
-        saveLocationBtn.addEventListener('click', function () {
-          console.log('Save location button clicked');
+        saveLocationBtn.addEventListener("click", function () {
           saveSelectedLocation();
         });
       }
 
       // Check if this is user's first visit to the website
       function isFirstVisit() {
-        const hasVisited = localStorage.getItem('hasVisitedBefore');
-        const hasLocation = localStorage.getItem('userLocation');
+        const hasVisited = localStorage.getItem("hasVisitedBefore");
+        const hasLocation = localStorage.getItem("userLocation");
         return !hasVisited || !hasLocation;
       }
 
       // Mark that user has visited the website
       function markAsVisited() {
-        localStorage.setItem('hasVisitedBefore', 'true');
-        localStorage.setItem('firstVisitDate', new Date().toISOString());
+        localStorage.setItem("hasVisitedBefore", "true");
+        localStorage.setItem("firstVisitDate", new Date().toISOString());
       }
 
       // Get location from URL parameters
       function getLocationFromURL() {
         try {
           const urlParams = new URLSearchParams(window.location.search);
-          const location = urlParams.get('location');
-          const latitude = urlParams.get('latitude');
-          const longitude = urlParams.get('longitude');
+          const location = urlParams.get("location");
+          const latitude = urlParams.get("latitude");
+          const longitude = urlParams.get("longitude");
 
           if (location && latitude && longitude) {
             return {
@@ -765,28 +854,25 @@
               fullAddress: location,
               coordinates: {
                 lat: parseFloat(latitude),
-                lng: parseFloat(longitude)
+                lng: parseFloat(longitude),
               },
               fromURL: true,
-              setAt: new Date().toISOString()
+              setAt: new Date().toISOString(),
             };
           }
         } catch (e) {
-          console.error('Error getting location from URL:', e);
+          // Handle error silently
         }
         return null;
       }
 
       // Initialize location display and handle first visit
       function initializeLocationDisplay() {
-        console.log('Initializing location display');
-
         // FIRST: Check if location is in URL parameters (highest priority)
         const urlLocation = getLocationFromURL();
         if (urlLocation) {
-          console.log('Location found in URL parameters:', urlLocation.city);
           currentLocation = urlLocation;
-          updateLocationDisplay(urlLocation.city, 'success');
+          updateLocationDisplay(urlLocation.city, "success");
 
           // Also store this location for future use (but don't override manual settings)
           const storedLocation = getStoredLocation();
@@ -801,100 +887,247 @@
         const storedLocation = getStoredLocation();
         if (storedLocation) {
           currentLocation = storedLocation;
-          updateLocationDisplay(storedLocation.city, 'success');
-          console.log('Using stored location:', storedLocation.city);
-          // Update server with stored location
+          updateLocationDisplay(storedLocation.city, "success");
           updateServerLocation(storedLocation);
           return;
         }
 
         // THIRD: Handle first visit auto-detection
         if (isFirstVisit()) {
-          console.log('First visit detected - will ask for location permission');
-          updateLocationDisplay('Detecting location...', 'loading');
+          updateLocationDisplay("Detecting location...", "loading");
           markAsVisited();
 
           setTimeout(function () {
             detectUserLocationFirstTime();
           }, 1500);
         } else {
-          console.log('Returning user without stored location');
-          updateLocationDisplay('Select location', 'normal');
+          updateLocationDisplay("Select location", "normal");
         }
       }
 
       // Special location detection for first-time visitors
       function detectUserLocationFirstTime() {
-        console.log('Attempting to detect location for first-time visitor');
-
         if (!navigator.geolocation) {
-          console.log('Geolocation not supported');
-          updateLocationDisplay('Select location', 'normal');
+          updateLocationDisplay("Select location", "normal");
           return;
         }
 
         const options = {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 300000
+          maximumAge: 300000,
         };
 
         navigator.geolocation.getCurrentPosition(
           function (position) {
-            console.log('Location permission granted on first visit');
             processLocationCoordinates(position);
           },
           function (error) {
-            console.log('Location permission denied or failed on first visit:', error.message);
-            updateLocationDisplay('Select location', 'normal');
+            updateLocationDisplay("Select location", "normal");
             showLocationBenefitsToast();
           },
           options
         );
       }
 
-      // Regular location detection (for manual requests)
-      function detectUserLocation() {
-        console.log('Manual location detection requested');
-        updateLocationDisplay('Detecting location...', 'loading');
+      // Location detection specifically for modal button
+      function detectUserLocationInModal() {
+        // Update the search input to show loading state
+        if (locationSearch) {
+          locationSearch.value = "Detecting location...";
+          locationSearch.disabled = true;
+        }
+
+        // Change button state
+        if (detectLocationBtn) {
+          detectLocationBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i>';
+          detectLocationBtn.disabled = true;
+        }
 
         if (!navigator.geolocation) {
-          console.log('Geolocation not supported');
-          updateLocationDisplay('Location not supported', 'error');
+          resetModalLocationState("Geolocation not supported");
+          return;
+        }
+
+        const options = {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 600000,
+        };
+
+        navigator.geolocation.getCurrentPosition(
+          function (position) {
+            processModalLocationCoordinates(position);
+          },
+          function (error) {
+            let errorMessage = "Location detection failed";
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                errorMessage =
+                  "Location permission denied. Please enter manually.";
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMessage = "Location unavailable. Please enter manually.";
+                break;
+              case error.TIMEOUT:
+                errorMessage =
+                  "Location detection timed out. Please try again.";
+                break;
+            }
+
+            resetModalLocationState(errorMessage);
+          },
+          options
+        );
+      }
+
+      // Process coordinates specifically for modal
+      function processModalLocationCoordinates(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        // Store coordinates globally for use in service searches
+        window.userLocation = {
+          latitude: lat,
+          longitude: lng,
+          timestamp: Date.now(),
+        };
+
+        // Try to get proper address from reverse geocoding
+        axios
+          .get("/api/location/reverse-geocode", {
+            params: {
+              lat: lat,
+              lng: lng,
+            },
+            timeout: 10000,
+          })
+          .then(function (response) {
+            let cityName = "Current Location";
+            let fullAddress = `Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(
+              4
+            )}`;
+
+            if (response.data.success && response.data.address) {
+              cityName = response.data.address;
+              fullAddress = response.data.fullAddress || response.data.address;
+            } else if (
+              response.data.data &&
+              response.data.data.results &&
+              response.data.data.results[0]
+            ) {
+              const address = response.data.data.results[0];
+              cityName = extractCityFromAddress(address);
+              fullAddress = address.formatted_address;
+            }
+
+            // Update the modal search input
+            if (locationSearch) {
+              locationSearch.value = fullAddress;
+            }
+
+            // Create the selected location object
+            selectedLocation = {
+              placeId: "detected_" + Date.now(),
+              description: fullAddress,
+              city: cityName,
+              coordinates: {lat: lat, lng: lng},
+              autoDetected: true,
+            };
+
+            // Reset button state
+            resetModalLocationState("Location detected successfully!");
+
+            // Show success message briefly
+            setTimeout(function () {
+              if (locationSearch) {
+                locationSearch.value = fullAddress;
+              }
+            }, 1000);
+          })
+          .catch(function (error) {
+            // Fallback to coordinates
+            const cityName = `Location (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
+            const fullAddress = `Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(
+              4
+            )}`;
+
+            if (locationSearch) {
+              locationSearch.value = fullAddress;
+            }
+
+            selectedLocation = {
+              placeId: "detected_" + Date.now(),
+              description: fullAddress,
+              city: cityName,
+              coordinates: {lat: lat, lng: lng},
+              autoDetected: true,
+            };
+
+            resetModalLocationState("Location detected (approximate)");
+          });
+      }
+
+      // Reset modal location detection state
+      function resetModalLocationState(message) {
+        // Reset search input
+        if (locationSearch) {
+          locationSearch.disabled = false;
+          if (
+            message.includes("failed") ||
+            message.includes("denied") ||
+            message.includes("unavailable")
+          ) {
+            locationSearch.value = "";
+            locationSearch.placeholder = message;
+          }
+        }
+
+        // Reset button
+        if (detectLocationBtn) {
+          detectLocationBtn.innerHTML = '<i class="fas fa-location-arrow"></i>';
+          detectLocationBtn.disabled = false;
+        }
+      }
+
+      // Regular location detection (for manual requests)
+      function detectUserLocation() {
+        updateLocationDisplay("Detecting location...", "loading");
+
+        if (!navigator.geolocation) {
+          updateLocationDisplay("Location not supported", "error");
           return;
         }
 
         const options = {
           enableHighAccuracy: false,
           timeout: 15000,
-          maximumAge: 600000
+          maximumAge: 600000,
         };
 
         navigator.geolocation.getCurrentPosition(
           function (position) {
-            console.log('Manual location detection successful');
             processLocationCoordinates(position);
           },
           function (error) {
-            console.error('Manual geolocation failed:', error);
-
-            let errorMessage = 'Location unavailable';
+            let errorMessage = "Location unavailable";
             switch (error.code) {
               case error.PERMISSION_DENIED:
-                errorMessage = 'Location permission denied';
+                errorMessage = "Location permission denied";
                 break;
               case error.POSITION_UNAVAILABLE:
-                errorMessage = 'Location unavailable';
+                errorMessage = "Location unavailable";
                 break;
               case error.TIMEOUT:
-                errorMessage = 'Location detection timed out';
+                errorMessage = "Location detection timed out";
                 break;
             }
 
-            updateLocationDisplay(errorMessage, 'error');
+            updateLocationDisplay(errorMessage, "error");
 
             setTimeout(function () {
-              updateLocationDisplay('Select location', 'normal');
+              updateLocationDisplay("Select location", "normal");
             }, 3000);
           },
           options
@@ -903,8 +1136,6 @@
 
       // Process coordinates and get address (shared function)
       function processLocationCoordinates(position) {
-        console.log('Processing coordinates:', position.coords);
-
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
 
@@ -912,61 +1143,63 @@
         window.userLocation = {
           latitude: lat,
           longitude: lng,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
 
         // Create initial location with coordinates
-        const cityName = 'Location (' + lat.toFixed(2) + ', ' + lng.toFixed(2) + ')';
+        const cityName =
+          "Location (" + lat.toFixed(2) + ", " + lng.toFixed(2) + ")";
 
         currentLocation = {
           city: cityName,
-          fullAddress: 'Coordinates: ' + lat.toFixed(4) + ', ' + lng.toFixed(4),
-          coordinates: { lat: lat, lng: lng },
+          fullAddress: "Coordinates: " + lat.toFixed(4) + ", " + lng.toFixed(4),
+          coordinates: {lat: lat, lng: lng},
           detectedAt: new Date().toISOString(),
-          autoDetected: true
+          autoDetected: true,
         };
 
-        updateLocationDisplay(cityName, 'success');
+        updateLocationDisplay(cityName, "success");
         storeLocationInStorage(currentLocation);
         updateServerLocation(currentLocation);
 
-        console.log('Location successfully detected:', cityName);
-
         // Try to get proper address from reverse geocoding using axios
-        axios.get('/api/location/reverse-geocode', {
-          params: {
-            lat: lat,
-            lng: lng
-          },
-          timeout: 10000
-        })
+        axios
+          .get("/api/location/reverse-geocode", {
+            params: {
+              lat: lat,
+              lng: lng,
+            },
+            timeout: 10000,
+          })
           .then(function (response) {
-            console.log('Reverse geocoding response:', response.data);
-
             if (response.data.success && response.data.address) {
               currentLocation.city = response.data.address;
-              currentLocation.fullAddress = response.data.fullAddress || response.data.address;
-              updateLocationDisplay(response.data.address, 'success');
+              currentLocation.fullAddress =
+                response.data.fullAddress || response.data.address;
+              updateLocationDisplay(response.data.address, "success");
               storeLocationInStorage(currentLocation);
               updateServerLocation(currentLocation);
-            } else if (response.data.data && response.data.data.results && response.data.data.results[0]) {
+            } else if (
+              response.data.data &&
+              response.data.data.results &&
+              response.data.data.results[0]
+            ) {
               const address = response.data.data.results[0];
               const city = extractCityFromAddress(address);
 
               currentLocation.city = city;
               currentLocation.fullAddress = address.formatted_address;
-              updateLocationDisplay(city, 'success');
+              updateLocationDisplay(city, "success");
               storeLocationInStorage(currentLocation);
               updateServerLocation(currentLocation);
             }
 
             // Update providers if on services page
-            if (window.location.pathname.includes('/services')) {
+            if (window.location.pathname.includes("/services")) {
               updateProvidersForLocation(currentLocation);
             }
           })
           .catch(function (error) {
-            console.error('Reverse geocoding failed:', error);
             // Keep the coordinates-based location
           });
       }
@@ -974,45 +1207,51 @@
       // Update server location using axios
       function updateServerLocation(location) {
         if (!location || !location.coordinates) {
-          console.warn('Cannot update server location - invalid location data');
           return;
         }
 
-        axios.post('/services/update-location', {
-          latitude: location.coordinates.lat,
-          longitude: location.coordinates.lng
-        }, {
-          timeout: 5000,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
+        axios
+          .post(
+            "/services/update-location",
+            {
+              latitude: location.coordinates.lat,
+              longitude: location.coordinates.lng,
+            },
+            {
+              timeout: 5000,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          )
           .then(function (response) {
-            console.log('Server location updated successfully:', response.data);
+            // Handle success silently
           })
           .catch(function (error) {
-            console.warn('Failed to update server location:', error.message);
+            // Handle error silently
           });
       }
 
       // Show subtle notification about location benefits
       function showLocationBenefitsToast() {
-        const hasSeenToast = localStorage.getItem('hasSeenLocationToast');
+        const hasSeenToast = localStorage.getItem("hasSeenLocationToast");
         if (hasSeenToast) return;
 
-        const toast = document.createElement('div');
-        toast.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 20px; border-radius: 25px; font-size: 14px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); z-index: 9999; opacity: 0; transition: opacity 0.3s ease; max-width: 90%; text-align: center;';
+        const toast = document.createElement("div");
+        toast.style.cssText =
+          "position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 20px; border-radius: 25px; font-size: 14px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); z-index: 9999; opacity: 0; transition: opacity 0.3s ease; max-width: 90%; text-align: center;";
 
-        toast.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i>Enable location to find nearby service providers<button onclick="this.parentElement.remove()" style="background: none; border: none; color: white; margin-left: 10px; cursor: pointer;"><i class="fas fa-times"></i></button>';
+        toast.innerHTML =
+          '<i class="fas fa-map-marker-alt me-2"></i>Enable location to find nearby service providers<button onclick="this.parentElement.remove()" style="background: none; border: none; color: white; margin-left: 10px; cursor: pointer;"><i class="fas fa-times"></i></button>';
 
         document.body.appendChild(toast);
 
         setTimeout(function () {
-          toast.style.opacity = '1';
+          toast.style.opacity = "1";
         }, 100);
 
         setTimeout(function () {
-          toast.style.opacity = '0';
+          toast.style.opacity = "0";
           setTimeout(function () {
             if (toast.parentElement) {
               toast.remove();
@@ -1020,55 +1259,58 @@
           }, 300);
         }, 5000);
 
-        localStorage.setItem('hasSeenLocationToast', 'true');
+        localStorage.setItem("hasSeenLocationToast", "true");
       }
 
       // Search for locations using axios
       function searchLocations() {
-        const query = locationSearch ? locationSearch.value.trim() : '';
+        const query = locationSearch ? locationSearch.value.trim() : "";
 
         if (query.length < 3) {
-          if (locationSuggestions) locationSuggestions.style.display = 'none';
+          if (locationSuggestions) locationSuggestions.style.display = "none";
           return;
         }
 
-        console.log('Searching for locations:', query);
-
-        axios.get('/api/location/suggestions', {
-          params: {
-            query: query
-          },
-          timeout: 8000
-        })
+        axios
+          .get("/api/location/suggestions", {
+            params: {
+              query: query,
+            },
+            timeout: 8000,
+          })
           .then(function (response) {
-            console.log('Location search response:', response.data);
-
-            if (response.data.status === 'success' && response.data.data.predictions) {
+            if (
+              response.data.status === "success" &&
+              response.data.data.predictions
+            ) {
               displayLocationSuggestions(response.data.data.predictions);
             } else if (response.data.predictions) {
               displayLocationSuggestions(response.data.predictions);
             } else {
               // Fallback suggestion
-              displayLocationSuggestions([{
-                place_id: 'manual_' + Date.now(),
-                description: query + ', India',
-                structured_formatting: {
-                  main_text: query,
-                  secondary_text: 'India'
-                }
-              }]);
+              displayLocationSuggestions([
+                {
+                  place_id: "manual_" + Date.now(),
+                  description: query + ", India",
+                  structured_formatting: {
+                    main_text: query,
+                    secondary_text: "India",
+                  },
+                },
+              ]);
             }
           })
           .catch(function (error) {
-            console.error('Location search failed:', error);
-            displayLocationSuggestions([{
-              place_id: 'manual_' + Date.now(),
-              description: query + ', India',
-              structured_formatting: {
-                main_text: query,
-                secondary_text: 'India'
-              }
-            }]);
+            displayLocationSuggestions([
+              {
+                place_id: "manual_" + Date.now(),
+                description: query + ", India",
+                structured_formatting: {
+                  main_text: query,
+                  secondary_text: "India",
+                },
+              },
+            ]);
           });
       }
 
@@ -1076,134 +1318,188 @@
       function displayLocationSuggestions(predictions) {
         if (!locationSuggestions) return;
 
-        locationSuggestions.innerHTML = '';
+        locationSuggestions.innerHTML = "";
 
         if (predictions.length === 0) {
-          locationSuggestions.style.display = 'none';
+          locationSuggestions.style.display = "none";
           return;
         }
 
         predictions.forEach(function (prediction) {
-          const div = document.createElement('div');
-          div.className = 'location-suggestion';
-          div.innerHTML = '<div class="main-text">' +
-            (prediction.structured_formatting ? prediction.structured_formatting.main_text : prediction.description) +
+          const div = document.createElement("div");
+          div.className = "location-suggestion";
+          div.innerHTML =
+            '<div class="main-text">' +
+            (prediction.structured_formatting
+              ? prediction.structured_formatting.main_text
+              : prediction.description) +
             '</div><div class="sub-text">' +
-            (prediction.structured_formatting ? prediction.structured_formatting.secondary_text || '' : '') +
-            '</div>';
+            (prediction.structured_formatting
+              ? prediction.structured_formatting.secondary_text || ""
+              : "") +
+            "</div>";
 
-          div.addEventListener('click', function () {
+          div.addEventListener("click", function () {
             selectLocationSuggestion(prediction);
           });
           locationSuggestions.appendChild(div);
         });
 
-        locationSuggestions.style.display = 'block';
+        locationSuggestions.style.display = "block";
       }
 
       // Select a location suggestion
       function selectLocationSuggestion(prediction) {
-        console.log('Location suggestion selected:', prediction);
-
         if (locationSearch) locationSearch.value = prediction.description;
-        if (locationSuggestions) locationSuggestions.style.display = 'none';
+        if (locationSuggestions) locationSuggestions.style.display = "none";
 
         selectedLocation = {
           placeId: prediction.place_id,
           description: prediction.description,
-          city: prediction.structured_formatting ?
-            prediction.structured_formatting.main_text :
-            prediction.description.split(',')[0]
+          city: prediction.structured_formatting
+            ? prediction.structured_formatting.main_text
+            : prediction.description.split(",")[0],
         };
-
-        console.log('Selected location:', selectedLocation);
       }
 
       // Save selected location using axios
       function saveSelectedLocation() {
         if (!selectedLocation) {
-          alert('Please select a location first');
+          alert("Please select a location first");
           return;
         }
 
-        console.log('Saving selected location:', selectedLocation);
-
-        if (selectedLocation.placeId.startsWith('manual_')) {
+        // Handle auto-detected locations
+        if (selectedLocation.placeId.startsWith("detected_")) {
           currentLocation = {
             city: selectedLocation.city,
             fullAddress: selectedLocation.description,
-            coordinates: { lat: 28.6139, lng: 77.2090 }, // Default to Delhi
+            coordinates: selectedLocation.coordinates,
             manuallySet: true,
-            setAt: new Date().toISOString()
+            autoDetected: true,
+            setAt: new Date().toISOString(),
           };
 
-          updateLocationDisplay(currentLocation.city, 'success');
+          updateLocationDisplay(currentLocation.city, "success");
           storeLocationInStorage(currentLocation);
           updateServerLocation(currentLocation);
-          if (locationModal) locationModal.hide();
 
-          console.log('Manual location saved:', currentLocation);
+          // Proper modal hiding with focus management
+          if (locationModal) {
+            if (saveLocationBtn) {
+              saveLocationBtn.blur();
+            }
+
+            setTimeout(() => {
+              locationModal.hide();
+            }, 50);
+          }
+
+          updateProvidersForLocation(currentLocation);
+          showLocationSuccessToast(currentLocation.city);
+          return;
+        }
+
+        // Handle manual locations
+        if (selectedLocation.placeId.startsWith("manual_")) {
+          currentLocation = {
+            city: selectedLocation.city,
+            fullAddress: selectedLocation.description,
+            coordinates: {lat: 28.6139, lng: 77.209}, // Default to Delhi
+            manuallySet: true,
+            setAt: new Date().toISOString(),
+          };
+
+          updateLocationDisplay(currentLocation.city, "success");
+          storeLocationInStorage(currentLocation);
+          updateServerLocation(currentLocation);
+
+          if (locationModal) {
+            if (saveLocationBtn) {
+              saveLocationBtn.blur();
+            }
+            setTimeout(() => {
+              locationModal.hide();
+            }, 50);
+          }
+
           updateProvidersForLocation(currentLocation);
           showLocationSuccessToast(currentLocation.city);
         } else {
           // Try to get details for the place using axios
-          axios.get('/api/location/place-details', {
-            params: {
-              placeId: selectedLocation.placeId
-            },
-            timeout: 8000
-          })
+          axios
+            .get("/api/location/place-details", {
+              params: {
+                placeId: selectedLocation.placeId,
+              },
+              timeout: 8000,
+            })
             .then(function (response) {
-              console.log('Place details response:', response.data);
-
-              if (response.data.status === 'success' && response.data.data.result && response.data.data.result.geometry) {
+              if (
+                response.data.status === "success" &&
+                response.data.data.result &&
+                response.data.data.result.geometry
+              ) {
                 const location = response.data.data.result;
                 currentLocation = {
                   city: selectedLocation.city,
                   fullAddress: location.formatted_address,
                   coordinates: {
                     lat: location.geometry.location.lat,
-                    lng: location.geometry.location.lng
+                    lng: location.geometry.location.lng,
                   },
                   manuallySet: true,
-                  setAt: new Date().toISOString()
+                  setAt: new Date().toISOString(),
                 };
               } else {
                 // Fallback
                 currentLocation = {
                   city: selectedLocation.city,
                   fullAddress: selectedLocation.description,
-                  coordinates: { lat: 28.6139, lng: 77.2090 },
+                  coordinates: {lat: 28.6139, lng: 77.209},
                   manuallySet: true,
-                  setAt: new Date().toISOString()
+                  setAt: new Date().toISOString(),
                 };
               }
 
-              updateLocationDisplay(currentLocation.city, 'success');
+              updateLocationDisplay(currentLocation.city, "success");
               storeLocationInStorage(currentLocation);
               updateServerLocation(currentLocation);
-              if (locationModal) locationModal.hide();
 
-              console.log('Location saved:', currentLocation);
+              if (locationModal) {
+                if (saveLocationBtn) {
+                  saveLocationBtn.blur();
+                }
+                setTimeout(() => {
+                  locationModal.hide();
+                }, 50);
+              }
+
               updateProvidersForLocation(currentLocation);
               showLocationSuccessToast(currentLocation.city);
             })
             .catch(function (error) {
-              console.error('Failed to get place details:', error);
-
               // Fallback
               currentLocation = {
                 city: selectedLocation.city,
                 fullAddress: selectedLocation.description,
-                coordinates: { lat: 28.6139, lng: 77.2090 },
+                coordinates: {lat: 28.6139, lng: 77.209},
                 manuallySet: true,
-                setAt: new Date().toISOString()
+                setAt: new Date().toISOString(),
               };
 
-              updateLocationDisplay(currentLocation.city, 'success');
+              updateLocationDisplay(currentLocation.city, "success");
               storeLocationInStorage(currentLocation);
               updateServerLocation(currentLocation);
-              if (locationModal) locationModal.hide();
+
+              if (locationModal) {
+                if (saveLocationBtn) {
+                  saveLocationBtn.blur();
+                }
+                setTimeout(() => {
+                  locationModal.hide();
+                }, 50);
+              }
 
               updateProvidersForLocation(currentLocation);
               showLocationSuccessToast(currentLocation.city);
@@ -1213,17 +1509,22 @@
 
       // Show success message
       function showLocationSuccessToast(cityName) {
-        const toast = document.createElement('div');
-        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #28a745; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; opacity: 0; transition: opacity 0.3s ease; max-width: 300px;';
+        const toast = document.createElement("div");
+        toast.style.cssText =
+          "position: fixed; bottom: 20px; right: 20px; background: #28a745; color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; opacity: 0; transition: opacity 0.3s ease; max-width: 300px;";
 
-        toast.innerHTML = '<i class="fas fa-check-circle me-2"></i>Location updated to ' + cityName;
+        toast.innerHTML =
+          '<i class="fas fa-check-circle me-2"></i>Location updated to ' +
+          cityName;
 
         document.body.appendChild(toast);
 
-        setTimeout(function () { toast.style.opacity = '1'; }, 100);
+        setTimeout(function () {
+          toast.style.opacity = "1";
+        }, 100);
 
         setTimeout(function () {
-          toast.style.opacity = '0';
+          toast.style.opacity = "0";
           setTimeout(function () {
             if (toast.parentElement) {
               toast.remove();
@@ -1234,20 +1535,20 @@
 
       // Update location display
       function updateLocationDisplay(text, state) {
-        state = state || 'normal';
+        state = state || "normal";
         const inputs = [locationInput, mobileLocationInput].filter(Boolean);
-        const containers = document.querySelectorAll('.location-input-container');
+        const containers = document.querySelectorAll(
+          ".location-input-container"
+        );
 
         inputs.forEach(function (input) {
           input.value = text;
-          input.className = 'location-input ' + state;
+          input.className = "location-input " + state;
         });
 
         containers.forEach(function (container) {
-          container.className = 'location-input-container ' + state;
+          container.className = "location-input-container " + state;
         });
-
-        console.log('Location display updated:', text, state);
       }
 
       // Extract city from address components
@@ -1255,32 +1556,34 @@
         if (address.address_components) {
           for (let i = 0; i < address.address_components.length; i++) {
             const component = address.address_components[i];
-            if (component.types.includes('locality')) {
+            if (component.types.includes("locality")) {
               return component.long_name;
             }
-            if (component.types.includes('administrative_area_level_2')) {
+            if (component.types.includes("administrative_area_level_2")) {
               return component.long_name;
             }
           }
         }
-        return address.formatted_address.split(',')[0];
+        return address.formatted_address.split(",")[0];
       }
 
       // Storage functions
       function storeLocationInStorage(location) {
         try {
-          localStorage.setItem('userLocation', JSON.stringify(location));
-          localStorage.setItem('userLocationTimestamp', new Date().toISOString());
-          console.log('Location stored in localStorage');
+          localStorage.setItem("userLocation", JSON.stringify(location));
+          localStorage.setItem(
+            "userLocationTimestamp",
+            new Date().toISOString()
+          );
         } catch (e) {
-          console.warn('Could not store location in localStorage:', e);
+          // Handle error silently
         }
       }
 
       function getStoredLocation() {
         try {
-          const stored = localStorage.getItem('userLocation');
-          const timestamp = localStorage.getItem('userLocationTimestamp');
+          const stored = localStorage.getItem("userLocation");
+          const timestamp = localStorage.getItem("userLocationTimestamp");
 
           if (!stored) return null;
 
@@ -1297,15 +1600,14 @@
 
             // Auto-detected locations expire after 7 days
             if (hoursDiff > 168) {
-              localStorage.removeItem('userLocation');
-              localStorage.removeItem('userLocationTimestamp');
+              localStorage.removeItem("userLocation");
+              localStorage.removeItem("userLocationTimestamp");
               return null;
             }
           }
 
           return location;
         } catch (e) {
-          console.warn('Could not retrieve location from localStorage:', e);
           return null;
         }
       }
@@ -1313,35 +1615,32 @@
       function updateProvidersForLocation(location) {
         try {
           const currentPath = window.location.pathname;
-          console.log('Current path:', currentPath);
-          console.log('Location to update providers with:', location);
 
           // Check if we're on a providers page
-          if (currentPath.includes('/services/') && currentPath.includes('/providers')) {
+          if (
+            currentPath.includes("/services/") &&
+            currentPath.includes("/providers")
+          ) {
             const url = new URL(window.location);
 
             // Set location parameters
-            url.searchParams.set('location', location.city);
-            url.searchParams.set('latitude', location.coordinates.lat);
-            url.searchParams.set('longitude', location.coordinates.lng);
-
-            console.log('Providers page - updating URL to:', url.href);
+            url.searchParams.set("location", location.city);
+            url.searchParams.set("latitude", location.coordinates.lat);
+            url.searchParams.set("longitude", location.coordinates.lng);
 
             // Force reload with new location parameters
             window.location.href = url.href;
-          } else if (currentPath.includes('/services')) {
-            console.log('On services page, location stored for future use');
-
+          } else if (currentPath.includes("/services")) {
             // Show a notification that location has been updated
-            showLocationSuccessToast(location.city + ' - Will be used when viewing providers');
+            showLocationSuccessToast(
+              location.city + " - Will be used when viewing providers"
+            );
           } else {
-            console.log('Not on services page, location stored for future use');
-
             // Show a general notification
             showLocationSuccessToast(location.city);
           }
         } catch (e) {
-          console.error('Error updating URL for location:', e);
+          // Handle error silently
         }
       }
     }
@@ -1351,48 +1650,49 @@
     handleMobileMenu();
 
     function handleNavbarScrolling() {
-      window.addEventListener('scroll', function () {
-        const navbar = document.querySelector('.navbar');
+      window.addEventListener("scroll", function () {
+        const navbar = document.querySelector(".navbar");
         if (navbar) {
           if (window.scrollY > 50) {
-            navbar.classList.add('scrolled');
+            navbar.classList.add("scrolled");
           } else {
-            navbar.classList.remove('scrolled');
+            navbar.classList.remove("scrolled");
           }
         }
       });
     }
 
     function handleMobileMenu() {
-      const navbarToggler = document.querySelector('.navbar-toggler');
-      const navbarCollapse = document.querySelector('.navbar-collapse');
+      const navbarToggler = document.querySelector(".navbar-toggler");
+      const navbarCollapse = document.querySelector(".navbar-collapse");
 
       if (navbarToggler && navbarCollapse) {
-        navbarToggler.addEventListener('click', function () {
-          const togglerIcon = this.querySelector('i');
+        navbarToggler.addEventListener("click", function () {
+          const togglerIcon = this.querySelector("i");
           if (togglerIcon) {
-            if (togglerIcon.classList.contains('fa-bars')) {
-              togglerIcon.classList.remove('fa-bars');
-              togglerIcon.classList.add('fa-times');
+            if (togglerIcon.classList.contains("fa-bars")) {
+              togglerIcon.classList.remove("fa-bars");
+              togglerIcon.classList.add("fa-times");
             } else {
-              togglerIcon.classList.remove('fa-times');
-              togglerIcon.classList.add('fa-bars');
+              togglerIcon.classList.remove("fa-times");
+              togglerIcon.classList.add("fa-bars");
             }
           }
         });
 
-        document.addEventListener('click', function (e) {
-          if (navbarCollapse.classList.contains('show') &&
+        document.addEventListener("click", function (e) {
+          if (
+            navbarCollapse.classList.contains("show") &&
             !navbarToggler.contains(e.target) &&
-            !navbarCollapse.contains(e.target)) {
-
+            !navbarCollapse.contains(e.target)
+          ) {
             const bsCollapse = new bootstrap.Collapse(navbarCollapse);
             bsCollapse.hide();
 
-            const togglerIcon = navbarToggler.querySelector('i');
+            const togglerIcon = navbarToggler.querySelector("i");
             if (togglerIcon) {
-              togglerIcon.classList.remove('fa-times');
-              togglerIcon.classList.add('fa-bars');
+              togglerIcon.classList.remove("fa-times");
+              togglerIcon.classList.add("fa-bars");
             }
           }
         });

@@ -50,7 +50,7 @@ const adminController = {
     }
   },
 
-  // 🔥 NEW: Approve Provider
+  // 🔥 CORRECTED: Approve Provider Function
   approveProvider: async (req, res) => {
     try {
       const {providerId} = req.params;
@@ -62,18 +62,19 @@ const adminController = {
         notes,
       } = req.body;
 
+      console.log("🔍 Approving provider:", providerId);
+      console.log("📋 Requested permissions:", {
+        grantDashboardAccess,
+        grantServiceRegistration,
+        grantBookingAccess,
+        grantPayoutAccess,
+      });
+
       const user = await User.findById(providerId);
       if (!user || user.role !== "provider") {
         return res.status(404).json({
           success: false,
           error: "Provider not found",
-        });
-      }
-
-      if (user.status !== "pending_approval") {
-        return res.status(400).json({
-          success: false,
-          error: "Provider is not pending approval",
         });
       }
 
@@ -85,6 +86,28 @@ const adminController = {
         });
       }
 
+      console.log("👤 Found provider:", user.name);
+      console.log("📊 Current provider status:", {
+        userStatus: user.status,
+        verificationStatus: serviceProvider.verificationStatus,
+        canReceiveBookings: serviceProvider.canReceiveBookings,
+      });
+
+      // 🔥 FIXED: Better permission logic - default to true unless explicitly denied
+      const permissions = {
+        dashboardAccess:
+          grantDashboardAccess !== "false" && grantDashboardAccess !== false,
+        canRegisterServices:
+          grantServiceRegistration !== "false" &&
+          grantServiceRegistration !== false,
+        canReceiveBookings:
+          grantBookingAccess !== "false" && grantBookingAccess !== false,
+        canAccessPayouts:
+          grantPayoutAccess !== "false" && grantPayoutAccess !== false,
+      };
+
+      console.log("✅ Final permissions to be set:", permissions);
+
       // Update User status
       await User.findByIdAndUpdate(providerId, {
         status: "active",
@@ -93,52 +116,94 @@ const adminController = {
         "approvalStatus.notes": notes || "Provider approved by admin",
       });
 
-      // Update ServiceProvider permissions
+      // 🔥 FIXED: Update ServiceProvider with explicit permissions
       await ServiceProvider.findByIdAndUpdate(serviceProvider._id, {
         verificationStatus: "approved",
-        dashboardAccess: grantDashboardAccess === "true",
-        canRegisterServices: grantServiceRegistration === "true",
-        canReceiveBookings: grantBookingAccess === "true",
-        canAccessPayouts: grantPayoutAccess === "true",
+        isVerified: true, // Legacy field
+        isActive: true, // Ensure provider is active
+
+        // Set all permissions explicitly
+        dashboardAccess: permissions.dashboardAccess,
+        canRegisterServices: permissions.canRegisterServices,
+        canReceiveBookings: permissions.canReceiveBookings,
+        canAccessPayouts: permissions.canAccessPayouts,
+
+        // Document verification
         "documentVerification.allDocumentsVerified": true,
         "documentVerification.aadharVerified": true,
         "documentVerification.panVerified": true,
         "documentVerification.imagesVerified": true,
-        // Legacy field for backward compatibility
-        isVerified: true,
+        "documentVerification.verificationDate": new Date(),
+
+        // Admin verification
+        "adminVerification.verifiedBy": req.user?._id,
+        "adminVerification.verifiedAt": new Date(),
+        "adminVerification.verificationNotes":
+          notes || "Provider approved by admin",
+        "adminVerification.documentsApproved": true,
+
+        // Update approval workflow
+        "approvalWorkflow.approvedAt": new Date(),
+        "approvalWorkflow.lastStatusChange": new Date(),
       });
 
-      // Log admin action
-      await logAdminAction(
-        req.user?._id,
-        "APPROVE_PROVIDER",
-        providerId,
-        "provider",
-        {
-          permissions: {
-            dashboardAccess: grantDashboardAccess === "true",
-            canRegisterServices: grantServiceRegistration === "true",
-            canReceiveBookings: grantBookingAccess === "true",
-            canAccessPayouts: grantPayoutAccess === "true",
+      // 🔥 FIXED: Push new status to history
+      await ServiceProvider.findByIdAndUpdate(serviceProvider._id, {
+        $push: {
+          "approvalWorkflow.statusHistory": {
+            status: "approved",
+            changedBy: req.user?._id,
+            changedAt: new Date(),
+            notes: notes || "Provider approved by admin",
           },
-          notes: notes,
-        }
-      );
+        },
+      });
 
-      // Notify provider about approval
-      await notifyProviderApproval(providerId, true);
+      // 🔥 FIXED: Safely call helper functions with error handling
+      try {
+        if (typeof logAdminAction === "function") {
+          await logAdminAction(
+            req.user?._id,
+            "APPROVE_PROVIDER",
+            providerId,
+            "provider",
+            {
+              permissions: permissions,
+              notes: notes,
+            }
+          );
+        }
+      } catch (logError) {
+        console.warn("⚠️ Failed to log admin action:", logError.message);
+      }
+
+      // 🔥 FIXED: Safely notify provider
+      try {
+        if (typeof notifyProviderApproval === "function") {
+          await notifyProviderApproval(providerId, true);
+        }
+      } catch (notifyError) {
+        console.warn("⚠️ Failed to notify provider:", notifyError.message);
+      }
+
+      console.log("🎉 Provider approved successfully:", {
+        providerId,
+        name: user.name,
+        permissions,
+      });
 
       res.json({
         success: true,
-        message: `✅ Provider ${user.name} has been approved successfully`,
+        message: `✅ Provider ${user.name} has been approved successfully with permissions: Dashboard=${permissions.dashboardAccess}, Services=${permissions.canRegisterServices}, Bookings=${permissions.canReceiveBookings}, Payouts=${permissions.canAccessPayouts}`,
         user: {
           id: user._id,
           name: user.name,
           status: "active",
         },
+        permissions: permissions,
       });
     } catch (err) {
-      console.error("Error approving provider:", err);
+      console.error("❌ Error approving provider:", err);
       res.status(500).json({
         success: false,
         error: "Failed to approve provider: " + err.message,
@@ -439,101 +504,105 @@ const adminController = {
       });
 
       showUserDetails: async (req, res) => {
-    try {
-      const { userId } = req.params;
-      
-      // Fetch the user
-      const user = await User.findById(userId).lean();
-      if (!user) {
-        req.flash("error", "User not found");
-        return res.redirect("/admin/users");
-      }
+        try {
+          const {userId} = req.params;
 
-      let bookings = [];
-      let providerServices = [];
+          // Fetch the user
+          const user = await User.findById(userId).lean();
+          if (!user) {
+            req.flash("error", "User not found");
+            return res.redirect("/admin/users");
+          }
 
-      // If user is a customer, fetch their bookings
-      if (user.role === "customer") {
-        bookings = await Booking.find({ customer: userId })
-          .populate("service")
-          .populate({
-            path: "provider",
-            populate: { path: "user" }
-          })
-          .sort({ createdAt: -1 })
-          .lean();
-      }
+          let bookings = [];
+          let providerServices = [];
 
-      // If user is a provider, fetch their services and booking counts
-      if (user.role === "provider") {
-        // First find the ServiceProvider record
-        const serviceProvider = await ServiceProvider.findOne({ user: userId }).lean();
-        
-        if (serviceProvider) {
-          // Fetch services provided by this provider
-          const services = await Service.find({ provider: serviceProvider._id })
-            .populate("category")
-            .lean();
+          // If user is a customer, fetch their bookings
+          if (user.role === "customer") {
+            bookings = await Booking.find({customer: userId})
+              .populate("service")
+              .populate({
+                path: "provider",
+                populate: {path: "user"},
+              })
+              .sort({createdAt: -1})
+              .lean();
+          }
 
-          // For each service, get the booking count
-          providerServices = await Promise.all(
-            services.map(async (service) => {
-              const bookingCount = await Booking.countDocuments({ 
-                service: service._id 
-              });
-              
-              return {
-                ...service,
-                bookingCount
-              };
-            })
-          );
+          // If user is a provider, fetch their services and booking counts
+          if (user.role === "provider") {
+            // First find the ServiceProvider record
+            const serviceProvider = await ServiceProvider.findOne({
+              user: userId,
+            }).lean();
+
+            if (serviceProvider) {
+              // Fetch services provided by this provider
+              const services = await Service.find({
+                provider: serviceProvider._id,
+              })
+                .populate("category")
+                .lean();
+
+              // For each service, get the booking count
+              providerServices = await Promise.all(
+                services.map(async (service) => {
+                  const bookingCount = await Booking.countDocuments({
+                    service: service._id,
+                  });
+
+                  return {
+                    ...service,
+                    bookingCount,
+                  };
+                })
+              );
+            }
+          }
+
+          res.render("pages/admin/user-details", {
+            user,
+            bookings,
+            providerServices,
+            currentPath: req.path,
+            title: `${user.name} - User Details - Admin`,
+          });
+        } catch (err) {
+          console.error("Error fetching user details:", err);
+          req.flash("error", "Failed to load user details");
+          res.redirect("/admin/users");
         }
-      }
+      };
 
-      res.render("pages/admin/user-details", {
-        user,
-        bookings,
-        providerServices,
+      // Categorize users
+      const customers = users.filter((user) => user.role === "customer");
+      const providers = users.filter((user) => user.role === "provider");
+      const pendingProviders = providers.filter(
+        (user) => user.status === "pending_approval"
+      );
+      const activeProviders = providers.filter(
+        (user) => user.status === "active"
+      );
+      const rejectedProviders = providers.filter(
+        (user) => user.status === "rejected"
+      );
+
+      res.render("pages/admin/users", {
+        users,
+        customers,
+        providers,
+        pendingProviders,
+        activeProviders,
+        rejectedProviders,
         currentPath: req.path,
-        title: `${user.name} - User Details - Admin`,
+        title: "User Management - Admin",
       });
     } catch (err) {
-      console.error("Error fetching user details:", err);
-      req.flash("error", "Failed to load user details");
-      res.redirect("/admin/users");
+      console.error("Error fetching users:", err);
+      req.flash("error", "Failed to load users");
+      res.redirect("/admin/dashboard");
     }
-  }
-
-        // Categorize users
-        const customers = users.filter((user) => user.role === "customer");
-        const providers = users.filter((user) => user.role === "provider");
-        const pendingProviders = providers.filter(
-          (user) => user.status === "pending_approval"
-        );
-        const activeProviders = providers.filter(
-          (user) => user.status === "active"
-        );
-        const rejectedProviders = providers.filter(
-          (user) => user.status === "rejected"
-        );
-
-        res.render("pages/admin/users", {
-          users,
-          customers,
-          providers,
-          pendingProviders,
-          activeProviders,
-          rejectedProviders,
-          currentPath: req.path,
-          title: "User Management - Admin",
-        });
-      } catch (err) {
-        console.error("Error fetching users:", err);
-        req.flash("error", "Failed to load users");
-        res.redirect("/admin/dashboard");
-      }
-    },
+  },
 
   // Categories Management
   showCategories: async (req, res) => {

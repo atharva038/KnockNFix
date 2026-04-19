@@ -22,8 +22,11 @@
                     <div class="col-md-6">
                         <label for="service-radius" class="form-label small">Service Radius</label>
                         <div class="input-group input-group-sm">
-                            <input type="number" class="form-control" id="service-radius" name="radius"
-                                value="<%= provider.serviceArea?.radius || 20 %>" min="1" max="100">
+                            <% if (provider && provider.serviceArea && provider.serviceArea.radius) { %>
+                                <input type="number" class="form-control" id="service-radius" name="radius" value="<%= provider.serviceArea.radius %>" min="1" max="100">
+                            <% } else { %>
+                                <input type="number" class="form-control" id="service-radius" name="radius" value="20" min="1" max="100">
+                            <% } %>
                             <span class="input-group-text">km</span>
                         </div>
                         <small class="text-muted fs-7">Maximum distance you're willing to travel</small>
@@ -31,22 +34,31 @@
 
                     <div class="col-md-6">
                         <label for="service-city" class="form-label small">Based In (City)</label>
-                        <input type="text" class="form-control form-control-sm" id="service-city" name="city"
-                            value="<%= provider.serviceArea?.city || '' %>" placeholder="Your city">
+                        <% if (provider && provider.serviceArea && provider.serviceArea.city) { %>
+                            <input type="text" class="form-control form-control-sm" id="service-city" name="city" value="<%= provider.serviceArea.city %>" placeholder="Your city">
+                        <% } else { %>
+                            <input type="text" class="form-control form-control-sm" id="service-city" name="city" value="" placeholder="Your city">
+                        <% } %>
                     </div>
                 </div>
 
                 <div class="row g-2 mb-3">
                     <div class="col-md-6">
                         <label for="service-state" class="form-label small">State</label>
-                        <input type="text" class="form-control form-control-sm" id="service-state" name="state"
-                            value="<%= provider.serviceArea?.state || '' %>">
+                        <% if (provider && provider.serviceArea && provider.serviceArea.state) { %>
+                            <input type="text" class="form-control form-control-sm" id="service-state" name="state" value="<%= provider.serviceArea.state %>">
+                        <% } else { %>
+                            <input type="text" class="form-control form-control-sm" id="service-state" name="state" value="">
+                        <% } %>
                     </div>
 
                     <div class="col-md-6">
                         <label for="service-pincode" class="form-label small">PIN Code</label>
-                        <input type="text" class="form-control form-control-sm" id="service-pincode" name="pincode"
-                            value="<%= provider.serviceArea?.pincode || '' %>" pattern="[0-9]{6}">
+                        <% if (provider && provider.serviceArea && provider.serviceArea.pincode) { %>
+                            <input type="text" class="form-control form-control-sm" id="service-pincode" name="pincode" value="<%= provider.serviceArea.pincode %>" pattern="[0-9]{6}">
+                        <% } else { %>
+                            <input type="text" class="form-control form-control-sm" id="service-pincode" name="pincode" value="" pattern="[0-9]{6}">
+                        <% } %>
                     </div>
                 </div>
 
@@ -70,81 +82,90 @@
             <form id="availabilityForm">
                 <div class="mb-3">
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="overall-availability" <%=provider.isActive
-                            ? 'checked' : '' %>>
+                        <% if (provider && provider.isActive) { %>
+                            <input class="form-check-input" type="checkbox" id="overall-availability" checked>
+                        <% } else { %>
+                            <input class="form-check-input" type="checkbox" id="overall-availability">
+                        <% } %>
                         <label class="form-check-label small fw-bold" for="overall-availability">
                             Active Status (When turned off, you will not be visible to customers)
                         </label>
                     </div>
                 </div>
 
-                <% const days=['monday', 'tuesday' , 'wednesday' , 'thursday' , 'friday' , 'saturday' , 'sunday' ];
-                    days.forEach(day=> {
-                    const dayData = provider.availability && provider.availability[day] ? provider.availability[day] : {
-                    isAvailable: true, slots: []
-                    };
-
-                    if (dayData.slots.length === 0) {
-                    dayData.slots.push({
-                    startTime: "07:00", // Default start time
-                    endTime: "21:00", // Default end time
-                    isActive: true
-                    });
+                <%
+                var days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                for (var i = 0; i < days.length; i++) {
+                    var day = days[i];
+                    var dayData = { isAvailable: true, slots: [] };
+                    if (provider && provider.availability && provider.availability[day]) {
+                        dayData = provider.availability[day];
                     }
-                    %>
+                    
+                    if (dayData.slots.length === 0) {
+                        dayData.slots.push({
+                            startTime: "07:00",
+                            endTime: "21:00",
+                            isActive: true
+                        });
+                    }
+                %>
                     <div class="day-container mb-2 p-2 border-bottom" data-day="<%= day %>">
                         <div class="day-header d-flex align-items-center mb-2">
                             <div class="form-check form-switch">
-                                <input class="form-check-input day-toggle" type="checkbox" id="<%= day %>-available"
-                                    data-day="<%= day %>" <%=dayData.isAvailable ? 'checked' : '' %>
-                                >
-                                <label class="form-check-label small fw-bold text-capitalize"
-                                    for="<%= day %>-available">
+                                <% if (dayData.isAvailable) { %>
+                                    <input class="form-check-input day-toggle" type="checkbox" id="<%= day %>-available" data-day="<%= day %>" checked>
+                                <% } else { %>
+                                    <input class="form-check-input day-toggle" type="checkbox" id="<%= day %>-available" data-day="<%= day %>">
+                                <% } %>
+                                <label class="form-check-label small fw-bold text-capitalize" for="<%= day %>-available">
                                     <%= day %>
                                 </label>
                             </div>
-                            <button type="button" class="btn btn-xs btn-outline-primary ms-auto add-slot-btn"
-                                data-day="<%= day %>">
+                            <button type="button" class="btn btn-xs btn-outline-primary ms-auto add-slot-btn" data-day="<%= day %>">
                                 <i class="fas fa-plus me-1"></i> Add Slot
                             </button>
                         </div>
 
-                        <div class="slots-container" id="<%= day %>-slots" <%=!dayData.isAvailable
-                            ? 'style="display:none"' : '' %>>
-                            <% dayData.slots.forEach((slot, index)=> { %>
+                        <% if (!dayData.isAvailable) { %>
+                            <div class="slots-container" id="<%= day %>-slots" style="display:none">
+                        <% } else { %>
+                            <div class="slots-container" id="<%= day %>-slots">
+                        <% } %>
+                            <% for (var j = 0; j < dayData.slots.length; j++) {
+                                var slot = dayData.slots[j];
+                                var index = j;
+                            %>
                                 <div class="slot-row d-flex align-items-center mb-2" data-index="<%= index %>">
                                     <div class="time-range flex-grow-1">
                                         <div class="input-group input-group-sm">
-                                            <input type="time" class="form-control slot-start"
-                                                value="<%= slot.startTime %>" name="<%= day %>-start-<%= index %>"
-                                                required>
+                                            <input type="time" class="form-control slot-start" value="<%= slot.startTime %>" name="<%= day %>-start-<%= index %>" required>
                                             <span class="input-group-text">to</span>
-                                            <input type="time" class="form-control slot-end" value="<%= slot.endTime %>"
-                                                name="<%= day %>-end-<%= index %>" required>
+                                            <input type="time" class="form-control slot-end" value="<%= slot.endTime %>" name="<%= day %>-end-<%= index %>" required>
                                         </div>
                                     </div>
                                     <div class="form-check form-switch ms-2 me-1">
-                                        <input class="form-check-input slot-active" type="checkbox"
-                                            id="<%= day %>-slot-<%= index %>-active" <%=slot.isActive ? 'checked' : ''
-                                            %>
-                                        >
-                                        <label class="form-check-label small"
-                                            for="<%= day %>-slot-<%= index %>-active">Active</label>
+                                        <% if (slot.isActive) { %>
+                                            <input class="form-check-input slot-active" type="checkbox" id="<%= day %>-slot-<%= index %>-active" checked>
+                                        <% } else { %>
+                                            <input class="form-check-input slot-active" type="checkbox" id="<%= day %>-slot-<%= index %>-active">
+                                        <% } %>
+                                        <label class="form-check-label small" for="<%= day %>-slot-<%= index %>-active">Active</label>
                                     </div>
-                                    <% if (index> 0) { %>
+                                    <% if (index > 0) { %>
                                         <button type="button" class="btn btn-xs btn-outline-danger remove-slot-btn">
                                             <i class="fas fa-trash"></i>
                                         </button>
-                                        <% } %>
+                                    <% } %>
                                 </div>
-                                <% }); %>
+                            <% } %>
                         </div>
                     </div>
-                    <% }); %>
+                <% } %>
 
-                        <button type="button" class="btn btn-sm btn-primary mt-2" id="saveAvailabilityBtn">
-                            <i class="fas fa-save me-1"></i>Save Availability Settings
-                        </button>
+                <button type="button" class="btn btn-sm btn-primary mt-2" id="saveAvailabilityBtn">
+                    <i class="fas fa-save me-1"></i>Save Availability Settings
+                </button>
             </form>
         </div>
     </div>
@@ -157,35 +178,34 @@
         <div class="card-body py-3">
             <div class="alert alert-info py-2 px-3 mb-3">
                 <i class="fas fa-info-circle me-2"></i>
-                <small>Add specific locations where you offer services. Each location can have its own custom
-                    radius.</small>
+                <small>Add specific locations where you offer services. Each location can have its own custom radius.</small>
             </div>
             <div class="location-manager">
                 <div class="current-locations mb-3">
                     <h6 class="fs-6 mb-2">Current Service Areas</h6>
                     <div id="existing-service-areas" class="border rounded p-2 bg-light">
-                        <% if (provider.serviceAreas && provider.serviceAreas.length> 0) { %>
+                        <% if (provider && provider.serviceAreas && provider.serviceAreas.length > 0) { %>
                             <div class="location-tags">
-                                <% provider.serviceAreas.forEach(area=> { %>
+                                <% for (var k = 0; k < provider.serviceAreas.length; k++) {
+                                    var area = provider.serviceAreas[k];
+                                %>
                                     <div class="location-tag d-inline-block bg-primary text-white rounded-pill px-3 py-1 me-2 mb-2"
                                         data-id="<%= area._id %>" data-lat="<%= area.lat %>" data-lng="<%= area.lng %>"
                                         data-radius="<%= area.radius %>" data-name="<%= area.name %>">
-                                        <small>
-                                            <%= area.name %>
-                                        </small>
+                                        <small><%= area.name %></small>
                                         <button class="btn-remove-location border-0 bg-transparent text-white p-0 ms-1"
                                             data-id="<%= area._id %>">
                                             <i class="fas fa-times-circle"></i>
                                         </button>
                                     </div>
-                                    <% }); %>
-                            </div>
-                            <% } else { %>
-                                <div class="alert alert-info py-2 px-3 mb-0">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    <small>You haven't added any specific service areas yet.</small>
-                                </div>
                                 <% } %>
+                            </div>
+                        <% } else { %>
+                            <div class="alert alert-info py-2 px-3 mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <small>You haven't added any specific service areas yet.</small>
+                            </div>
+                        <% } %>
                     </div>
                 </div>
 
@@ -193,11 +213,10 @@
                     <h6 class="fs-6 mb-2">Add New Service Area</h6>
                     <div class="row g-2 mb-2">
                         <div class="col-md-6">
-                            <input type="text" id="new-location" class="form-control form-control-sm"
-                                placeholder="Search for a location">
+                            <input type="text" id="new-location" class="form-control form-control-sm" placeholder="Search for a location" style="height: 32px; font-size: 14px;">
                         </div>
                         <div class="col-md-3">
-                            <select id="radius-select" class="form-select form-select-sm">
+                            <select id="radius-select" class="form-select form-select-sm" style="height: 32px; font-size: 14px;">
                                 <option value="5">Within 5 km</option>
                                 <option value="10" selected>Within 10 km</option>
                                 <option value="15">Within 15 km</option>
@@ -207,16 +226,16 @@
                         </div>
                         <div class="col-md-3">
                             <div class="d-grid">
-                                <button id="add-location-btn" class="btn btn-sm btn-primary">Add</button>
+                                <button id="add-location-btn" class="btn btn-sm btn-primary" style="height: 32px; font-size: 14px;">Add</button>
                             </div>
                         </div>
                     </div>
                     <div class="mb-2">
-                        <button id="detect-location-btn" type="button" class="btn btn-sm btn-outline-secondary">
+                        <button id="detect-location-btn" type="button" class="btn btn-sm btn-outline-secondary" style="height: 32px; font-size: 14px;">
                             <i class="fas fa-location-arrow"></i> Detect My Location
                         </button>
                     </div>
-                    <div id="location-map" class="rounded border" style="height: 250px;"></div>
+                    <div id="location-map" class="rounded border" style="height: 300px;"></div>
                 </div>
             </div>
         </div>
@@ -239,8 +258,7 @@
                 <label class="form-label small">Travel Fee per km (beyond base radius)</label>
                 <div class="input-group input-group-sm mb-2" style="max-width: 200px;">
                     <span class="input-group-text">₹</span>
-                    <input type="number" class="form-control" id="travel-fee-amount" placeholder="Amount per km"
-                        value="5">
+                    <input type="number" class="form-control" id="travel-fee-amount" placeholder="Amount per km" value="5">
                 </div>
             </div>
 
@@ -249,9 +267,7 @@
     </div>
 </div>
 
-<!-- Add custom CSS for further styling -->
 <style>
-    /* Custom styling for the location tags */
     .location-tag {
         transition: all 0.2s;
     }
@@ -266,63 +282,145 @@
         line-height: 1.5;
     }
 
-    /* Add smaller font size utility */
     .fs-7 {
         font-size: 0.75rem;
     }
 
-    /* Style the map container */
     #location-map {
         box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
     }
 
-    /* Make cards more compact */
     .card {
         border-radius: 0.5rem;
         overflow: hidden;
     }
 
-    /* Make alerts more compact */
     .alert {
         border-radius: 0.375rem;
     }
 
-    /* Improve buttons */
     .btn-remove-location:hover {
         opacity: 0.8;
         transform: scale(1.1);
     }
+
+    .map-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 300px;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
+
+    .map-error {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 300px;
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 0.375rem;
+        color: #856404;
+    }
+
+    /* Custom styles for location search */
+    .pac-container {
+        z-index: 9999;
+        font-size: 14px;
+    }
+
+    .pac-item {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    /* Fix for autocomplete dropdown styling */
+    .pac-container .pac-item {
+        border-top: 1px solid #e6e6e6;
+        cursor: pointer;
+    }
+
+    .pac-container .pac-item:hover {
+        background-color: #ebebeb;
+    }
+
+    .pac-container .pac-item-selected {
+        background-color: #4285f4;
+        color: white;
+    }
+
+    /* Ensure input field height consistency */
+    #new-location,
+    #radius-select,
+    #add-location-btn,
+    #detect-location-btn {
+        height: 32px !important;
+        line-height: 1.4;
+    }
 </style>
 
-<!-- At the end of the file, keep your script -->
 <script>
-    // Small connector script to pass server-side variables to the external JS
-    document.addEventListener('DOMContentLoaded', function () {
-        // Pass provider data to the external locations script
-        window.providerData = <% - JSON.stringify({
-            travelFeeEnabled: provider.travelFeeEnabled || false,
-            travelFeeAmount: provider.travelFeeAmount || 5,
-            serviceAreas: provider.serviceAreas || []
-        }) %>;
+(function() {
 
-        // Initialize travel fee toggle based on provider data
-        const travelFeeToggle = document.getElementById('travel-fee-toggle');
-        const travelFeeOptions = document.getElementById('travel-fee-options');
+    var API_KEY = '<%= googleMapsApiKey %>';
+    var MAP_ID = '<%= googleMapsId %>';
+    
+    // Set global variables for providerLocations.js to use
+    window.googleMapsApiKey = API_KEY;
+    window.googleMapsId = MAP_ID;
+    
+    // Initialize provider data for providerLocations.js
+    try {
+        window.providerData = {
+            travelFeeEnabled: <%= provider && provider.travelFeeEnabled ? 'true' : 'false' %>,
+            travelFeeAmount: <%= provider && provider.travelFeeAmount ? provider.travelFeeAmount : 5 %>,
+            serviceAreas: <%- JSON.stringify((provider && provider.serviceAreas) || []) %>
+        };
+    } catch (error) {
+        console.error('❌ Provider data setup failed:', error);
+        window.providerData = {
+            travelFeeEnabled: false,
+            travelFeeAmount: 5,
+            serviceAreas: []
+        };
+    }
+    
+})();
 
-        if (travelFeeToggle && window.providerData.travelFeeEnabled) {
+document.addEventListener('DOMContentLoaded', function() {
+
+    
+    // ONLY handle non-map related functionality
+    var travelFeeToggle = document.getElementById('travel-fee-toggle');
+    var travelFeeOptions = document.getElementById('travel-fee-options');
+    var travelFeeInput = document.getElementById('travel-fee-amount');
+
+    // Initialize travel fee toggle
+    if (travelFeeToggle) {
+        // Set initial state from provider data
+        if (window.providerData && window.providerData.travelFeeEnabled) {
             travelFeeToggle.checked = true;
             if (travelFeeOptions) {
                 travelFeeOptions.style.display = 'block';
             }
         }
 
-        // Set travel fee amount
-        const travelFeeInput = document.getElementById('travel-fee-amount');
-        if (travelFeeInput && window.providerData.travelFeeAmount) {
-            travelFeeInput.value = window.providerData.travelFeeAmount;
-        }
+        // Handle toggle changes
+        travelFeeToggle.addEventListener('change', function() {
 
-        // Dispatch event to notify that provider data is available
-        document.dispatchEvent(new CustomEvent('provider-data-available'));
-    });
+            if (travelFeeOptions) {
+                travelFeeOptions.style.display = this.checked ? 'block' : 'none';
+            }
+        });
+    }
+
+    // Set travel fee amount from provider data
+    if (travelFeeInput && window.providerData && window.providerData.travelFeeAmount) {
+        travelFeeInput.value = window.providerData.travelFeeAmount;
+    }
+
+
+});
 </script>

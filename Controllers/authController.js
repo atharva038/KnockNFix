@@ -7,6 +7,11 @@ const {sendSmsOTP, verifyOTPWithProvider, resendOTP} = require("../utils/otp");
 const crypto = require("crypto");
 const {notifyAdminNewProvider} = require("../utils/adminNotifications");
 
+const isDevelopment = () => {
+  return (
+    process.env.NODE_ENV === "development" || process.env.SKIP_OTP === "true"
+  );
+};
 const authController = {
   // Render registration form
   showRegister: (req, res) => {
@@ -339,30 +344,38 @@ const authController = {
 
       let otpValid = false;
 
-      if (
-        process.env.TWOFACTOR_API_KEY &&
-        sessionId &&
-        !sessionId.includes("dev_session")
-      ) {
-        const verifyResult = await verifyOTPWithProvider(sessionId, phoneOTP);
-        otpValid = verifyResult.success;
-
-        if (!verifyResult.success) {
-          req.flash(
-            "error",
-            `Phone verification failed: ${verifyResult.error}`
-          );
-          return res.redirect("/verify-otp");
-        }
+      // 🚀 DEVELOPMENT MODE: Auto-verify OTP (REMOVE FOR PRODUCTION)
+      if (isDevelopment()) {
+        otpValid = true;
+        // console.log("🚀 Development mode: OTP verification skipped"); // Uncomment for debugging
       } else {
-        otpValid = phoneOTP === otpDoc.phoneOTP;
+        // PRODUCTION OTP VERIFICATION
+        if (
+          process.env.TWOFACTOR_API_KEY &&
+          sessionId &&
+          !sessionId.includes("dev_session")
+        ) {
+          const verifyResult = await verifyOTPWithProvider(sessionId, phoneOTP);
+          otpValid = verifyResult.success;
 
-        if (!otpValid) {
-          req.flash("error", "Phone verification code is invalid.");
-          return res.redirect("/verify-otp");
+          if (!verifyResult.success) {
+            req.flash(
+              "error",
+              `Phone verification failed: ${verifyResult.error}`
+            );
+            return res.redirect("/verify-otp");
+          }
+        } else {
+          otpValid = phoneOTP === otpDoc.phoneOTP;
+
+          if (!otpValid) {
+            req.flash("error", "Phone verification code is invalid.");
+            return res.redirect("/verify-otp");
+          }
         }
       }
 
+      // Continue with user creation (same as existing code)
       const userData = otpDoc.userData;
 
       const newUser = new User({
@@ -382,7 +395,7 @@ const authController = {
       const tempPassword = crypto.randomBytes(16).toString("hex");
       const registeredUser = await User.register(newUser, tempPassword);
 
-      // 🔥 UPDATE: Different status based on role
+      // Different status based on role
       let userStatus = "active";
       if (userData.role === "provider") {
         userStatus = "pending_approval"; // Providers need admin approval
@@ -418,7 +431,6 @@ const authController = {
           panCard: userData.providerData.panCard,
           aadharImage: userData.providerData.aadharImage,
           panImage: userData.providerData.panImage,
-          // 🔥 NEW: Set to pending with no access
           verificationStatus: "pending",
           canRegisterServices: false,
           dashboardAccess: false,
@@ -431,13 +443,10 @@ const authController = {
             imagesVerified: false,
             allDocumentsVerified: false,
           },
-          // Legacy fields for backward compatibility
           isVerified: false,
         });
 
         await newProvider.save();
-
-        // 🔥 NEW: Notify admin about new provider registration
         await notifyAdminNewProvider(registeredUser._id);
       }
 
@@ -447,7 +456,6 @@ const authController = {
       delete req.session.userRole;
       delete req.session.otpSessionId;
 
-      // 🔥 UPDATE: Different success messages
       const successMessage =
         userData.role === "customer"
           ? "🎉 Account created successfully! You can now log in."
@@ -596,7 +604,7 @@ const authController = {
     });
   },
 
-  // 🔥 UPDATED: Handle login with approval status checks
+  // Update the handleLogin function around line 688
   handleLogin: async (req, res, next) => {
     try {
       const {phone} = req.body;
@@ -607,7 +615,7 @@ const authController = {
         return res.redirect("/login");
       }
 
-      // 🔥 NEW: Check user status before allowing login
+      // Check user status before allowing login
       if (user.status === "pending_approval") {
         req.flash(
           "error",
@@ -640,7 +648,38 @@ const authController = {
         return res.redirect("/login");
       }
 
-      // ... rest of existing login code ...
+      if (isDevelopment()) {
+        req.login(user, async (err) => {
+          if (err) {
+            req.flash("error", "Login failed. Please try again.");
+            return res.redirect("/login");
+          }
+
+          // Update last login
+          await User.findByIdAndUpdate(user._id, {lastLogin: new Date()});
+
+          // Set user session
+          req.session.userId = user._id;
+
+          // Clear any existing session data
+          delete req.session.verificationPhone;
+          delete req.session.loginOTP;
+          delete req.session.loginSessionId;
+          delete req.session.loginUserId;
+
+          // Success message with dev mode indicator
+          req.flash(
+            "success",
+            `🎉 Welcome back, ${user.name}! (Dev Mode - OTP Skipped)`
+          );
+
+          // Redirect to home page for all users
+          return res.redirect("/");
+        });
+        return; // Exit early in development
+      }
+
+      // PRODUCTION: Send OTP and redirect to verification (existing code)
       const smsResult = await sendSmsOTP(phone);
 
       if (!smsResult.success) {
@@ -692,7 +731,6 @@ const authController = {
       res.redirect("/login");
     }
   },
-
   // Show verify login OTP page
   showVerifyLoginOTP: (req, res) => {
     try {
@@ -770,27 +808,34 @@ const authController = {
 
       let otpValid = false;
 
-      if (
-        process.env.TWOFACTOR_API_KEY &&
-        sessionId &&
-        !sessionId.includes("dev_session")
-      ) {
-        const verifyResult = await verifyOTPWithProvider(sessionId, cleanOTP);
-        otpValid = verifyResult.success;
-
-        if (!verifyResult.success) {
-          req.flash(
-            "error",
-            `Login verification failed: ${verifyResult.error}`
-          );
-          return res.redirect("/verify-login-otp");
-        }
+      // 🚀 DEVELOPMENT MODE: Auto-verify login OTP (REMOVE FOR PRODUCTION)
+      if (isDevelopment()) {
+        otpValid = true;
+        // console.log("🚀 Development mode: Login OTP verification skipped"); // Uncomment for debugging
       } else {
-        otpValid = cleanOTP === otpDoc.phoneOTP;
+        // PRODUCTION LOGIN OTP VERIFICATION
+        if (
+          process.env.TWOFACTOR_API_KEY &&
+          sessionId &&
+          !sessionId.includes("dev_session")
+        ) {
+          const verifyResult = await verifyOTPWithProvider(sessionId, cleanOTP);
+          otpValid = verifyResult.success;
 
-        if (!otpValid) {
-          req.flash("error", "Invalid login code. Please try again.");
-          return res.redirect("/verify-login-otp");
+          if (!verifyResult.success) {
+            req.flash(
+              "error",
+              `Login verification failed: ${verifyResult.error}`
+            );
+            return res.redirect("/verify-login-otp");
+          }
+        } else {
+          otpValid = cleanOTP === otpDoc.phoneOTP;
+
+          if (!otpValid) {
+            req.flash("error", "Invalid login code. Please try again.");
+            return res.redirect("/verify-login-otp");
+          }
         }
       }
 
@@ -802,7 +847,7 @@ const authController = {
         return res.redirect("/register");
       }
 
-      // 🔥 ADDITIONAL CHECK: Verify user status again during login verification
+      // Check user status again during login verification
       if (user.status === "pending_approval") {
         req.flash("error", "⏳ Your account is still pending admin approval.");
         return res.redirect("/login");
@@ -841,11 +886,12 @@ const authController = {
         delete req.session.loginSessionId;
         delete req.session.loginUserId;
 
-        req.flash("success", `Welcome back, ${user.name}!`);
+        // 🚀 DEVELOPMENT MODE: Add dev mode indicator to success message
+        const devSuffix = isDevelopment() ? " (Dev Mode)" : "";
+        req.flash("success", `Welcome back, ${user.name}!${devSuffix}`);
 
-        // 🔥 NEW: Redirect based on user role and status
+        // Redirect based on user role and status
         if (user.role === "provider") {
-          // Check if provider has dashboard access
           const serviceProvider = await ServiceProvider.findOne({
             user: user._id,
           });
@@ -1119,7 +1165,7 @@ const authController = {
 
   // API METHODS
 
-  // 🔥 UPDATED: API Login with approval checks
+  // Update handleLoginAPI around line 900
   handleLoginAPI: async (req, res) => {
     try {
       const phone = authController.extractValue(req.body.phone);
@@ -1139,7 +1185,7 @@ const authController = {
         });
       }
 
-      // 🔥 NEW: Check user status for API login
+      // Status checks (same as web version)...
       if (user.status === "pending_approval") {
         return res.status(403).json({
           success: false,
@@ -1176,7 +1222,54 @@ const authController = {
         });
       }
 
-      // ... rest of existing API login code ...
+      // 🚀 DEVELOPMENT MODE: Skip OTP for API login (REMOVE FOR PRODUCTION)
+      if (isDevelopment()) {
+        // Update last login
+        await User.findByIdAndUpdate(user._id, {lastLogin: new Date()});
+
+        // Set session
+        req.session.userId = user._id;
+
+        // Clear any existing session data
+        delete req.session.loginPhone;
+        delete req.session.loginOTP;
+        delete req.session.loginSessionId;
+        delete req.session.loginUserId;
+
+        // Smart redirection
+        let redirectUrl = "/";
+        if (user.role === "provider") {
+          const serviceProvider = await ServiceProvider.findOne({
+            user: user._id,
+          });
+          if (serviceProvider && serviceProvider.dashboardAccess) {
+            redirectUrl = "/provider/dashboard";
+          } else {
+            redirectUrl = "/provider/pending-approval";
+          }
+        } else if (user.role === "admin") {
+          redirectUrl = "/admin/dashboard";
+        } else if (user.role === "customer") {
+          redirectUrl = "/customer/dashboard";
+        }
+
+        return res.json({
+          success: true,
+          message: `🎉 Welcome back ${user.name}! (Dev Mode - OTP Skipped)`,
+          user: {
+            id: user._id,
+            name: user.name,
+            phone: user.phone,
+            role: user.role,
+            status: user.status,
+          },
+          redirectUrl: redirectUrl,
+          devMode: true,
+          otpSkipped: true,
+        });
+      }
+
+      // PRODUCTION: Send OTP (existing code)
       const smsResult = await sendSmsOTP(phone);
 
       if (!smsResult.success) {
@@ -1217,7 +1310,6 @@ const authController = {
     }
   },
 
-  // 🔥 FIXED: API version of handleVerifyLoginOTP with status checks
   handleVerifyLoginOTPAPI: async (req, res) => {
     try {
       const {phoneOTP} = req.body;
@@ -1235,28 +1327,35 @@ const authController = {
 
       let otpValid = false;
 
-      if (
-        process.env.TWOFACTOR_API_KEY &&
-        sessionId &&
-        !sessionId.includes("dev_login")
-      ) {
-        const verifyResult = await verifyOTPWithProvider(sessionId, phoneOTP);
-        otpValid = verifyResult.success;
-
-        if (!verifyResult.success) {
-          return res.status(400).json({
-            success: false,
-            error: `❌ Invalid OTP: ${verifyResult.error}`,
-          });
-        }
+      // 🚀 DEVELOPMENT MODE: Auto-verify login OTP for API (REMOVE FOR PRODUCTION)
+      if (isDevelopment()) {
+        otpValid = true;
+        // console.log("🚀 Development mode: API login OTP verification skipped"); // Uncomment for debugging
       } else {
-        otpValid = phoneOTP === storedOTP;
+        // PRODUCTION API LOGIN OTP VERIFICATION
+        if (
+          process.env.TWOFACTOR_API_KEY &&
+          sessionId &&
+          !sessionId.includes("dev_login")
+        ) {
+          const verifyResult = await verifyOTPWithProvider(sessionId, phoneOTP);
+          otpValid = verifyResult.success;
 
-        if (!otpValid) {
-          return res.status(400).json({
-            success: false,
-            error: "❌ Invalid OTP. Please try again.",
-          });
+          if (!verifyResult.success) {
+            return res.status(400).json({
+              success: false,
+              error: `❌ Invalid OTP: ${verifyResult.error}`,
+            });
+          }
+        } else {
+          otpValid = phoneOTP === storedOTP;
+
+          if (!otpValid) {
+            return res.status(400).json({
+              success: false,
+              error: "❌ Invalid OTP. Please try again.",
+            });
+          }
         }
       }
 
@@ -1268,7 +1367,7 @@ const authController = {
         });
       }
 
-      // 🔥 FIX: Check user status again during API login verification
+      // Check user status again during API login verification
       if (user.status === "pending_approval") {
         return res.status(403).json({
           success: false,
@@ -1304,10 +1403,9 @@ const authController = {
 
       req.session.userId = user._id;
 
-      // 🔥 FIX: Smart redirection based on role and permissions
+      // Smart redirection based on role and permissions
       let redirectUrl = "/";
       if (user.role === "provider") {
-        // Check if provider has dashboard access
         const serviceProvider = await ServiceProvider.findOne({user: user._id});
         if (serviceProvider && serviceProvider.dashboardAccess) {
           redirectUrl = "/provider/dashboard";
@@ -1320,15 +1418,18 @@ const authController = {
         redirectUrl = "/customer/dashboard";
       }
 
+      // 🚀 DEVELOPMENT MODE: Add dev mode indicator to API response
+      const devSuffix = isDevelopment() ? " (Dev Mode)" : "";
+
       return res.json({
         success: true,
-        message: `🎉 Welcome back ${user.name}! You are logged in`,
+        message: `🎉 Welcome back ${user.name}! You are logged in${devSuffix}`,
         user: {
           id: user._id,
           name: user.name,
           phone: user.phone,
           role: user.role,
-          status: user.status, // 🔥 ADD STATUS
+          status: user.status,
         },
         redirectUrl: redirectUrl,
       });
@@ -1519,7 +1620,6 @@ const authController = {
     }
   },
 
-  // 🔥 FIXED: API version of handleVerifyOTP with admin approval workflow
   handleVerifyOTPAPI: async (req, res) => {
     try {
       const {phoneOTP} = req.body;
@@ -1543,28 +1643,35 @@ const authController = {
 
       let otpValid = false;
 
-      if (
-        process.env.TWOFACTOR_API_KEY &&
-        sessionId &&
-        !sessionId.includes("dev_session")
-      ) {
-        const verifyResult = await verifyOTPWithProvider(sessionId, phoneOTP);
-        otpValid = verifyResult.success;
-
-        if (!verifyResult.success) {
-          return res.status(400).json({
-            success: false,
-            error: `Phone verification failed: ${verifyResult.error}`,
-          });
-        }
+      // 🚀 DEVELOPMENT MODE: Auto-verify OTP for API (REMOVE FOR PRODUCTION)
+      if (isDevelopment()) {
+        otpValid = true;
+        // console.log("🚀 Development mode: API OTP verification skipped"); // Uncomment for debugging
       } else {
-        otpValid = phoneOTP === otpDoc.phoneOTP;
+        // PRODUCTION API OTP VERIFICATION
+        if (
+          process.env.TWOFACTOR_API_KEY &&
+          sessionId &&
+          !sessionId.includes("dev_session")
+        ) {
+          const verifyResult = await verifyOTPWithProvider(sessionId, phoneOTP);
+          otpValid = verifyResult.success;
 
-        if (!otpValid) {
-          return res.status(400).json({
-            success: false,
-            error: "Phone verification code is invalid.",
-          });
+          if (!verifyResult.success) {
+            return res.status(400).json({
+              success: false,
+              error: `Phone verification failed: ${verifyResult.error}`,
+            });
+          }
+        } else {
+          otpValid = phoneOTP === otpDoc.phoneOTP;
+
+          if (!otpValid) {
+            return res.status(400).json({
+              success: false,
+              error: "Phone verification code is invalid.",
+            });
+          }
         }
       }
 
@@ -1586,10 +1693,9 @@ const authController = {
       const tempPassword = crypto.randomBytes(16).toString("hex");
       const registeredUser = await User.register(newUser, tempPassword);
 
-      // 🔥 FIX: Different status based on role (same as web version)
       let userStatus = "active";
       if (userData.role === "provider") {
-        userStatus = "pending_approval"; // Providers need admin approval
+        userStatus = "pending_approval";
       }
 
       await User.findByIdAndUpdate(registeredUser._id, {
@@ -1617,7 +1723,6 @@ const authController = {
           panCard: userData.providerData.panCard,
           aadharImage: userData.providerData.aadharImage || null,
           panImage: userData.providerData.panImage || null,
-          // 🔥 FIX: Set to pending with no access (same as web version)
           verificationStatus: "pending",
           canRegisterServices: false,
           dashboardAccess: false,
@@ -1630,13 +1735,10 @@ const authController = {
             imagesVerified: false,
             allDocumentsVerified: false,
           },
-          // Legacy fields for backward compatibility
           isVerified: false,
         });
 
         await newProvider.save();
-
-        // 🔥 FIX: Notify admin about new provider registration
         await notifyAdminNewProvider(registeredUser._id);
       }
 
@@ -1645,22 +1747,24 @@ const authController = {
       delete req.session.userRole;
       delete req.session.otpSessionId;
 
-      // 🔥 FIX: Different success messages (same as web version)
       const successMessage =
         userData.role === "customer"
           ? "🎉 Account created successfully! You can now log in."
           : "🎉 Provider account created successfully! Your account is pending admin approval. You will be notified once verified.";
 
+      // 🚀 DEVELOPMENT MODE: Add dev mode indicator to API response
+      const devSuffix = isDevelopment() ? " (Dev Mode)" : "";
+
       return res.json({
         success: true,
-        message: successMessage,
+        message: successMessage + devSuffix,
         user: {
           id: registeredUser._id,
           name: registeredUser.name,
           phone: registeredUser.phone,
           role: registeredUser.role,
           isPhoneVerified: true,
-          status: userStatus, // 🔥 ADD STATUS
+          status: userStatus,
         },
       });
     } catch (err) {

@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    container_name: knocknfix-app
+    restart: always
+    ports:
+      - "8080:3000"
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads  # Persist uploaded files across container restarts

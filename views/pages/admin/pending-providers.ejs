@@ -141,24 +141,24 @@
 </div>
 
 <!-- Provider Details Modal -->
-<div class="modal fade" id="providerDetailsModal" tabindex="-1" aria-labelledby="providerDetailsModalLabel">
+<div class="modal fade" id="providerDetailsModal" tabindex="-1" aria-labelledby="providerDetailsModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title" id="providerDetailsModalLabel">
-          <i class="fas fa-user-circle"></i> Provider Details
+          <i class="fas fa-user-circle me-2"></i>Provider Details
         </h5>
         <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-light btn-sm" id="approveFromDetailsBtn" style="display: none;">
-            <i class="fas fa-check"></i> Approve
+          <button type="button" class="btn btn-light btn-sm d-none" id="approveFromDetailsBtn">
+            <i class="fas fa-check me-1"></i>Approve
           </button>
-          <button type="button" class="btn btn-outline-light btn-sm" id="rejectFromDetailsBtn" style="display: none;">
-            <i class="fas fa-times"></i> Reject
+          <button type="button" class="btn btn-outline-light btn-sm d-none" id="rejectFromDetailsBtn">
+            <i class="fas fa-times me-1"></i>Reject
           </button>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
       </div>
-      <div class="modal-body p-0" id="providerDetailsContent">
+      <div class="modal-body p-0" id="providerDetailsContent" role="main">
         <!-- Content will be loaded dynamically -->
       </div>
     </div>
@@ -166,7 +166,7 @@
 </div>
 
 <!-- Image Viewer Modal -->
-<div class="modal fade" id="imageViewerModal" tabindex="-1" aria-labelledby="imageViewerModalLabel">
+<div class="modal fade" id="imageViewerModal" tabindex="-1" aria-labelledby="imageViewerModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -187,12 +187,12 @@
 </div>
 
 <!-- Approval Modal -->
-<div class="modal fade" id="approvalModal" tabindex="-1" aria-labelledby="approvalModalLabel">
+<div class="modal fade" id="approvalModal" tabindex="-1" aria-labelledby="approvalModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-success text-white">
         <h5 class="modal-title" id="approvalModalLabel">
-          <i class="fas fa-check-circle"></i> Approve Provider
+          <i class="fas fa-check-circle me-2"></i>Approve Provider
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -201,8 +201,8 @@
           <input type="hidden" id="approveProviderId" name="providerId">
 
           <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i>
-            You are about to approve <strong id="approveProviderName"></strong>.
+            <i class="fas fa-info-circle me-2"></i>
+            You are about to approve <strong><span id="approveProviderName">Provider</span></strong>.
             Please select the permissions to grant.
           </div>
 
@@ -257,7 +257,7 @@
           Cancel
         </button>
         <button type="button" class="btn btn-success" onclick="approveProvider()">
-          <i class="fas fa-check"></i> Approve Provider
+          <i class="fas fa-check me-1"></i>Approve Provider
         </button>
       </div>
     </div>
@@ -265,12 +265,12 @@
 </div>
 
 <!-- Rejection Modal -->
-<div class="modal fade" id="rejectionModal" tabindex="-1" aria-labelledby="rejectionModalLabel">
+<div class="modal fade" id="rejectionModal" tabindex="-1" aria-labelledby="rejectionModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header bg-danger text-white">
         <h5 class="modal-title" id="rejectionModalLabel">
-          <i class="fas fa-times-circle"></i> Reject Provider
+          <i class="fas fa-times-circle me-2"></i>Reject Provider
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -279,8 +279,8 @@
           <input type="hidden" id="rejectProviderId" name="providerId">
 
           <div class="alert alert-warning">
-            <i class="fas fa-exclamation-triangle"></i>
-            You are about to reject <strong id="rejectProviderName"></strong>.
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            You are about to reject <strong><span id="rejectProviderName">Provider</span></strong>.
             This action will prevent them from accessing the platform.
           </div>
 
@@ -296,7 +296,7 @@
           Cancel
         </button>
         <button type="button" class="btn btn-danger" onclick="rejectProvider()">
-          <i class="fas fa-times"></i> Reject Provider
+          <i class="fas fa-times me-1"></i>Reject Provider
         </button>
       </div>
     </div>
@@ -304,97 +304,264 @@
 </div>
 
 <script>
-  // 🚀 COMPLETELY REWRITTEN - SIMPLE & WORKING MODAL SYSTEM
-  let activeModal = null;
-  let currentProvider = null;
+// 🚀 FIXED: Robust Modal Management System
+class ProviderModalManager {
+  constructor() {
+    this.currentModal = null;
+    this.currentProvider = null;
+    this.isInitialized = false;
+    this.init();
+  }
 
-  // 🔧 UTILITY: Wait for element to exist
-  function waitForElement(selector, timeout = 5000) {
-    return new Promise((resolve, reject) => {
-      const element = document.querySelector(selector);
-      if (element) {
-        resolve(element);
-        return;
-      }
+  init() {
+    if (this.isInitialized) return;
+    
+    console.log('🔧 Initializing Provider Modal Manager...');
+    
+    // Verify required elements exist
+    const requiredElements = [
+      'approveProviderId',
+      'approveProviderName', 
+      'approvalModal',
+      'rejectionModal',
+      'providerDetailsModal'
+    ];
 
-      const observer = new MutationObserver((mutations, obs) => {
-        const element = document.querySelector(selector);
-        if (element) {
-          obs.disconnect();
-          resolve(element);
+    const missingElements = requiredElements.filter(id => !document.getElementById(id));
+    
+    if (missingElements.length > 0) {
+      console.error('❌ Missing required elements:', missingElements);
+      this.showAlert('error', 'System initialization failed. Please refresh the page.');
+      return;
+    }
+
+    this.setupEventListeners();
+    this.isInitialized = true;
+    console.log('✅ Provider Modal Manager initialized successfully');
+  }
+
+  setupEventListeners() {
+    // Handle modal cleanup on hide
+    document.addEventListener('hidden.bs.modal', (event) => {
+      const modal = event.target;
+      if (modal) {
+        // Remove any lingering backdrops
+        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+          if (backdrop.style.display === 'none' || !backdrop.parentNode) {
+            backdrop.remove();
+          }
+        });
+        
+        // Reset body classes if needed
+        if (!document.querySelector('.modal.show')) {
+          document.body.classList.remove('modal-open');
+          document.body.style.removeProperty('overflow');
+          document.body.style.removeProperty('padding-right');
         }
-      });
+      }
+    });
 
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
-
-      setTimeout(() => {
-        observer.disconnect();
-        reject(new Error(`Element ${selector} not found within ${timeout}ms`));
-      }, timeout);
+    // Handle escape key for better UX
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this.currentModal) {
+        this.hideModal();
+      }
     });
   }
 
-  // 🔧 SAFE MODAL SHOW - No aria manipulation
-  async function safeShowModal(modalId, setupData = null) {
+  showModal(modalId) {
     try {
-      console.log(`🔍 Opening modal: ${modalId}`);
-
-      // Get modal element
       const modalElement = document.getElementById(modalId);
       if (!modalElement) {
-        throw new Error(`Modal ${modalId} not found`);
+        console.error(`❌ Modal ${modalId} not found`);
+        this.showAlert('error', 'Modal not found. Please refresh the page.');
+        return null;
       }
 
-      // Setup modal data if provided
-      if (setupData && typeof setupData === 'function') {
-        const success = await setupData();
-        if (!success) {
-          throw new Error('Modal setup failed');
-        }
+      // Hide any existing modal first
+      if (this.currentModal) {
+        this.currentModal.hide();
+        this.currentModal = null;
       }
 
-      // Create and show modal - let Bootstrap handle everything
-      const modal = new bootstrap.Modal(modalElement, {
+      // Clean up any stray backdrops
+      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+
+      // Create new modal instance
+      const bsModal = new bootstrap.Modal(modalElement, {
         backdrop: 'static',
         keyboard: true,
         focus: true
       });
 
-      // Store reference
-      activeModal = modal;
-
-      // Show modal
-      modal.show();
-
-      console.log(`✅ Modal ${modalId} opened successfully`);
-      return modal;
-
+      this.currentModal = bsModal;
+      modalElement.setAttribute('aria-hidden', 'false');
+      bsModal.show();
+      
+      console.log(`✅ Modal ${modalId} shown successfully`);
+      return bsModal;
     } catch (error) {
-      console.error(`❌ Error opening modal ${modalId}:`, error);
-      showAlert('error', `Failed to open modal: ${error.message}`);
-      throw error;
+      console.error('❌ Error showing modal:', error);
+      this.showAlert('error', 'Failed to open modal. Please try again.');
+      return null;
     }
   }
 
-  // 🔧 SAFE MODAL HIDE
-  function safeHideModal() {
-    if (activeModal) {
-      activeModal.hide();
-      activeModal = null;
-    }
-  }
-
-  // 🚀 VIEW PROVIDER DETAILS
-  async function viewProviderDetails(providerId) {
-    console.log('📋 Loading provider details for:', providerId);
-
+  hideModal() {
     try {
-      await safeShowModal('providerDetailsModal', async () => {
-        // Show loading content
-        document.getElementById('providerDetailsContent').innerHTML = `
+      if (this.currentModal) {
+        this.currentModal.hide();
+        this.currentModal = null;
+      }
+      
+      // Clean up DOM
+      setTimeout(() => {
+        document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+        document.querySelectorAll('.modal').forEach(modal => {
+          modal.setAttribute('aria-hidden', 'true');
+          modal.style.display = 'none';
+          modal.classList.remove('show');
+        });
+        
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+      }, 150);
+      
+      console.log('✅ Modal hidden successfully');
+    } catch (error) {
+      console.error('❌ Error hiding modal:', error);
+    }
+  }
+
+  showAlert(type, message) {
+    // Remove existing alerts
+    document.querySelectorAll('.alert-toast').forEach(alert => alert.remove());
+
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+    const alertEl = document.createElement('div');
+    alertEl.className = `alert ${alertClass} alert-dismissible fade show alert-toast position-fixed`;
+    alertEl.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px; max-width: 500px;';
+    alertEl.innerHTML = `
+      <i class="fas ${icon} me-2"></i>${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+
+    document.body.appendChild(alertEl);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (alertEl.parentNode) {
+        alertEl.remove();
+      }
+    }, 5000);
+  }
+}
+
+// Initialize the modal manager
+const modalManager = new ProviderModalManager();
+
+// 🚀 FIXED: Show approval modal
+function showApprovalModal(providerId, providerName) {
+  console.log('✅ Opening approval modal for:', providerId, providerName);
+
+  if (!modalManager.isInitialized) {
+    modalManager.showAlert('error', 'System not ready. Please refresh the page.');
+    return;
+  }
+
+  try {
+    // Set the data with error checking
+    const providerIdEl = document.getElementById('approveProviderId');
+    const providerNameEl = document.getElementById('approveProviderName');
+    
+    if (!providerIdEl || !providerNameEl) {
+      console.error('❌ Required form elements not found');
+      modalManager.showAlert('error', 'Form elements missing. Please refresh the page.');
+      return;
+    }
+    
+    providerIdEl.value = providerId;
+    providerNameEl.textContent = providerName;
+
+    // Reset form with error handling
+    const form = document.getElementById('approvalForm');
+    if (form) {
+      form.reset();
+      
+      // Set default checked values
+      const defaultPermissions = {
+        grantDashboardAccess: true,
+        grantServiceRegistration: true,
+        grantBookingAccess: true,
+        grantPayoutAccess: false
+      };
+      
+      Object.entries(defaultPermissions).forEach(([id, checked]) => {
+        const checkbox = document.getElementById(id);
+        if (checkbox) {
+          checkbox.checked = checked;
+        }
+      });
+    }
+
+    // Show the modal
+    modalManager.showModal('approvalModal');
+  } catch (error) {
+    console.error('❌ Error in showApprovalModal:', error);
+    modalManager.showAlert('error', 'Failed to open approval modal. Please try again.');
+  }
+}
+
+// 🚀 FIXED: Show rejection modal  
+function showRejectionModal(providerId, providerName) {
+  console.log('❌ Opening rejection modal for:', providerId, providerName);
+
+  if (!modalManager.isInitialized) {
+    modalManager.showAlert('error', 'System not ready. Please refresh the page.');
+    return;
+  }
+
+  try {
+    const providerIdEl = document.getElementById('rejectProviderId');
+    const providerNameEl = document.getElementById('rejectProviderName');
+    const reasonEl = document.getElementById('rejectionReason');
+
+    if (!providerIdEl || !providerNameEl || !reasonEl) {
+      console.error('❌ Required rejection form elements not found');
+      modalManager.showAlert('error', 'Form elements missing. Please refresh the page.');
+      return;
+    }
+
+    providerIdEl.value = providerId;
+    providerNameEl.textContent = providerName;
+    reasonEl.value = '';
+
+    modalManager.showModal('rejectionModal');
+  } catch (error) {
+    console.error('❌ Error in showRejectionModal:', error);
+    modalManager.showAlert('error', 'Failed to open rejection modal. Please try again.');
+  }
+}
+
+// 🚀 View provider details with improved error handling
+async function viewProviderDetails(providerId) {
+  console.log('📋 Loading provider details for:', providerId);
+  
+  if (!modalManager.isInitialized) {
+    modalManager.showAlert('error', 'System not ready. Please refresh the page.');
+    return;
+  }
+
+  try {
+    // Show modal with loading state
+    modalManager.showModal('providerDetailsModal');
+    
+    const contentEl = document.getElementById('providerDetailsContent');
+    if (contentEl) {
+      contentEl.innerHTML = `
         <div class="text-center py-5">
           <div class="spinner-border text-primary mb-3" role="status">
             <span class="visually-hidden">Loading...</span>
@@ -403,319 +570,253 @@
           <p class="text-muted">Please wait while we fetch the information</p>
         </div>
       `;
-        return true;
-      });
+    }
 
-      // Fetch provider data
-      const response = await fetch(`/admin/api/provider-details/${providerId}`);
-
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+    const response = await fetch(`/admin/api/provider-details/${providerId}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
+    });
 
-      const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to load provider details');
-      }
+    const data = await response.json();
 
-      currentProvider = data.provider;
-      renderProviderDetails(data.provider);
-      setupProviderActionButtons(providerId, data.provider.user.name);
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load provider details');
+    }
 
-      console.log('✅ Provider details loaded successfully');
+    modalManager.currentProvider = data.provider;
+    renderProviderDetails(data.provider);
+    setupProviderActionButtons(providerId, data.provider.user.name);
 
-    } catch (error) {
-      console.error('❌ Error loading provider details:', error);
-      if (document.getElementById('providerDetailsContent')) {
-        document.getElementById('providerDetailsContent').innerHTML = `
+  } catch (error) {
+    console.error('❌ Error loading provider details:', error);
+    const contentEl = document.getElementById('providerDetailsContent');
+    if (contentEl) {
+      contentEl.innerHTML = `
         <div class="text-center py-5">
           <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
           <h5>Error Loading Details</h5>
           <p class="text-muted">${error.message}</p>
           <button class="btn btn-primary" onclick="viewProviderDetails('${providerId}')">
-            <i class="fas fa-redo"></i> Try Again
+            <i class="fas fa-redo me-1"></i>Try Again
           </button>
         </div>
       `;
-      }
     }
   }
+}
 
-  // 🚀 SHOW APPROVAL MODAL
-  async function showApprovalModal(providerId, providerName) {
-    console.log('✅ Opening approval modal for:', providerId, providerName);
-
-    try {
-      await safeShowModal('approvalModal', async () => {
-        // Wait a bit for modal to be ready
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-        // Find elements with retry
-        let providerIdEl, providerNameEl;
-        let attempts = 0;
-        const maxAttempts = 10;
-
-        while (attempts < maxAttempts) {
-          providerIdEl = document.getElementById('approveProviderId');
-          providerNameEl = document.getElementById('approveProviderName');
-
-          if (providerIdEl && providerNameEl) {
-            break;
-          }
-
-          console.log(`Attempt ${attempts + 1}: Waiting for modal elements...`);
-          await new Promise(resolve => setTimeout(resolve, 100));
-          attempts++;
-        }
-
-        if (!providerIdEl || !providerNameEl) {
-          console.error('❌ Modal elements still not found after retries');
-          console.log('Available elements:', {
-            approveProviderId: !!document.getElementById('approveProviderId'),
-            approveProviderName: !!document.getElementById('approveProviderName'),
-            approvalForm: !!document.getElementById('approvalForm')
-          });
-          return false;
-        }
-
-        // Set values
-        providerIdEl.value = providerId;
-        providerNameEl.textContent = providerName;
-
-        // Reset form and set defaults
-        const form = document.getElementById('approvalForm');
-        if (form) {
-          form.reset();
-          // Re-check default checkboxes after reset
-          const dashboardAccess = document.getElementById('grantDashboardAccess');
-          const serviceReg = document.getElementById('grantServiceRegistration');
-          const bookingAccess = document.getElementById('grantBookingAccess');
-
-          if (dashboardAccess) dashboardAccess.checked = true;
-          if (serviceReg) serviceReg.checked = true;
-          if (bookingAccess) bookingAccess.checked = true;
-        }
-
-        console.log('✅ Approval modal setup completed');
-        return true;
-      });
-
-    } catch (error) {
-      console.error('❌ Error showing approval modal:', error);
-      showAlert('error', 'Failed to open approval modal. Please try again.');
-    }
-  }
-
-  // 🚀 SHOW REJECTION MODAL
-  async function showRejectionModal(providerId, providerName) {
-    console.log('❌ Opening rejection modal for:', providerId, providerName);
-
-    try {
-      await safeShowModal('rejectionModal', async () => {
-        // Wait a bit for modal to be ready
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-        // Find elements with retry
-        let providerIdEl, providerNameEl, reasonEl;
-        let attempts = 0;
-        const maxAttempts = 10;
-
-        while (attempts < maxAttempts) {
-          providerIdEl = document.getElementById('rejectProviderId');
-          providerNameEl = document.getElementById('rejectProviderName');
-          reasonEl = document.getElementById('rejectionReason');
-
-          if (providerIdEl && providerNameEl && reasonEl) {
-            break;
-          }
-
-          console.log(`Attempt ${attempts + 1}: Waiting for rejection modal elements...`);
-          await new Promise(resolve => setTimeout(resolve, 100));
-          attempts++;
-        }
-
-        if (!providerIdEl || !providerNameEl || !reasonEl) {
-          console.error('❌ Rejection modal elements not found after retries');
-          return false;
-        }
-
-        // Set values
-        providerIdEl.value = providerId;
-        providerNameEl.textContent = providerName;
-        reasonEl.value = '';
-
-        console.log('✅ Rejection modal setup completed');
-        return true;
-      });
-
-    } catch (error) {
-      console.error('❌ Error showing rejection modal:', error);
-      showAlert('error', 'Failed to open rejection modal. Please try again.');
-    }
-  }
-
-  // 🚀 SHOW IMAGE MODAL
-  function showImageModal(imageSrc, title) {
-    console.log('🖼️ Opening image modal:', title);
-
+// 🚀 Show image modal
+function showImageModal(imageSrc, title) {
+  try {
     const titleEl = document.getElementById('imageViewerTitle');
     const imgEl = document.getElementById('imageViewerImg');
     const downloadEl = document.getElementById('downloadImageBtn');
 
-    if (titleEl && imgEl && downloadEl) {
-      titleEl.textContent = title;
-      imgEl.src = imageSrc;
-      downloadEl.href = imageSrc;
+    if (titleEl) titleEl.textContent = title;
+    if (imgEl) imgEl.src = imageSrc;
+    if (downloadEl) downloadEl.href = imageSrc;
 
-      safeShowModal('imageViewerModal');
-    }
+    modalManager.showModal('imageViewerModal');
+  } catch (error) {
+    console.error('❌ Error showing image modal:', error);
+    modalManager.showAlert('error', 'Failed to show image. Please try again.');
+  }
+}
+
+// 🚀 FIXED: Approve provider with comprehensive error handling
+async function approveProvider() {
+  if (!modalManager.isInitialized) {
+    modalManager.showAlert('error', 'System not ready. Please refresh the page.');
+    return;
   }
 
-  // 🚀 APPROVE PROVIDER
-  async function approveProvider() {
-    const form = document.getElementById('approvalForm');
-    const providerId = document.getElementById('approveProviderId')?.value;
+  const form = document.getElementById('approvalForm');
+  const providerIdEl = document.getElementById('approveProviderId');
 
-    if (!form || !providerId) {
-      showAlert('error', 'Form data not found');
-      return;
-    }
+  if (!form || !providerIdEl) {
+    modalManager.showAlert('error', 'Form data not found. Please refresh the page.');
+    return;
+  }
 
-    const btn = event.target;
-    const originalText = btn.innerHTML;
+  const providerId = providerIdEl.value;
+  if (!providerId) {
+    modalManager.showAlert('error', 'Provider ID missing. Please try again.');
+    return;
+  }
 
-    try {
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Approving...';
-      btn.disabled = true;
+  const btn = event.target;
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Approving...';
+  btn.disabled = true;
 
-      const formData = new FormData(form);
-      const response = await fetch(`/admin/approve-provider/${providerId}`, {
-        method: 'POST',
-        body: formData
-      });
+  try {
+    const formData = new FormData(form);
+    
+    // Ensure checkbox values are sent correctly
+    const checkboxes = ['grantDashboardAccess', 'grantServiceRegistration', 'grantBookingAccess', 'grantPayoutAccess'];
+    checkboxes.forEach(name => {
+      const checkbox = document.getElementById(name);
+      formData.set(name, checkbox && checkbox.checked ? 'true' : 'false');
+    });
 
-      const data = await response.json();
-
-      if (data.success) {
-        const row = document.getElementById(`provider-row-${providerId}`);
-        if (row) row.remove();
-
-        showAlert('success', data.message);
-        safeHideModal();
-
-        const remainingRows = document.querySelectorAll('#providersTable tbody tr');
-        if (remainingRows.length === 0) {
-          setTimeout(() => location.reload(), 1000);
-        }
-      } else {
-        throw new Error(data.error || 'Failed to approve provider');
+    const response = await fetch(`/admin/approve-provider/${providerId}`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json'
       }
-    } catch (error) {
-      console.error('❌ Approval error:', error);
-      showAlert('error', error.message);
-    } finally {
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-    }
-  }
+    });
 
-  // 🚀 REJECT PROVIDER
-  async function rejectProvider() {
-    const reasonEl = document.getElementById('rejectionReason');
-    const providerIdEl = document.getElementById('rejectProviderId');
-
-    if (!reasonEl || !providerIdEl) {
-      showAlert('error', 'Form elements not found');
-      return;
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status} ${response.statusText}`);
     }
 
-    const reason = reasonEl.value.trim();
-    const providerId = providerIdEl.value;
+    const data = await response.json();
 
-    if (reason.length < 10) {
-      showAlert('error', 'Rejection reason must be at least 10 characters long');
-      reasonEl.focus();
-      return;
-    }
+    if (data.success) {
+      // Remove the provider row
+      const row = document.getElementById(`provider-row-${providerId}`);
+      if (row) row.remove();
 
-    const btn = event.target;
-    const originalText = btn.innerHTML;
+      modalManager.showAlert('success', data.message || 'Provider approved successfully');
+      modalManager.hideModal();
 
-    try {
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
-      btn.disabled = true;
-
-      const response = await fetch(`/admin/reject-provider/${providerId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          reason
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        const row = document.getElementById(`provider-row-${providerId}`);
-        if (row) row.remove();
-
-        showAlert('success', data.message);
-        safeHideModal();
-
-        const remainingRows = document.querySelectorAll('#providersTable tbody tr');
-        if (remainingRows.length === 0) {
-          setTimeout(() => location.reload(), 1000);
-        }
-      } else {
-        throw new Error(data.error || 'Failed to reject provider');
+      // Reload if no more providers
+      const remainingRows = document.querySelectorAll('#providersTable tbody tr');
+      if (remainingRows.length === 0) {
+        setTimeout(() => location.reload(), 1500);
       }
-    } catch (error) {
-      console.error('❌ Rejection error:', error);
-      showAlert('error', error.message);
-    } finally {
-      btn.innerHTML = originalText;
-      btn.disabled = false;
+    } else {
+      throw new Error(data.error || 'Approval failed');
     }
+  } catch (error) {
+    console.error('❌ Approval error:', error);
+    modalManager.showAlert('error', `Approval failed: ${error.message}`);
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}
+
+// 🚀 FIXED: Reject provider with comprehensive error handling
+async function rejectProvider() {
+  if (!modalManager.isInitialized) {
+    modalManager.showAlert('error', 'System not ready. Please refresh the page.');
+    return;
   }
 
-  // 🚀 HANDLE MODAL ACTIONS
-  function handleModalAction(action, providerId, providerName) {
-    console.log(`🎯 Handling ${action} for provider:`, providerId, providerName);
+  const reasonEl = document.getElementById('rejectionReason');
+  const providerIdEl = document.getElementById('rejectProviderId');
 
+  if (!reasonEl || !providerIdEl) {
+    modalManager.showAlert('error', 'Form elements not found. Please refresh the page.');
+    return;
+  }
+
+  const reason = reasonEl.value.trim();
+  const providerId = providerIdEl.value;
+
+  if (reason.length < 10) {
+    modalManager.showAlert('error', 'Rejection reason must be at least 10 characters long');
+    reasonEl.focus();
+    return;
+  }
+
+  const btn = event.target;
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Rejecting...';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch(`/admin/reject-provider/${providerId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ reason })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Remove the provider row
+      const row = document.getElementById(`provider-row-${providerId}`);
+      if (row) row.remove();
+
+      modalManager.showAlert('success', data.message || 'Provider rejected successfully');
+      modalManager.hideModal();
+
+      // Reload if no more providers
+      const remainingRows = document.querySelectorAll('#providersTable tbody tr');
+      if (remainingRows.length === 0) {
+        setTimeout(() => location.reload(), 1500);
+      }
+    } else {
+      throw new Error(data.error || 'Rejection failed');
+    }
+  } catch (error) {
+    console.error('❌ Rejection error:', error);
+    modalManager.showAlert('error', `Rejection failed: ${error.message}`);
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}
+
+// Handle modal actions from details view
+function handleModalAction(action, providerId, providerName) {
+  modalManager.hideModal();
+  
+  setTimeout(() => {
     if (action === 'approve') {
       showApprovalModal(providerId, providerName);
     } else if (action === 'reject') {
       showRejectionModal(providerId, providerName);
     }
+  }, 200);
+}
+
+// Setup action buttons in provider details
+function setupProviderActionButtons(providerId, providerName) {
+  const approveBtn = document.getElementById('approveFromDetailsBtn');
+  const rejectBtn = document.getElementById('rejectFromDetailsBtn');
+
+  if (approveBtn) {
+    approveBtn.classList.remove('d-none');
+    approveBtn.onclick = () => handleModalAction('approve', providerId, providerName);
   }
 
-  // 🚀 SETUP PROVIDER ACTION BUTTONS
-  function setupProviderActionButtons(providerId, providerName) {
-    const approveBtn = document.getElementById('approveFromDetailsBtn');
-    const rejectBtn = document.getElementById('rejectFromDetailsBtn');
+  if (rejectBtn) {
+    rejectBtn.classList.remove('d-none');
+    rejectBtn.onclick = () => handleModalAction('reject', providerId, providerName);
+  }
+}
 
-    if (approveBtn) {
-      approveBtn.style.display = 'inline-block';
-      approveBtn.onclick = () => handleModalAction('approve', providerId, providerName);
-    }
-
-    if (rejectBtn) {
-      rejectBtn.style.display = 'inline-block';
-      rejectBtn.onclick = () => handleModalAction('reject', providerId, providerName);
-    }
+// Render provider details
+function renderProviderDetails(provider) {
+  if (!provider) {
+    console.error('❌ No provider data provided');
+    return;
   }
 
-  // 🎨 RENDER PROVIDER DETAILS
-  function renderProviderDetails(provider) {
-    const content = `
+  const content = `
     <div class="container-fluid p-4">
       <!-- Status Header -->
       <div class="alert alert-warning mb-4">
         <div class="d-flex justify-content-between align-items-center">
-          <span><i class="fas fa-clock"></i> <strong>Pending Approval</strong></span>
+          <span><i class="fas fa-clock me-2"></i><strong>Pending Approval</strong></span>
           <small class="text-muted">Registered: ${formatDate(provider.registrationDate)}</small>
         </div>
       </div>
@@ -725,7 +826,7 @@
         <div class="col-lg-4">
           <div class="card h-100">
             <div class="card-header bg-primary text-white">
-              <i class="fas fa-user"></i> Basic Information
+              <i class="fas fa-user me-2"></i>Basic Information
             </div>
             <div class="card-body text-center">
               ${renderProfileImage(provider.user)}
@@ -741,7 +842,7 @@
         <div class="col-lg-8">
           <div class="card h-100">
             <div class="card-header bg-info text-white">
-              <i class="fas fa-building"></i> Business Information
+              <i class="fas fa-building me-2"></i>Business Information
             </div>
             <div class="card-body">
               <div class="row">
@@ -762,58 +863,47 @@
         <div class="col-12">
           <div class="card">
             <div class="card-header bg-warning text-dark">
-              <i class="fas fa-file-alt"></i> Document Verification
+              <i class="fas fa-file-alt me-2"></i>Document Verification
             </div>
             <div class="card-body">
               ${renderDocuments(provider.serviceProvider)}
             </div>
           </div>
         </div>
-
-        ${provider.services && provider.services.length > 0 ? `
-        <!-- Services -->
-        <div class="col-12">
-          <div class="card">
-            <div class="card-header bg-success text-white">
-              <i class="fas fa-tools"></i> Registered Services
-            </div>
-            <div class="card-body">
-              ${renderServices(provider.services)}
-            </div>
-          </div>
-        </div>
-        ` : ''}
       </div>
 
       <!-- Action Buttons -->
       <div class="text-center mt-4 pt-4 border-top">
         <button class="btn btn-success btn-lg me-2" onclick="handleModalAction('approve', '${provider.user._id}', '${escapeQuotes(provider.user.name)}')">
-          <i class="fas fa-check"></i> Approve Provider
+          <i class="fas fa-check me-1"></i>Approve Provider
         </button>
         <button class="btn btn-danger btn-lg me-2" onclick="handleModalAction('reject', '${provider.user._id}', '${escapeQuotes(provider.user.name)}')">
-          <i class="fas fa-times"></i> Reject Provider
+          <i class="fas fa-times me-1"></i>Reject Provider
         </button>
-        <button class="btn btn-secondary btn-lg" onclick="safeHideModal()">
-          <i class="fas fa-arrow-left"></i> Close
+        <button class="btn btn-secondary btn-lg" onclick="modalManager.hideModal()">
+          <i class="fas fa-arrow-left me-1"></i>Close
         </button>
       </div>
     </div>
   `;
 
-    document.getElementById('providerDetailsContent').innerHTML = content;
+  const contentEl = document.getElementById('providerDetailsContent');
+  if (contentEl) {
+    contentEl.innerHTML = content;
   }
+}
 
-  // 🔧 HELPER RENDERING METHODS
-  function renderProfileImage(user) {
-    if (user.profileImage) {
-      return `<img src="${user.profileImage}" alt="Profile" class="rounded-circle" width="100" height="100" style="object-fit: cover; cursor: pointer;" onclick="showImageModal('${user.profileImage}', 'Profile Picture')">`;
-    } else {
-      return `<div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px; font-size: 2rem; font-weight: bold;">${user.name.charAt(0).toUpperCase()}</div>`;
-    }
+// Helper functions
+function renderProfileImage(user) {
+  if (user.profileImage) {
+    return `<img src="${user.profileImage}" alt="Profile" class="rounded-circle" width="100" height="100" style="object-fit: cover; cursor: pointer;" onclick="showImageModal('${user.profileImage}', 'Profile Picture')">`;
+  } else {
+    return `<div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px; font-size: 2rem; font-weight: bold;">${user.name.charAt(0).toUpperCase()}</div>`;
   }
+}
 
-  function renderBasicInfo(user) {
-    return `
+function renderBasicInfo(user) {
+  return `
     <div class="list-group list-group-flush">
       <div class="list-group-item d-flex align-items-center">
         <i class="fas fa-phone text-primary me-2"></i>
@@ -829,51 +919,35 @@
         <i class="fas fa-venus-mars text-primary me-2"></i>
         <span><strong>Gender:</strong> ${user.gender || 'Not specified'}</span>
       </div>
-      ${user.dateOfBirth ? `
-        <div class="list-group-item d-flex align-items-center">
-          <i class="fas fa-birthday-cake text-primary me-2"></i>
-          <span><strong>DOB:</strong> ${formatDate(user.dateOfBirth)}</span>
-        </div>
-      ` : ''}
     </div>
   `;
+}
+
+function renderBusinessInfo(serviceProvider) {
+  if (!serviceProvider) {
+    return '<div class="alert alert-warning">No business information provided</div>';
   }
 
-  function renderBusinessInfo(serviceProvider) {
-    if (!serviceProvider) {
-      return '<div class="alert alert-warning">No business information provided</div>';
-    }
-
-    return `
+  return `
     <div class="list-group list-group-flush">
-      <div class="list-group-item d-flex align-items-center">
-        <i class="fas fa-store text-info me-2"></i>
-        <span><strong>Business:</strong> ${serviceProvider.businessName || 'Not provided'}</span>
-      </div>
       <div class="list-group-item d-flex align-items-center">
         <i class="fas fa-tools text-info me-2"></i>
         <span><strong>Experience:</strong> ${serviceProvider.experience || 'Not specified'} years</span>
       </div>
       <div class="list-group-item d-flex align-items-center">
         <i class="fas fa-certificate text-info me-2"></i>
-        <span><strong>Skills:</strong> ${renderSkills(serviceProvider.skills)}</span>
+        <span><strong>Status:</strong> ${serviceProvider.verificationStatus || 'Pending'}</span>
       </div>
-      ${serviceProvider.description ? `
-        <div class="list-group-item">
-          <i class="fas fa-info-circle text-info me-2"></i>
-          <span><strong>Description:</strong> ${serviceProvider.description}</span>
-        </div>
-      ` : ''}
     </div>
   `;
+}
+
+function renderAddressInfo(address) {
+  if (!address) {
+    return '<div class="alert alert-warning">No address provided</div>';
   }
 
-  function renderAddressInfo(address) {
-    if (!address) {
-      return '<div class="alert alert-warning">No address provided</div>';
-    }
-
-    return `
+  return `
     <div class="list-group list-group-flush">
       <div class="list-group-item d-flex align-items-center">
         <i class="fas fa-road text-info me-2"></i>
@@ -891,22 +965,16 @@
         <i class="fas fa-mail-bulk text-info me-2"></i>
         <span><strong>Pincode:</strong> ${address.pincode}</span>
       </div>
-      ${address.landmark ? `
-        <div class="list-group-item d-flex align-items-center">
-          <i class="fas fa-map-pin text-info me-2"></i>
-          <span><strong>Landmark:</strong> ${address.landmark}</span>
-        </div>
-      ` : ''}
     </div>
   `;
+}
+
+function renderDocuments(serviceProvider) {
+  if (!serviceProvider) {
+    return '<div class="alert alert-danger">No documents submitted</div>';
   }
 
-  function renderDocuments(serviceProvider) {
-    if (!serviceProvider) {
-      return '<div class="alert alert-danger">No documents submitted</div>';
-    }
-
-    return `
+  return `
     <div class="row g-3">
       <div class="col-md-6">
         <div class="card">
@@ -934,127 +1002,80 @@
       </div>
     </div>
   `;
-  }
+}
 
-  function renderServices(services) {
+function getDocumentStatus(docNumber, docImage) {
+  if (docNumber && docImage) {
+    return '<span class="badge bg-success"><i class="fas fa-check"></i> Complete</span>';
+  } else {
+    return '<span class="badge bg-danger"><i class="fas fa-times"></i> Incomplete</span>';
+  }
+}
+
+function renderDocumentImage(imageSrc, title) {
+  if (imageSrc) {
     return `
-    <div class="row g-3">
-      ${services.map(service => `
-        <div class="col-lg-4 col-md-6">
-          <div class="card">
-            <div class="card-body">
-              <h6 class="card-title">${service.name}</h6>
-              <p class="card-text text-muted">${service.description}</p>
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="h6 text-primary mb-0">₹${service.price}</span>
-                <span class="badge bg-info">${service.category.name}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-  }
-
-  function renderSkills(skills) {
-    if (!skills || skills.length === 0) return 'Not specified';
-    return skills.map(skill => `<span class="badge bg-secondary me-1">${skill}</span>`).join('');
-  }
-
-  function getDocumentStatus(docNumber, docImage) {
-    if (docNumber && docImage) {
-      return '<span class="badge bg-success"><i class="fas fa-check"></i> Complete</span>';
-    } else {
-      return '<span class="badge bg-danger"><i class="fas fa-times"></i> Incomplete</span>';
-    }
-  }
-
-  function renderDocumentImage(imageSrc, title) {
-    if (imageSrc) {
-      return `
       <div class="text-center">
         <img src="${imageSrc}" alt="${title}" class="img-thumbnail" style="width: 200px; height: 120px; object-fit: cover; cursor: pointer;" onclick="showImageModal('${imageSrc}', '${title}')">
         <br><small class="text-muted">Click to view full image</small>
       </div>
     `;
-    } else {
-      return '<div class="alert alert-warning">No image uploaded</div>';
-    }
+  } else {
+    return '<div class="alert alert-warning">No image uploaded</div>';
   }
+}
 
-  function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleDateString('en-IN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
 
-  function escapeQuotes(str) {
-    return str.replace(/'/g, "\\'");
-  }
+function escapeQuotes(str) {
+  return str.replace(/'/g, "\\'");
+}
 
-  // 🚀 SHOW ALERT
-  function showAlert(type, message) {
-    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-
-    // Remove existing alerts
-    document.querySelectorAll('.alert-toast').forEach(alert => alert.remove());
-
-    const alertEl = document.createElement('div');
-    alertEl.className = `alert ${alertClass} alert-dismissible fade show alert-toast position-fixed`;
-    alertEl.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    alertEl.innerHTML = `
-    <i class="fas ${icon}"></i> ${message}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  `;
-
-    document.body.appendChild(alertEl);
-
-    // Auto remove after 5 seconds
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🎉 Provider Management System loaded!');
+  
+  // Initialize modal manager if not already done
+  if (!modalManager.isInitialized) {
     setTimeout(() => {
-      if (alertEl.parentNode) {
-        const bsAlert = new bootstrap.Alert(alertEl);
-        bsAlert.close();
-      }
-    }, 5000);
+      modalManager.init();
+    }, 100);
   }
+});
 
-  // Initialize on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎉 Provider Management System initialized successfully!');
-
-    // Remove any lingering aria-hidden attributes on page load
-    document.querySelectorAll('.modal[aria-hidden="true"]').forEach(modal => {
-      if (!modal.classList.contains('show')) {
-        modal.removeAttribute('aria-hidden');
-      }
-    });
-  });
-
-  // Override Bootstrap's aria-hidden behavior
-  document.addEventListener('show.bs.modal', function(e) {
-    console.log(`🔍 Modal ${e.target.id} is showing`);
-    e.target.removeAttribute('aria-hidden');
-  });
-
-  document.addEventListener('hide.bs.modal', function(e) {
-    console.log(`🔍 Modal ${e.target.id} is hiding`);
-    // Don't set aria-hidden manually - let Bootstrap handle it naturally
-  });
+// Handle page visibility changes  
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible' && !modalManager.isInitialized) {
+    modalManager.init();
+  }
+});
 </script>
 
 <style>
-  /* Minimal custom styles - most styling uses Bootstrap classes */
+  /* Enhanced styles with accessibility fixes */
   .btn-group-vertical .btn {
     font-size: 0.8rem;
     margin-bottom: 0.25rem;
+    min-height: 32px; /* Ensure touch target size */
   }
 
   .alert-toast {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 2px solid;
+  }
+
+  .alert-success.alert-toast {
+    border-color: #198754;
+  }
+
+  .alert-danger.alert-toast {
+    border-color: #dc3545;
   }
 
   .list-group-item {
@@ -1070,10 +1091,67 @@
     font-weight: 600;
   }
 
+  /* Fix focus management */
+  .modal:focus {
+    outline: none;
+  }
+
+  .modal-content {
+    border: 2px solid #dee2e6;
+  }
+
+  .modal.show .modal-content {
+    border-color: #0d6efd;
+  }
+
+  /* Ensure proper contrast ratios */
+  .text-muted {
+    color: #6c757d !important;
+  }
+
+  /* Loading state improvements */
+  .spinner-border {
+    color: #0d6efd;
+  }
+
+  /* Better error state styling */
+  .text-danger {
+    color: #dc3545 !important;
+  }
+
+  /* Responsive improvements */
   @media (max-width: 768px) {
     .btn-group-vertical .btn {
       font-size: 0.75rem;
       padding: 0.25rem 0.5rem;
+      min-height: 36px; /* Larger touch targets on mobile */
     }
+
+    .modal-xl {
+      max-width: 95vw;
+    }
+
+    .alert-toast {
+      left: 10px;
+      right: 10px;
+      top: 10px;
+      width: auto;
+      min-width: auto;
+      max-width: none;
+    }
+  }
+
+  /* Hide elements properly for screen readers */
+  .d-none {
+    display: none !important;
+  }
+
+  /* Better loading states */
+  .text-center.py-5 {
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 </style>

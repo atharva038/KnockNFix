@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const bookingController = require("../controllers/bookingController");
-const { isLoggedIn, isAdmin } = require("../middleware");
+const bookingController = require("../Controllers/bookingController");
+const {isLoggedIn, isAdmin} = require("../middleware");
 
 // ===== CUSTOMER ROUTES =====
 
@@ -32,6 +32,11 @@ router.get("/success", isLoggedIn, bookingController.getBookingSuccess);
 router.get("/admin/all", isLoggedIn, isAdmin, bookingController.getAllBookings);
 
 // Update booking status (admin only)
-router.patch("/admin/:id/status", isLoggedIn, isAdmin, bookingController.updateBookingStatus);
+router.patch(
+  "/admin/:id/status",
+  isLoggedIn,
+  isAdmin,
+  bookingController.updateBookingStatus
+);
 
 module.exports = router;
