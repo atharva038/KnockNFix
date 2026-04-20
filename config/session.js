@@ -11,10 +11,14 @@ function resolveMongoStoreFactory() {
 }
 
 function createSessionStore() {
+  const isProduction = process.env.NODE_ENV === "production";
   const mongoUrl = process.env.MONGO_URI;
 
   if (!mongoUrl) {
-    console.warn("⚠️ MONGO_URI is missing. Falling back to in-memory session store.");
+    if (isProduction) {
+      throw new Error("MONGO_URI env var is required in production for session storage.");
+    }
+    console.warn("⚠️ MONGO_URI is missing. Falling back to in-memory session store for development.");
     return null;
   }
 
@@ -42,6 +46,12 @@ function createSessionStore() {
 
 function configureSession(app) {
   const isProduction = process.env.NODE_ENV === "production";
+  const sessionSecret = process.env.SESSION_SECRET;
+
+  if (!sessionSecret) {
+    throw new Error("SESSION_SECRET env var is required.");
+  }
+
   const store = createSessionStore();
 
   if (isProduction) {
@@ -49,7 +59,7 @@ function configureSession(app) {
   }
 
   const sessionOptions = {
-    secret: process.env.SESSION_SECRET || "mysupersecretcode",
+    secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     ...(store ? { store } : {}),

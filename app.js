@@ -37,6 +37,17 @@ const complaintsRoutes = require("./routes/complaints.js");
 const userRoutes = require("./routes/user");
 
 const port = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === "production";
+
+const allowedOrigins = (
+  process.env.CORS_ALLOWED_ORIGINS ||
+  (isProduction
+    ? "https://knocknfix.live"
+    : "http://localhost:3000,http://127.0.0.1:3000")
+)
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 connectDatabase();
 
@@ -57,12 +68,31 @@ configureSession(app);
 
 // CORS middleware
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
+  const origin = req.headers.origin;
+  const isAllowedOrigin = origin && allowedOrigins.includes(origin);
+
+  if (isAllowedOrigin) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Vary", "Origin");
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
+
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+
+  if (req.method === "OPTIONS") {
+    if (origin && !isAllowedOrigin) {
+      return res.status(403).json({
+        success: false,
+        error: "CORS origin not allowed",
+      });
+    }
+    return res.sendStatus(204);
+  }
+
   next();
 });
 
@@ -168,6 +198,12 @@ app.get("/", (req, res) => {
 
 // Database status route for debugging
 app.get("/db-status", (req, res) => {
+  if (process.env.NODE_ENV !== "development") {
+    return res.status(404).json({
+      success: false,
+      error: "Not found",
+    });
+  }
   res.json(getDatabaseStatus());
 });
 
@@ -231,5 +267,7 @@ app.listen(port, "0.0.0.0", () => {
   console.log(`🌐 Local: http://localhost:${port}`);
   console.log(`📱 Network: http://0.0.0.0:${port}`);
   console.log(`🔧 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`📊 Database Status: Visit http://localhost:${port}/db-status`);
+  if (!isProduction) {
+    console.log(`📊 Database Status: Visit http://localhost:${port}/db-status`);
+  }
 });
