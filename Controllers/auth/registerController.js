@@ -2,8 +2,7 @@ const User = require("../../models/User");
 const OTP = require("../../models/OTP");
 const ServiceProvider = require("../../models/ServiceProvider");
 const { sendSmsOTP, verifyOTPWithProvider, resendOTP } = require("../../utils/otp");
-const crypto = require("crypto");
-const { notifyAdminNewProvider } = require("../../utils/adminNotifications");
+const { createVerifiedUserFromOtp } = require("./registerFlowHelpers");
 
 const {
   isDevelopment,
@@ -11,6 +10,14 @@ const {
   cleanupUploadedFiles,
   wantsJson,
 } = require("./helpers");
+const { clearRegistrationSession } = require("./sessionHelpers");
+
+const REGISTER_DATA_CORRUPTED_MESSAGE =
+  "Registration data corrupted. Please register again.";
+const REGISTER_MISSING_IMAGES_MESSAGE =
+  "Document images missing. Please register again.";
+const API_MISSING_PROVIDER_DATA_MESSAGE =
+  "Required provider data missing. Please register again.";
 
 const registerController = {
   showRegister: (req, res) => {
@@ -315,82 +322,26 @@ const registerController = {
 
       const userData = otpDoc.userData;
 
-      const newUser = new User({
-        name: userData.name,
-        username: userData.username,
-        phone: userData.phone,
-        role: userData.role,
-        profileImage: userData.profileImage,
-        addresses: userData.addresses || [],
-        isPhoneVerified: true,
-      });
-
-      if (userData.role === "provider" && userData.email) {
-        newUser.email = userData.email;
-      }
-
-      const tempPassword = crypto.randomBytes(16).toString("hex");
-      const registeredUser = await User.register(newUser, tempPassword);
-
-      let userStatus = "active";
-      if (userData.role === "provider") {
-        userStatus = "pending_approval";
-      }
-
-      await User.findByIdAndUpdate(registeredUser._id, {
-        status: userStatus,
-        isPhoneVerified: true,
-      });
-
-      if (userData.role === "provider") {
-        if (!userData.providerData) {
-          req.flash(
-            "error",
-            "Registration data corrupted. Please register again."
-          );
-          return res.redirect("/register");
-        }
-
-        if (
-          !userData.providerData.aadharImage ||
-          !userData.providerData.panImage
-        ) {
-          req.flash("error", "Document images missing. Please register again.");
-          return res.redirect("/register");
-        }
-
-        const newProvider = new ServiceProvider({
-          user: registeredUser._id,
-          servicesOffered: [],
-          portfolio: [],
-          aadharCard: userData.providerData.aadharCard,
-          panCard: userData.providerData.panCard,
-          aadharImage: userData.providerData.aadharImage,
-          panImage: userData.providerData.panImage,
-          verificationStatus: "pending",
-          canRegisterServices: false,
-          dashboardAccess: false,
-          canReceiveBookings: false,
-          canAccessPayouts: false,
-          businessAddress: userData.addresses[0],
-          documentVerification: {
-            aadharVerified: false,
-            panVerified: false,
-            imagesVerified: false,
-            allDocumentsVerified: false,
-          },
-          isVerified: false,
+      try {
+        await createVerifiedUserFromOtp(userData, {
+          allowMissingProviderImages: false,
+          missingProviderDataMessage: REGISTER_DATA_CORRUPTED_MESSAGE,
+          missingProviderImagesMessage: REGISTER_MISSING_IMAGES_MESSAGE,
         });
+      } catch (registrationError) {
+        if (
+          registrationError.message === REGISTER_DATA_CORRUPTED_MESSAGE ||
+          registrationError.message === REGISTER_MISSING_IMAGES_MESSAGE
+        ) {
+          req.flash("error", registrationError.message);
+          return res.redirect("/register");
+        }
 
-        await newProvider.save();
-        await notifyAdminNewProvider(registeredUser._id);
+        throw registrationError;
       }
 
       await OTP.deleteOne({ phone });
-
-      delete req.session.verificationPhone;
-      delete req.session.userRole;
-      delete req.session.otpSessionId;
+      clearRegistrationSession(req);
 
       const successMessage =
         userData.role === "customer"
@@ -741,75 +692,27 @@ const registerController = {
 
       const userData = otpDoc.userData;
 
-      const newUser = new User({
-        name: userData.name,
-        username: userData.username,
-        phone: userData.phone,
-        role: userData.role,
-        addresses: userData.addresses || [],
-        isPhoneVerified: true,
-      });
-
-      if (userData.role === "provider" && userData.email) {
-        newUser.email = userData.email;
-      }
-
-      const tempPassword = crypto.randomBytes(16).toString("hex");
-      const registeredUser = await User.register(newUser, tempPassword);
-
-      let userStatus = "active";
-      if (userData.role === "provider") {
-        userStatus = "pending_approval";
-      }
-
-      await User.findByIdAndUpdate(registeredUser._id, {
-        status: userStatus,
-        isPhoneVerified: true,
-      });
-
-      if (userData.role === "provider") {
-        if (
-          !userData.providerData ||
-          !userData.providerData.aadharCard ||
-          !userData.providerData.panCard
-        ) {
+      let registrationResult;
+      try {
+        registrationResult = await createVerifiedUserFromOtp(userData, {
+          allowMissingProviderImages: true,
+          missingProviderDataMessage: API_MISSING_PROVIDER_DATA_MESSAGE,
+        });
+      } catch (registrationError) {
+        if (registrationError.message === API_MISSING_PROVIDER_DATA_MESSAGE) {
           return res.status(400).json({
             success: false,
-            error: "Required provider data missing. Please register again.",
+            error: registrationError.message,
           });
         }
 
-        const newProvider = new ServiceProvider({
-          user: registeredUser._id,
-          servicesOffered: [],
-          portfolio: [],
-          aadharCard: userData.providerData.aadharCard,
-          panCard: userData.providerData.panCard,
-          aadharImage: userData.providerData.aadharImage || null,
-          panImage: userData.providerData.panImage || null,
-          verificationStatus: "pending",
-          canRegisterServices: false,
-          dashboardAccess: false,
-          canReceiveBookings: false,
-          canAccessPayouts: false,
-          businessAddress: userData.addresses[0],
-          documentVerification: {
-            aadharVerified: false,
-            panVerified: false,
-            imagesVerified: false,
-            allDocumentsVerified: false,
-          },
-          isVerified: false,
-        });
-
-        await newProvider.save();
-        await notifyAdminNewProvider(registeredUser._id);
+        throw registrationError;
       }
 
+      const { registeredUser, userStatus } = registrationResult;
+
       await OTP.deleteOne({ phone });
-      delete req.session.verificationPhone;
-      delete req.session.userRole;
-      delete req.session.otpSessionId;
+      clearRegistrationSession(req);
 
       const successMessage =
         userData.role === "customer"

@@ -1,4 +1,7 @@
 const express = require("express");
+const Booking = require("../models/Booking");
+const ServiceProvider = require("../models/ServiceProvider");
+const bookingApiRoutes = require("../routes/api/bookings");
 
 const {
   validateBookingIdParam,
@@ -25,8 +28,59 @@ const app = express();
 app.use(express.json());
 app.use((req, _res, next) => {
   req.flash = () => {};
+  req.session = req.session || {};
+  req.isAuthenticated = () => true;
+  req.user = {
+    _id: "507f1f77bcf86cd799439099",
+    role: "provider",
+  };
   next();
 });
+
+const originalServiceProviderFindOne = ServiceProvider.findOne;
+const originalBookingFindOne = Booking.findOne;
+
+ServiceProvider.findOne = async (query = {}) => {
+  if (String(query.user) !== "507f1f77bcf86cd799439099") {
+    return null;
+  }
+
+  return {
+    _id: "507f1f77bcf86cd799439088",
+    user: "507f1f77bcf86cd799439099",
+  };
+};
+
+Booking.findOne = async (query = {}) => {
+  const bookingId = String(query._id || "");
+
+  if (String(query.provider) !== "507f1f77bcf86cd799439088") {
+    return null;
+  }
+
+  // Simulate a non-pending booking to validate guard behavior.
+  if (bookingId === "booking-already-processed") {
+    return null;
+  }
+
+  if (bookingId !== "booking-pending-accept" && bookingId !== "booking-pending-reject") {
+    return null;
+  }
+
+  if (query.status !== "pending") {
+    return null;
+  }
+
+  return {
+    _id: bookingId,
+    provider: "507f1f77bcf86cd799439088",
+    status: "pending",
+    providerConfirmation: { status: "pending" },
+    save: async function () {
+      return this;
+    },
+  };
+};
 
 app.post(
   "/booking/create",
@@ -98,6 +152,8 @@ app.get(
   handlePaymentFormValidationErrors,
   (_req, res) => res.status(200).send("ok")
 );
+
+app.use("/api/bookings", bookingApiRoutes);
 
 const tests = [
   {
@@ -249,6 +305,29 @@ const tests = [
     },
     expected: 400,
   },
+  {
+    name: "provider accept pending booking -> 200",
+    method: "POST",
+    path: "/api/bookings/booking-pending-accept/accept",
+    body: {},
+    expected: 200,
+  },
+  {
+    name: "provider reject pending booking -> 200",
+    method: "POST",
+    path: "/api/bookings/booking-pending-reject/reject",
+    body: {
+      reason: "Not available at selected time",
+    },
+    expected: 200,
+  },
+  {
+    name: "provider accept already processed booking -> 404",
+    method: "POST",
+    path: "/api/bookings/booking-already-processed/accept",
+    body: {},
+    expected: 404,
+  },
 ];
 
 const server = app.listen(0, async () => {
@@ -288,6 +367,8 @@ const server = app.listen(0, async () => {
     console.error("Harness error:", error);
     process.exitCode = 1;
   } finally {
+    ServiceProvider.findOne = originalServiceProviderFindOne;
+    Booking.findOne = originalBookingFindOne;
     server.close();
   }
 });

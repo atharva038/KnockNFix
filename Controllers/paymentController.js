@@ -8,6 +8,7 @@ const Booking = require("../models/Booking");
 const ServiceProvider = require("../models/ServiceProvider");
 const { razorpay } = require("../config/razorpay");
 const { processDepositAutomation, setupProviderPayoutAutomation } = require("../utils/paymentAutomation");
+const { transitionBookingStatus } = require("../utils/bookingPolicy");
 
 // =============================================================================
 // PRIVATE HELPERS
@@ -242,9 +243,16 @@ exports.verifyAutomatedPayment = async (req, res) => {
       if (payment.booking) {
         const booking = await Booking.findById(payment.booking);
         if (booking) {
-          booking.status = "completed";
-          booking.paymentStatus = "completed";
           booking.finalPayment = { paid: true, paymentId: razorpay_payment_id, amount: payment.amount };
+
+          const transition = transitionBookingStatus(booking, "completed", {
+            setPaymentCompleted: true,
+          });
+
+          if (!transition.ok) {
+            return res.status(400).json({ success: false, error: transition.error });
+          }
+
           await booking.save();
           console.log("✅ Booking updated for final payment:", booking._id);
         }
@@ -316,9 +324,14 @@ exports.verifyPayment = async (req, res) => {
 
       const remainingAmount = booking.totalCost - (booking.advancePayment?.amount || 0);
       booking.finalPayment = { paid: true, paymentId: razorpay_payment_id, orderId: razorpay_order_id, amount: remainingAmount, date: new Date() };
-      booking.paymentStatus = "completed";
-      booking.status = "completed";
-      booking.completedAt = new Date();
+
+      const transition = transitionBookingStatus(booking, "completed", {
+        setPaymentCompleted: true,
+      });
+
+      if (!transition.ok) {
+        return res.status(400).json({ success: false, error: transition.error });
+      }
 
       try {
         await processProviderPayout(booking, razorpay_payment_id);
@@ -460,11 +473,28 @@ exports.handlePaymentSuccess = async (req, res) => {
     const paymentKind = payment.paymentType || payment.type;
 
     if (paymentKind === "advance") {
-      booking.status = "confirmed";
       booking.advancePayment = { paid: true, amount: payment.amount, paymentId: razorpay_payment_id };
+
+      const transition = transitionBookingStatus(booking, "confirmed", {
+        requireFinalPaymentForCompletion: false,
+      });
+
+      if (!transition.ok) {
+        req.flash("error", transition.error);
+        return res.redirect("/dashboard");
+      }
     } else if (paymentKind === "final") {
-      booking.status = "completed";
       booking.finalPayment = { paid: true, amount: payment.amount, paymentId: razorpay_payment_id };
+
+      const transition = transitionBookingStatus(booking, "completed", {
+        setPaymentCompleted: true,
+      });
+
+      if (!transition.ok) {
+        req.flash("error", transition.error);
+        return res.redirect("/dashboard");
+      }
+
       await processProviderPayout(booking, razorpay_payment_id);
     }
 

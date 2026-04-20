@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Booking = require('../../models/Booking');
 const ServiceProvider = require('../../models/ServiceProvider');
+const { transitionBookingStatus } = require('../../utils/bookingPolicy');
 const { isLoggedIn } = require('../../middleware');
 
 // Get booking details
@@ -88,8 +89,18 @@ router.post('/:id/accept', isLoggedIn, async (req, res) => {
             });
         }
 
-        // Update booking status
-        booking.status = 'confirmed';
+        // Update booking status via centralized transition policy
+        const transition = transitionBookingStatus(booking, 'confirmed', {
+            requireFinalPaymentForCompletion: false
+        });
+
+        if (!transition.ok) {
+            return res.status(400).json({
+                success: false,
+                error: transition.error
+            });
+        }
+
         booking.providerConfirmation = {
             status: 'accepted',
             confirmedAt: new Date()
@@ -140,14 +151,22 @@ router.post('/:id/reject', isLoggedIn, async (req, res) => {
             });
         }
 
-        // Update booking status
-        booking.status = 'cancelled';
+        // Update booking status via centralized transition policy
+        const transition = transitionBookingStatus(booking, 'cancelled', {
+            cancellationReason: reason || 'Rejected by provider'
+        });
+
+        if (!transition.ok) {
+            return res.status(400).json({
+                success: false,
+                error: transition.error
+            });
+        }
+
         booking.providerConfirmation = {
             status: 'rejected',
             rejectionReason: reason || 'No reason provided'
         };
-        booking.cancelledAt = new Date();
-        booking.cancellationReason = reason || 'Rejected by provider';
 
         await booking.save();
 

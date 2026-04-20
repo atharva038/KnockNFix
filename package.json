@@ -2,12 +2,12 @@
   "name": "urban-pro",
   "version": "1.0.0",
   "main": "index.js",
-"scripts": {
-  "start": "node app.js",
-  "dev": "nodemon app.js",
-  "smoke:validation": "node scripts/validation-smoke.js"
-},
-
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "smoke:validation": "node scripts/validation-smoke.js",
+    "smoke:auth": "node scripts/auth-smoke.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -19,6 +19,7 @@
     "body-parser": "^1.20.3",
     "cloudinary": "^1.41.3",
     "connect-flash": "^0.1.1",
+    "connect-mongo": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "crypto-random-string": "^5.0.0",
     "dotenv": "^16.5.0",

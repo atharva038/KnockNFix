@@ -1,4 +1,5 @@
 const OTP = require("../../models/OTP");
+const { clearAllOtpSession } = require("./sessionHelpers");
 
 const sessionController = {
   handleLogout: async (req, res, next) => {
@@ -40,13 +41,7 @@ const sessionController = {
 
   clearOTPSession: (req, res) => {
     try {
-      delete req.session.verificationPhone;
-      delete req.session.userRole;
-      delete req.session.otpSessionId;
-      delete req.session.loginPhone;
-      delete req.session.loginOTP;
-      delete req.session.loginSessionId;
-      delete req.session.loginUserId;
+      clearAllOtpSession(req);
 
       return res.json({
         success: true,

@@ -4,6 +4,16 @@ const ServiceProvider = require("../../models/ServiceProvider");
 const { sendSmsOTP, verifyOTPWithProvider, resendOTP } = require("../../utils/otp");
 
 const { isDevelopment, extractValue, wantsJson } = require("./helpers");
+const {
+  buildLoginUserData,
+  getWebLoginStatusIssue,
+  getWebVerifyStatusIssue,
+  getApiLoginStatusIssue,
+  getApiVerifyStatusIssue,
+  normalizeSixDigitOtp,
+  resolvePostLoginRedirect,
+} = require("./loginFlowHelpers");
+const { clearLoginSession, clearAllOtpSession } = require("./sessionHelpers");
 
 const loginController = {
   showLogin: (req, res) => {
@@ -26,35 +36,9 @@ const loginController = {
         return res.redirect("/login");
       }
 
-      if (user.status === "pending_approval") {
-        req.flash(
-          "error",
-          "⏳ Your account is pending admin approval. Please wait for verification."
-        );
-        return res.redirect("/login");
-      }
-
-      if (user.status === "rejected") {
-        const reason =
-          user.approvalStatus?.rejectionReason ||
-          "Please contact support for details.";
-        req.flash(
-          "error",
-          `❌ Your account has been rejected. Reason: ${reason}`
-        );
-        return res.redirect("/login");
-      }
-
-      if (user.status === "suspended") {
-        req.flash(
-          "error",
-          "🚫 Your account has been suspended. Please contact support."
-        );
-        return res.redirect("/login");
-      }
-
-      if (user.status !== "active") {
-        req.flash("error", "Account is not active. Please contact support.");
+      const statusIssue = getWebLoginStatusIssue(user);
+      if (statusIssue) {
+        req.flash("error", statusIssue.message);
         return res.redirect("/login");
       }
 
@@ -68,10 +52,7 @@ const loginController = {
           await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
           req.session.userId = user._id;
 
-          delete req.session.verificationPhone;
-          delete req.session.loginOTP;
-          delete req.session.loginSessionId;
-          delete req.session.loginUserId;
+          clearAllOtpSession(req);
 
           req.flash(
             "success",
@@ -102,20 +83,7 @@ const loginController = {
       req.session.loginSessionId = smsResult.sessionId;
       req.session.loginUserId = user._id;
 
-      const loginUserData = {
-        _id: user._id,
-        name: user.name,
-        phone: user.phone,
-        role: user.role,
-        username: user.username,
-        email: user.email || null,
-        profileImage: user.profileImage || null,
-        addresses: user.addresses || [],
-        status: user.status,
-        isLoginAttempt: true,
-        timestamp: new Date(),
-        sessionType: "login",
-      };
+      const loginUserData = buildLoginUserData(user, "login");
 
       await OTP.deleteMany({ phone });
       const otpDoc = new OTP({
@@ -182,17 +150,13 @@ const loginController = {
         return res.redirect("/login");
       }
 
-      if (!phoneOTP || phoneOTP.trim() === "") {
-        req.flash("error", "Please enter the 6-digit OTP");
+      const otpCheck = normalizeSixDigitOtp(phoneOTP);
+      if (!otpCheck.ok) {
+        req.flash("error", otpCheck.error);
         return res.redirect("/verify-login-otp");
       }
 
-      const cleanOTP = phoneOTP.trim();
-
-      if (!/^\d{6}$/.test(cleanOTP)) {
-        req.flash("error", "Please enter a valid 6-digit OTP");
-        return res.redirect("/verify-login-otp");
-      }
+      const cleanOTP = otpCheck.value;
 
       const otpDoc = await OTP.findOne({ phone });
 
@@ -247,23 +211,9 @@ const loginController = {
         return res.redirect("/register");
       }
 
-      if (user.status === "pending_approval") {
-        req.flash("error", "⏳ Your account is still pending admin approval.");
-        return res.redirect("/login");
-      }
-
-      if (user.status === "rejected") {
-        const reason =
-          user.approvalStatus?.rejectionReason || "Please contact support.";
-        req.flash(
-          "error",
-          `❌ Your account has been rejected. Reason: ${reason}`
-        );
-        return res.redirect("/login");
-      }
-
-      if (user.status !== "active") {
-        req.flash("error", "Account is not active. Please contact support.");
+      const verifyStatusIssue = getWebVerifyStatusIssue(user);
+      if (verifyStatusIssue) {
+        req.flash("error", verifyStatusIssue.message);
         return res.redirect("/login");
       }
 
@@ -280,29 +230,19 @@ const loginController = {
         });
 
         await OTP.deleteOne({ phone });
-        delete req.session.verificationPhone;
-        delete req.session.loginOTP;
-        delete req.session.loginSessionId;
-        delete req.session.loginUserId;
+        clearAllOtpSession(req);
 
         const devSuffix = isDevelopment() ? " (Dev Mode)" : "";
         req.flash("success", `Welcome back, ${user.name}!${devSuffix}`);
 
+        let serviceProvider = null;
         if (user.role === "provider") {
-          const serviceProvider = await ServiceProvider.findOne({
+          serviceProvider = await ServiceProvider.findOne({
             user: user._id,
           });
-          if (serviceProvider && serviceProvider.dashboardAccess) {
-            return res.redirect("/provider/dashboard");
-          }
-          return res.redirect("/provider/pending-approval");
         }
 
-        if (user.role === "admin") {
-          return res.redirect("/admin/dashboard");
-        }
-
-        return res.redirect("/");
+        return res.redirect(resolvePostLoginRedirect(user, serviceProvider));
       });
     } catch (err) {
       req.flash("error", "Login verification failed. Please try again.");
@@ -374,20 +314,7 @@ const loginController = {
         return res.redirect("/verify-login-otp");
       }
 
-      const loginUserData = {
-        _id: user._id,
-        name: user.name,
-        phone: user.phone,
-        role: user.role,
-        username: user.username,
-        email: user.email || null,
-        profileImage: user.profileImage || null,
-        addresses: user.addresses || [],
-        status: user.status,
-        isLoginAttempt: true,
-        timestamp: new Date(),
-        sessionType: "login_resend",
-      };
+      const loginUserData = buildLoginUserData(user, "login_resend");
 
       let otpDoc = await OTP.findOne({ phone });
       if (otpDoc) {
@@ -456,40 +383,9 @@ const loginController = {
         });
       }
 
-      if (user.status === "pending_approval") {
-        return res.status(403).json({
-          success: false,
-          error:
-            "⏳ Your account is pending admin approval. Please wait for verification.",
-          status: "pending_approval",
-        });
-      }
-
-      if (user.status === "rejected") {
-        const reason =
-          user.approvalStatus?.rejectionReason ||
-          "Please contact support for details.";
-        return res.status(403).json({
-          success: false,
-          error: `❌ Your account has been rejected. Reason: ${reason}`,
-          status: "rejected",
-        });
-      }
-
-      if (user.status === "suspended") {
-        return res.status(403).json({
-          success: false,
-          error: "🚫 Your account has been suspended. Please contact support.",
-          status: "suspended",
-        });
-      }
-
-      if (user.status !== "active") {
-        return res.status(403).json({
-          success: false,
-          error: "Account is not active. Please contact support.",
-          status: user.status,
-        });
+      const apiStatusIssue = getApiLoginStatusIssue(user);
+      if (apiStatusIssue) {
+        return res.status(apiStatusIssue.statusCode).json(apiStatusIssue.body);
       }
 
       if (isDevelopment()) {
@@ -497,26 +393,18 @@ const loginController = {
 
         req.session.userId = user._id;
 
-        delete req.session.loginPhone;
-        delete req.session.loginOTP;
-        delete req.session.loginSessionId;
-        delete req.session.loginUserId;
+        clearLoginSession(req);
 
-        let redirectUrl = "/";
+        let serviceProvider = null;
         if (user.role === "provider") {
-          const serviceProvider = await ServiceProvider.findOne({
+          serviceProvider = await ServiceProvider.findOne({
             user: user._id,
           });
-          if (serviceProvider && serviceProvider.dashboardAccess) {
-            redirectUrl = "/provider/dashboard";
-          } else {
-            redirectUrl = "/provider/pending-approval";
-          }
-        } else if (user.role === "admin") {
-          redirectUrl = "/admin/dashboard";
-        } else if (user.role === "customer") {
-          redirectUrl = "/customer/dashboard";
         }
+
+        const redirectUrl = resolvePostLoginRedirect(user, serviceProvider, {
+          customerPath: "/customer/dashboard",
+        });
 
         return res.json({
           success: true,
@@ -628,54 +516,27 @@ const loginController = {
         });
       }
 
-      if (user.status === "pending_approval") {
-        return res.status(403).json({
-          success: false,
-          error: "⏳ Your account is still pending admin approval.",
-          status: "pending_approval",
-        });
-      }
-
-      if (user.status === "rejected") {
-        const reason =
-          user.approvalStatus?.rejectionReason || "Please contact support.";
-        return res.status(403).json({
-          success: false,
-          error: `❌ Your account has been rejected. Reason: ${reason}`,
-          status: "rejected",
-        });
-      }
-
-      if (user.status !== "active") {
-        return res.status(403).json({
-          success: false,
-          error: "Account is not active. Please contact support.",
-          status: user.status,
-        });
+      const apiVerifyStatusIssue = getApiVerifyStatusIssue(user);
+      if (apiVerifyStatusIssue) {
+        return res
+          .status(apiVerifyStatusIssue.statusCode)
+          .json(apiVerifyStatusIssue.body);
       }
 
       await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
 
-      delete req.session.loginPhone;
-      delete req.session.loginOTP;
-      delete req.session.loginSessionId;
-      delete req.session.loginUserId;
+      clearLoginSession(req);
 
       req.session.userId = user._id;
 
-      let redirectUrl = "/";
+      let serviceProvider = null;
       if (user.role === "provider") {
-        const serviceProvider = await ServiceProvider.findOne({ user: user._id });
-        if (serviceProvider && serviceProvider.dashboardAccess) {
-          redirectUrl = "/provider/dashboard";
-        } else {
-          redirectUrl = "/provider/pending-approval";
-        }
-      } else if (user.role === "admin") {
-        redirectUrl = "/admin/dashboard";
-      } else if (user.role === "customer") {
-        redirectUrl = "/customer/dashboard";
+        serviceProvider = await ServiceProvider.findOne({ user: user._id });
       }
+
+      const redirectUrl = resolvePostLoginRedirect(user, serviceProvider, {
+        customerPath: "/customer/dashboard",
+      });
 
       const devSuffix = isDevelopment() ? " (Dev Mode)" : "";
 
