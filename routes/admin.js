@@ -1,78 +1,146 @@
 const express = require("express");
 const router = express.Router();
 const {isAdmin} = require("../middleware");
-const adminController = require("../Controllers/adminController");
+const {
+  validateProviderIdParam,
+  validateObjectIdParam,
+  validateRejectProvider,
+  validateManageProviderPermissions,
+  validateApproveProvider,
+  validateCategoryPayload,
+  handleAdminValidationErrors,
+} = require("../middleware/adminValidation");
+const approvalController = require("../Controllers/admin/approvalController");
+const dashboardAdminController = require("../Controllers/admin/dashboardAdminController");
+const userAdminController = require("../Controllers/admin/userAdminController");
+const categoryController = require("../Controllers/admin/categoryController");
+const serviceAdminController = require("../Controllers/admin/serviceAdminController");
+const bookingAdminController = require("../Controllers/admin/bookingAdminController");
+const paymentAdminController = require("../Controllers/admin/paymentAdminController");
+const reportsController = require("../Controllers/admin/reportsController");
+const settingsController = require("../Controllers/admin/settingsController");
 
 const multer = require("multer");
 const {storage} = require("../config/cloudinary");
 const upload = multer({storage});
 
 // Apply admin middleware to all routes
-// router.use(isAdmin);
+router.use(isAdmin);
 
 // 🔥 NEW: Provider Approval Routes
-router.get("/pending-providers", adminController.getPendingProviders);
-router.post("/approve-provider/:providerId", adminController.approveProvider);
-router.post("/reject-provider/:providerId", adminController.rejectProvider);
+router.get("/pending-providers", approvalController.getPendingProviders);
+router.post(
+  "/approve-provider/:providerId",
+  validateApproveProvider,
+  handleAdminValidationErrors,
+  approvalController.approveProvider
+);
+router.post(
+  "/reject-provider/:providerId",
+  validateRejectProvider,
+  handleAdminValidationErrors,
+  approvalController.rejectProvider
+);
 router.post(
   "/manage-permissions/:providerId",
-  adminController.manageProviderPermissions
+  validateManageProviderPermissions,
+  handleAdminValidationErrors,
+  approvalController.manageProviderPermissions
 );
 router.get(
   "/api/provider-details/:providerId",
-  adminController.getProviderDetailsAPI
+  validateProviderIdParam,
+  handleAdminValidationErrors,
+  approvalController.getProviderDetailsAPI
 );
 
 // Dashboard
-router.get("/dashboard", adminController.showDashboard);
+router.get("/dashboard", dashboardAdminController.showDashboard);
 
 // Users Management
-router.get("/users", adminController.showUsers);
+router.get("/users", userAdminController.showUsers);
 
 // Categories Management
-router.get("/categories", adminController.showCategories);
-router.get("/addCategory", adminController.showAddCategory);
+router.get("/categories", categoryController.showCategories);
+router.get("/addCategory", categoryController.showAddCategory);
 router.post(
   "/categories",
   upload.single("image"),
-  adminController.createCategory
+  validateCategoryPayload,
+  handleAdminValidationErrors,
+  categoryController.createCategory
 );
-router.get("/editCategory/:id", adminController.showEditCategory);
+router.get(
+  "/editCategory/:id",
+  validateObjectIdParam,
+  handleAdminValidationErrors,
+  categoryController.showEditCategory
+);
 router.put(
   "/categories/:id",
   upload.single("image"),
-  adminController.updateCategory
+  validateObjectIdParam,
+  validateCategoryPayload,
+  handleAdminValidationErrors,
+  categoryController.updateCategory
 );
-router.delete("/categories/:id", adminController.deleteCategory);
-router.post("/categories/:id/toggle", adminController.toggleCategoryStatus);
+router.delete(
+  "/categories/:id",
+  validateObjectIdParam,
+  handleAdminValidationErrors,
+  categoryController.deleteCategory
+);
+router.post(
+  "/categories/:id/toggle",
+  validateObjectIdParam,
+  handleAdminValidationErrors,
+  categoryController.toggleCategoryStatus
+);
 
 // Services Management
-router.get("/services", adminController.showServices);
-router.delete("/services/:id", adminController.deleteService);
-router.post("/services/:id/toggle", adminController.toggleServiceStatus);
+router.get("/services", serviceAdminController.showServices);
+router.delete(
+  "/services/:id",
+  validateObjectIdParam,
+  handleAdminValidationErrors,
+  serviceAdminController.deleteService
+);
+router.post(
+  "/services/:id/toggle",
+  validateObjectIdParam,
+  handleAdminValidationErrors,
+  serviceAdminController.toggleServiceStatus
+);
 
 // Bookings Management
-router.get("/bookings", adminController.showBookings);
+router.get("/bookings", bookingAdminController.showBookings);
 
 // Payments Management
-router.get("/payments", adminController.showPayments);
+router.get("/payments", paymentAdminController.showPayments);
 
 // Provider Payouts Management
-router.get("/provider-payouts", adminController.showProviderPayouts);
-router.post("/process-payout/:providerId", adminController.processPayout);
+router.get("/provider-payouts", paymentAdminController.showProviderPayouts);
+router.post(
+  "/process-payout/:providerId",
+  validateProviderIdParam,
+  handleAdminValidationErrors,
+  paymentAdminController.processPayout
+);
 router.post(
   "/verify-bank-details/:providerId",
-  adminController.verifyBankDetails
+  validateProviderIdParam,
+  handleAdminValidationErrors,
+  paymentAdminController.verifyBankDetails
 );
 
 // Reports
-router.get("/reports", adminController.showReports);
+router.get("/reports", reportsController.showReports);
 
 // Feedback Management
-router.get("/feedback", adminController.showFeedback);
+router.get("/feedback", reportsController.showFeedback);
 
 // Settings
-router.get("/settings", adminController.showSettings);
-router.post("/settings", adminController.updateSettings);
+router.get("/settings", settingsController.showSettings);
+router.post("/settings", settingsController.updateSettings);
 
 module.exports = router;

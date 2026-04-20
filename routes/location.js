@@ -2,10 +2,17 @@ const express = require('express');
 const router = express.Router();
 const { Client } = require('@googlemaps/google-maps-services-js');
 const axios = require('axios');
+const {
+    validateSuggestionsQuery,
+    validateAutocompleteQuery,
+    validateLatLngQuery,
+    validatePlaceIdQuery,
+    handleLocationValidationErrors,
+} = require('../middleware/locationValidation');
 const client = new Client({});
 
 // Location suggestions route (Places Autocomplete)
-router.get('/suggestions', async (req, res) => {
+router.get('/suggestions', validateSuggestionsQuery, handleLocationValidationErrors, async (req, res) => {
     try {
         const { query } = req.query;
 
@@ -43,7 +50,7 @@ router.get('/suggestions', async (req, res) => {
 });
 
 // Reverse geocoding route
-router.get('/reverse-geocode', async (req, res) => {
+router.get('/reverse-geocode', validateLatLngQuery, handleLocationValidationErrors, async (req, res) => {
     try {
         const { lat, lng } = req.query;
 
@@ -100,7 +107,7 @@ router.get('/reverse-geocode', async (req, res) => {
     }
 });
 // Place autocomplete endpoint
-router.get('/autocomplete', async (req, res) => {
+router.get('/autocomplete', validateAutocompleteQuery, handleLocationValidationErrors, async (req, res) => {
     try {
         const { input } = req.query;
         if (!input || input.length < 3) {
@@ -137,7 +144,7 @@ router.get('/autocomplete', async (req, res) => {
     }
 });
 
-router.get('/current-location', async (req, res) => {
+router.get('/current-location', validateLatLngQuery, handleLocationValidationErrors, async (req, res) => {
     try {
         const { lat, lng } = req.query;
 
@@ -244,7 +251,7 @@ router.get('/current-location', async (req, res) => {
         });
     }
 });
-router.get('/place-details', async (req, res) => {
+router.get('/place-details', validatePlaceIdQuery, handleLocationValidationErrors, async (req, res) => {
     try {
         const { placeId } = req.query;
 

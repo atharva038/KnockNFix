@@ -1,22 +1,26 @@
 const express = require("express");
 const ejsMate = require("ejs-mate");
 const app = express();
-const mongoose = require("mongoose");
 const path = require("path");
 const bodyParser = require("body-parser");
-const session = require("express-session");
-const flash = require("connect-flash");
-const passport = require("passport");
 const methodOverride = require("method-override");
 const cookieParser = require("cookie-parser");
-const LocalStrategy = require("passport-local");
 
 require("dotenv").config();
+
+const {
+  connectDatabase,
+  isDatabaseConnected,
+  getDatabaseStatus,
+} = require("./config/database");
+const configureSession = require("./config/session");
+const configurePassport = require("./config/passport");
+const dbCheck = require("./middleware/dbCheck");
+const errorHandler = require("./middleware/errorHandler");
 
 const User = require("./models/User.js");
 const authorisationRoutes = require("./routes/auth.js");
 const bookingRoutes = require("./routes/booking.js");
-const providerRoutes = require("./routes/provider.js");
 const servicesRoutes = require("./routes/services.js");
 const aboutRoutes = require("./routes/about.js");
 const dashboardRoutes = require("./routes/dashboard.js");
@@ -24,6 +28,7 @@ const adminRoutes = require("./routes/admin.js");
 const locationRoutes = require("./routes/location");
 const paymentRoutes = require("./routes/payment");
 const profileRoutes = require("./routes/profile");
+const providerRoutes = require("./routes/provider");
 const bookingApiRoutes = require("./routes/api/bookings");
 const addRoutes = require("./routes/admin/add.js");
 const feedbackRoutes = require("./routes/feedback.js");
@@ -33,66 +38,7 @@ const userRoutes = require("./routes/user");
 
 const port = process.env.PORT || 3000;
 
-// Database connection with fixed options
-async function main() {
-  try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-      minPoolSize: 5,
-      maxIdleTimeMS: 30000,
-    });
-    console.log("✅ Connected to MongoDB Atlas");
-  } catch (error) {
-    console.error("❌ MongoDB Atlas connection error:", error.message);
-    console.error("Full error:", error);
-    console.error("Connection string exists:", !!process.env.MONGO_URI);
-
-    if (process.env.NODE_ENV === "development") {
-      console.log("⚠️ Continuing in development mode without database...");
-      console.log(
-        "⚠️ Database operations will fail until connection is restored"
-      );
-    } else {
-      process.exit(1);
-    }
-  }
-}
-
-// Add connection event listeners
-mongoose.connection.on("connected", () => {
-  console.log("✅ Mongoose connected to MongoDB Atlas");
-});
-
-mongoose.connection.on("error", (err) => {
-  console.error("❌ Mongoose connection error:", err.message);
-});
-
-mongoose.connection.on("disconnected", () => {
-  console.log("⚠️ Mongoose disconnected from MongoDB Atlas");
-});
-
-mongoose.connection.on("reconnected", () => {
-  console.log("✅ Mongoose reconnected to MongoDB Atlas");
-});
-
-// Handle process termination gracefully
-process.on("SIGINT", async () => {
-  try {
-    if (mongoose.connection.readyState === 1) {
-      await mongoose.connection.close();
-      console.log("📴 MongoDB connection closed through app termination");
-    }
-    process.exit(0);
-  } catch (err) {
-    console.error("Error closing MongoDB connection:", err);
-    process.exit(1);
-  }
-});
-
-// Initialize database connection
-main();
+connectDatabase();
 
 // Middleware setup (order is important!)
 app.use(cookieParser());
@@ -107,21 +53,7 @@ app.set("views", path.join(__dirname, "views"));
 // Static files
 app.use(express.static(path.join(__dirname, "/public")));
 
-// Session configuration
-const sessionOptions = {
-  secret: process.env.SESSION_SECRET || "mysupersecretcode",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  },
-};
-
-app.use(session(sessionOptions));
-app.use(flash());
+configureSession(app);
 
 // CORS middleware
 app.use((req, res, next) => {
@@ -137,9 +69,7 @@ app.use((req, res, next) => {
 // Method override for forms
 app.use(methodOverride("_method"));
 
-// Passport initialization (must be after session)
-app.use(passport.initialize());
-app.use(passport.session());
+configurePassport(app);
 
 // Global variables middleware
 app.use((req, res, next) => {
@@ -149,17 +79,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Database check middleware - provide helpful error messages
-app.use((req, res, next) => {
-  if (mongoose.connection.readyState === 0 && req.path !== "/") {
-    // Database is disconnected
-    req.flash("error", "Database connection is down. Please try again later.");
-    return res.redirect("/");
-  }
-  next();
-});
+app.use(dbCheck);
 
-app.use('/uploads', express.static('uploads'));
+app.use("/uploads", express.static("uploads"));
 
 
 // Auto-login middleware using remember me cookies
@@ -168,7 +90,7 @@ app.use(async (req, res, next) => {
   if (
     !req.isAuthenticated() &&
     req.cookies &&
-    mongoose.connection.readyState === 1
+    isDatabaseConnected()
   ) {
     const username = req.cookies.username;
     const rememberToken = req.cookies.rememberToken;
@@ -235,93 +157,18 @@ function setCurrentProvider(req, res, next) {
 app.use(setCurrentProvider);
 
 // Passport configuration - Custom authentication strategy
-passport.use(
-  new LocalStrategy(
-    {
-      usernameField: "username",
-      passwordField: "password",
-    },
-    async function (username, password, done) {
-      try {
-        console.log(`🔐 Login attempt for: ${username}`);
-
-        // Check if username is an email or phone number
-        let user;
-        if (username.includes("@")) {
-          // Login with email
-          user = await User.findOne({email: username});
-          console.log(`📧 Email login attempt: ${username}`);
-        } else {
-          // Login with phone number (remove any non-digits for consistency)
-          const cleanPhone = username.replace(/\D/g, "");
-          user = await User.findOne({phone: cleanPhone});
-          console.log(`📱 Phone login attempt: ${cleanPhone}`);
-        }
-
-        if (!user) {
-          console.log(`❌ User not found: ${username}`);
-          return done(null, false, {
-            message: "Phone number or email not registered.",
-          });
-        }
-
-        // Check if account is active
-        if (user.status !== "active") {
-          console.log(`❌ Account not active: ${username}`);
-          return done(null, false, {
-            message: "Account is not active. Please contact support.",
-          });
-        }
-
-        // Let passport-local-mongoose handle the password verification
-        user.authenticate(password, function (err, result) {
-          if (err) {
-            console.log(`❌ Authentication error: ${err}`);
-            return done(err);
-          }
-          if (!result) {
-            console.log(`❌ Incorrect password for: ${username}`);
-            return done(null, false, {message: "Incorrect password."});
-          }
-
-          console.log(`✅ Authentication successful for: ${username}`);
-          return done(null, user);
-        });
-      } catch (err) {
-        console.error(`❌ Login error: ${err}`);
-        return done(err);
-      }
-    }
-  )
-);
-
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
-
 // Routes
 
 // Home route
 app.get("/", (req, res) => {
   res.render("pages/home", {
-    dbConnected: mongoose.connection.readyState === 1,
+    dbConnected: isDatabaseConnected(),
   });
 });
 
 // Database status route for debugging
 app.get("/db-status", (req, res) => {
-  const states = {
-    0: "Disconnected",
-    1: "Connected",
-    2: "Connecting",
-    3: "Disconnecting",
-  };
-
-  res.json({
-    status: states[mongoose.connection.readyState],
-    state: mongoose.connection.readyState,
-    uri: process.env.MONGO_URI ? "URI configured" : "URI missing",
-    timestamp: new Date().toISOString(),
-  });
+  res.json(getDatabaseStatus());
 });
 
 // Chatbot route with authentication
@@ -346,6 +193,7 @@ app.use("/api/location", locationRoutes);
 app.use("/booking", bookingRoutes);
 app.use("/payment", paymentRoutes);
 app.use("/profile", profileRoutes);
+app.use("/provider", providerRoutes);
 app.use("/feedback", feedbackRoutes);
 app.use("/api/bookings", bookingApiRoutes);
 app.use("/complaints", complaintsRoutes);
@@ -375,28 +223,7 @@ app.use("*", (req, res) => {
 });
 
 // Global error handler - Redirect to home with flash message
-app.use((err, req, res, next) => {
-  console.error("❌ Application Error:", err);
-
-  // Check if it's an API request
-  if (req.originalUrl.startsWith("/api/")) {
-    const isDevelopment = process.env.NODE_ENV !== "production";
-    return res.status(err.status || 500).json({
-      success: false,
-      error: isDevelopment ? err.message : "Internal Server Error",
-      ...(isDevelopment && {stack: err.stack}),
-    });
-  }
-
-  // For web requests, redirect to home with error message
-  const isDevelopment = process.env.NODE_ENV !== "production";
-  const errorMessage = isDevelopment
-    ? `An error occurred: ${err.message}`
-    : "Something went wrong. Please try again.";
-
-  req.flash("error", errorMessage);
-  res.redirect("/");
-});
+app.use(errorHandler);
 
 // Start server
 app.listen(port, "0.0.0.0", () => {

@@ -1,7 +1,15 @@
 const express = require("express");
 const ServiceProvider = require("../models/ServiceProvider");
 const Service = require("../models/Service");
+const { isLoggedIn, isServiceProvider } = require("../middleware");
+const {
+  validateServiceIdParam,
+  validateProviderServiceUpdate,
+  handleProviderValidationErrors,
+} = require("../middleware/providerValidation");
 const router = express.Router();
+
+router.use(isLoggedIn, isServiceProvider);
 
 // Route for service providers to view their services
 router.get("/myservices", async (req, res) => {
@@ -15,7 +23,12 @@ router.get("/myservices", async (req, res) => {
 });
 
 // Route for service providers to edit a service
-router.post("/edit/:serviceId", async (req, res) => {
+router.post(
+  "/edit/:serviceId",
+  validateServiceIdParam,
+  validateProviderServiceUpdate,
+  handleProviderValidationErrors,
+  async (req, res) => {
   const { name, description, cost, availability } = req.body;
   try {
     const service = await Service.findByIdAndUpdate(req.params.serviceId, {
@@ -28,6 +41,7 @@ router.post("/edit/:serviceId", async (req, res) => {
   } catch (err) {
     res.status(500).send("Server error");
   }
-});
+}
+);
 
 module.exports = router;

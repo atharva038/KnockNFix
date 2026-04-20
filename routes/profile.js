@@ -5,11 +5,17 @@ const { cloudinary, storage } = require('../config/cloudinary');
 const upload = multer({ storage });
 const User = require('../models/User');
 const { isLoggedIn } = require('../middleware');
+const {
+    validateProfileUpdate,
+    validateTravelFeePayload,
+    validateBankDetailsPayload,
+    handleProviderValidationErrors,
+} = require('../middleware/providerValidation');
 const ServiceProvider = require('../models/ServiceProvider');
 const { createContact, isInitialized } = require('../config/razorpay');
 
 
-router.post('/update', isLoggedIn, upload.single('profileImage'), async (req, res) => {
+router.post('/update', isLoggedIn, upload.single('profileImage'), validateProfileUpdate, handleProviderValidationErrors, async (req, res) => {
     try {
         console.log('Profile update request received');
         console.log('Request body:', req.body);
@@ -80,7 +86,7 @@ router.post('/update', isLoggedIn, upload.single('profileImage'), async (req, re
     }
 });
 
-router.post('/travel-fee', isLoggedIn, async (req, res) => {
+router.post('/travel-fee', isLoggedIn, validateTravelFeePayload, handleProviderValidationErrors, async (req, res) => {
     try {
         const { enabled, amount } = req.body;
 
@@ -125,7 +131,7 @@ router.post('/travel-fee', isLoggedIn, async (req, res) => {
 
 
 // Enhanced bank details route
-router.post('/bank-details', isLoggedIn, async (req, res) => {
+router.post('/bank-details', isLoggedIn, validateBankDetailsPayload, handleProviderValidationErrors, async (req, res) => {
     try {
         const provider = await ServiceProvider.findOne({ user: req.user._id }).populate('user');
 
