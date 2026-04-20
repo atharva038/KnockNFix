@@ -22,14 +22,6 @@ exports.createBooking = async (req, res) => {
 
         console.log('Creating booking with data:', req.body);
 
-        // Validate required fields
-        if (!serviceId || !providerId || !date || !detailedAddress || !cost) {
-            return res.status(400).json({
-                success: false,
-                error: "All required fields must be provided"
-            });
-        }
-
         // Verify service and provider exist
         const [service, provider] = await Promise.all([
             Service.findById(serviceId),
@@ -108,12 +100,6 @@ exports.confirmBooking = async (req, res) => {
         } = req.body;
 
         console.log('Confirming booking with data:', req.body);
-
-        // Validate required fields
-        if (!serviceId || !providerId || !date || !detailedAddress) {
-            req.flash('error', 'All required fields must be filled');
-            return res.redirect('back');
-        }
 
         // Get service and provider details
         const [service, provider] = await Promise.all([
@@ -531,26 +517,24 @@ exports.getAllBookings = async (req, res) => {
 exports.updateBookingStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, notes } = req.body;
+        const { status, notes, reason, cancellationReason } = req.body;
 
         console.log(`Admin updating booking ${id} status to:`, status);
 
-        const validStatuses = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'];
-
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({
-                success: false,
-                error: 'Invalid status'
-            });
-        }
+        const adminNote = notes || reason;
+        const cancelReason = cancellationReason || reason;
 
         const updateData = {
             status,
             updatedAt: new Date()
         };
 
-        if (notes) {
-            updateData.adminNotes = notes;
+        if (adminNote) {
+            updateData.adminNotes = adminNote;
+        }
+
+        if (status === 'cancelled' && cancelReason) {
+            updateData.cancellationReason = cancelReason;
         }
 
         if (status === 'completed') {

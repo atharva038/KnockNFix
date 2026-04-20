@@ -41,7 +41,6 @@ const OTPSchema = new mongoose.Schema({
 
 // Index for better query performance
 OTPSchema.index({phone: 1});
-OTPSchema.index({createdAt: 1}, {expireAfterSeconds: 600});
 
 // Pre-save middleware to ensure data consistency
 OTPSchema.pre("save", function (next) {

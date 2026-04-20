@@ -21,6 +21,35 @@ function verifyPaymentSignature(orderId, paymentId, signature) {
   return generatedSignature === signature;
 }
 
+function buildGatewayErrorResponse(error, fallbackMessage) {
+  const gatewayDescription =
+    error?.error?.description || error?.message || fallbackMessage;
+
+  const isAuthFailure =
+    error?.statusCode === 401 ||
+    /authentication failed/i.test(gatewayDescription);
+
+  if (isAuthFailure) {
+    return {
+      statusCode: 502,
+      body: {
+        success: false,
+        code: "RAZORPAY_AUTH_FAILED",
+        error:
+          "Payment gateway authentication failed. Please verify Razorpay key id and key secret in server environment.",
+      },
+    };
+  }
+
+  return {
+    statusCode: 500,
+    body: {
+      success: false,
+      error: `${fallbackMessage}: ${gatewayDescription}`,
+    },
+  };
+}
+
 async function processProviderPayout(booking, paymentId) {
   try {
     const provider = await ServiceProvider.findById(booking.provider);
@@ -63,8 +92,13 @@ exports.createAdvanceOrder = async (req, res) => {
     console.log("Received create-advance-order request:", req.body);
     const { amount, automation, bookingData, platformConfig } = req.body;
 
-    if (!amount || !automation || !bookingData)
-      return res.status(400).json({ success: false, error: "Missing required fields: amount, automation, or bookingData" });
+    if (!razorpay || !razorpay.orders || typeof razorpay.orders.create !== "function") {
+      return res.status(500).json({
+        success: false,
+        code: "RAZORPAY_NOT_INITIALIZED",
+        error: "Payment gateway is not initialized. Please check Razorpay server configuration.",
+      });
+    }
 
     const order = await razorpay.orders.create({
       amount: amount * 100,
@@ -77,7 +111,6 @@ exports.createAdvanceOrder = async (req, res) => {
       orderId: order.id,
       razorpayOrderId: order.id,
       amount,
-      type: "advance",
       paymentType: "advance",
       status: "created",
       automation,
@@ -100,7 +133,11 @@ exports.createAdvanceOrder = async (req, res) => {
     res.json({ success: true, orderId: order.id, bookingId: null, automation });
   } catch (error) {
     console.error("Create advance order error:", error);
-    res.status(500).json({ success: false, error: "Failed to create automated advance order: " + error.message });
+    const gatewayError = buildGatewayErrorResponse(
+      error,
+      "Failed to create automated advance order"
+    );
+    res.status(gatewayError.statusCode).json(gatewayError.body);
   }
 };
 
@@ -109,8 +146,13 @@ exports.createFinalOrder = async (req, res) => {
     console.log("Received create-final-order request:", req.body);
     const { amount, automation, splitDetails, platformConfig } = req.body;
 
-    if (!amount || !automation || !splitDetails)
-      return res.status(400).json({ success: false, error: "Missing required fields: amount, automation, or splitDetails" });
+    if (!razorpay || !razorpay.orders || typeof razorpay.orders.create !== "function") {
+      return res.status(500).json({
+        success: false,
+        code: "RAZORPAY_NOT_INITIALIZED",
+        error: "Payment gateway is not initialized. Please check Razorpay server configuration.",
+      });
+    }
 
     const order = await razorpay.orders.create({
       amount: amount * 100,
@@ -123,7 +165,6 @@ exports.createFinalOrder = async (req, res) => {
       orderId: order.id,
       razorpayOrderId: order.id,
       amount,
-      type: "final",
       paymentType: "final",
       status: "created",
       automation,
@@ -135,14 +176,18 @@ exports.createFinalOrder = async (req, res) => {
     res.json({ success: true, orderId: order.id, automation, splitDetails });
   } catch (error) {
     console.error("Create final order error:", error);
-    res.status(500).json({ success: false, error: "Failed to create automated final order: " + error.message });
+    const gatewayError = buildGatewayErrorResponse(
+      error,
+      "Failed to create automated final order"
+    );
+    res.status(gatewayError.statusCode).json(gatewayError.body);
   }
 };
 
 exports.verifyAutomatedPayment = async (req, res) => {
   try {
     console.log("Received verify-automated request:", req.body);
-    const { orderId, razorpay_payment_id, razorpay_signature, automationSettings, paymentFlow } = req.body;
+    const { orderId, razorpay_payment_id, razorpay_signature } = req.body;
 
     if (!verifyPaymentSignature(orderId, razorpay_payment_id, razorpay_signature))
       return res.status(400).json({ success: false, error: "Invalid payment signature" });
@@ -228,7 +273,6 @@ exports.verifyAutomatedPayment = async (req, res) => {
 exports.createOrder = async (req, res) => {
   try {
     const { amount, bookingId, paymentType = "final" } = req.body;
-    if (!amount || !bookingId) return res.status(400).json({ success: false, error: "Amount and booking ID are required" });
 
     const booking = await Booking.findById(bookingId).populate("service").populate("customer");
     if (!booking) return res.status(404).json({ success: false, error: "Booking not found" });
@@ -294,7 +338,6 @@ exports.verifyPayment = async (req, res) => {
       amount: paymentType === "advance" ? Math.round(booking.totalCost * 0.15) : booking.totalCost - (booking.advancePayment?.amount || 0),
       status: "completed",
       paymentType,
-      type: paymentType,
       customer: req.user._id,
     });
 
@@ -352,7 +395,7 @@ exports.initiateCompletePayment = async (req, res) => {
       notes: { bookingId: booking._id.toString(), serviceName: booking.service.name, paymentType: "final_payment" },
     });
 
-    const paymentRecord = new Payment({ booking: booking._id, orderId: order.id, razorpayOrderId: order.id, amount, type: "final", paymentType: "final", status: "created", automation, splitDetails });
+    const paymentRecord = new Payment({ booking: booking._id, orderId: order.id, razorpayOrderId: order.id, amount, paymentType: "final", status: "created", automation, splitDetails });
     await paymentRecord.save();
 
     res.json({ success: true, order, key: process.env.RAZORPAY_KEY_ID, booking: { id: booking._id, service: booking.service.name, amount, customer: { name: req.user.name, email: req.user.email, phone: req.user.phone } }, automation });
@@ -379,7 +422,7 @@ exports.initiateAdvancePayment = async (req, res) => {
       notes: { bookingId: booking._id.toString(), serviceName: booking.service.name, paymentType: "advance_payment" },
     });
 
-    const paymentRecord = new Payment({ booking: booking._id, orderId: order.id, razorpayOrderId: order.id, amount, type: "advance", paymentType: "advance", status: "created", automation });
+    const paymentRecord = new Payment({ booking: booking._id, orderId: order.id, razorpayOrderId: order.id, amount, paymentType: "advance", status: "created", automation });
     await paymentRecord.save();
 
     res.json({ success: true, order, key: process.env.RAZORPAY_KEY_ID, booking: { id: booking._id, service: booking.service.name, amount, customer: { name: req.user.name, email: req.user.email, phone: req.user.phone } }, automation });
@@ -414,10 +457,12 @@ exports.handlePaymentSuccess = async (req, res) => {
       return res.redirect("/dashboard");
     }
 
-    if (payment.type === "advance") {
+    const paymentKind = payment.paymentType || payment.type;
+
+    if (paymentKind === "advance") {
       booking.status = "confirmed";
       booking.advancePayment = { paid: true, amount: payment.amount, paymentId: razorpay_payment_id };
-    } else if (payment.type === "final") {
+    } else if (paymentKind === "final") {
       booking.status = "completed";
       booking.finalPayment = { paid: true, amount: payment.amount, paymentId: razorpay_payment_id };
       await processProviderPayout(booking, razorpay_payment_id);

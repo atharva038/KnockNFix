@@ -118,6 +118,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Show payment flow information
         displayPaymentFlow(paymentType, paymentAmount, paymentFlow);
 
+        const isLoopbackHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+        const canUseCheckoutLogo = window.location.protocol === 'https:' && !isLoopbackHost;
+        const checkoutLogoUrl = canUseCheckoutLogo ? `${window.location.origin}/img/logo.png` : null;
+
         // Configure Razorpay with enhanced options
         const options = {
             key: userData.razorpayKeyId,
@@ -126,7 +130,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             name: 'KnockNFix',
             description: description,
             order_id: orderData.orderId,
-            image: '/img/logo.png',
             prefill: {
                 name: userData.name,
                 email: userData.email,
@@ -155,6 +158,10 @@ document.addEventListener('DOMContentLoaded', async function () {
                 color: '#3182ce'
             }
         };
+
+        if (checkoutLogoUrl) {
+            options.image = checkoutLogoUrl;
+        }
 
         // Add click handler for payment button
         payButton.addEventListener('click', function () {
@@ -275,11 +282,18 @@ function handleInitializationError(error) {
     });
 
     let errorMessage = 'Failed to initialize automated payment. Please try again.';
+
+    if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+    }
+
     if (error.response && error.response.status) {
         if (error.response.status === 404) {
             errorMessage = 'Payment service not available. Please try again later.';
         } else if (error.response.status === 400) {
             errorMessage = 'Invalid payment data. Please check your details and try again.';
+        } else if (error.response.status === 502) {
+            errorMessage = error.response?.data?.error || 'Payment gateway authentication failed. Please contact support.';
         }
     }
 

@@ -4,7 +4,8 @@
   "main": "index.js",
 "scripts": {
   "start": "node app.js",
-  "dev": "nodemon app.js"
+  "dev": "nodemon app.js",
+  "smoke:validation": "node scripts/validation-smoke.js"
 },
 
   "keywords": [],

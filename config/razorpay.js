@@ -2,6 +2,8 @@ const Razorpay = require('razorpay');
 
 // Initialize Razorpay
 let razorpay = null;
+const razorpayKeyId = (process.env.RAZORPAY_KEY_ID || '').trim();
+const razorpayKeySecret = (process.env.RAZORPAY_KEY_SECRET || '').trim();
 
 // Log package version
 try {
@@ -12,16 +14,16 @@ try {
 
 // Log environment variables
 console.log("Environment variables check:");
-console.log("RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID ? "exists" : "missing");
-console.log("RAZORPAY_KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET ? "exists" : "missing");
+console.log("RAZORPAY_KEY_ID:", razorpayKeyId ? "exists" : "missing");
+console.log("RAZORPAY_KEY_SECRET:", razorpayKeySecret ? "exists" : "missing");
 console.log("RAZORPAY_ACCOUNT_NUMBER:", process.env.RAZORPAY_ACCOUNT_NUMBER ? "exists" : "missing");
 
 try {
     // Only initialize if keys are available
-    if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    if (razorpayKeyId && razorpayKeySecret) {
         razorpay = new Razorpay({
-            key_id: process.env.RAZORPAY_KEY_ID,
-            key_secret: process.env.RAZORPAY_KEY_SECRET
+            key_id: razorpayKeyId,
+            key_secret: razorpayKeySecret
         });
 
         // Print out the structure of the razorpay object for debugging
@@ -63,7 +65,6 @@ try {
                 razorpay.contacts = razorpay.resources.contacts;
             } else {
                 console.error("Could not find contacts API in any expected location");
-                razorpay = null;
             }
         } else {
             console.log("Razorpay initialized successfully");

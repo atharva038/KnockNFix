@@ -21,11 +21,9 @@ const complaintSchema = new mongoose.Schema({
     },
     attachments: [{
         type: String // Cloudinary URLs
-    }],
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
+    }]
+}, {
+    timestamps: true
 });
 
 module.exports = mongoose.model('Complaint', complaintSchema);

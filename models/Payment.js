@@ -20,11 +20,12 @@ const paymentSchema = new mongoose.Schema({
     type: {
         type: String,
         enum: ['advance', 'final'],
-        required: true
+        required: false
     },
     paymentType: { // For new automation system
         type: String,
-        enum: ['advance', 'final']
+        enum: ['advance', 'final'],
+        required: true
     },
     status: {
         type: String,
@@ -94,6 +95,19 @@ const paymentSchema = new mongoose.Schema({
     }
 }, {
     timestamps: true
+});
+
+paymentSchema.pre('validate', function (next) {
+    // Keep legacy `type` and canonical `paymentType` in sync during transition.
+    if (!this.paymentType && this.type) {
+        this.paymentType = this.type;
+    }
+
+    if (!this.type && this.paymentType) {
+        this.type = this.paymentType;
+    }
+
+    next();
 });
 
 module.exports = mongoose.model('Payment', paymentSchema);

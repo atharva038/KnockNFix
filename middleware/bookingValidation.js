@@ -73,13 +73,23 @@ const validateCancelBookingPayload = [
 const validateAdminStatusUpdatePayload = [
   body("status")
     .trim()
-    .isIn(["pending", "confirmed", "rejected", "completed", "cancelled"])
+    .isIn(["pending", "confirmed", "rejected", "in_progress", "completed", "cancelled"])
     .withMessage("Invalid booking status."),
+  body("notes")
+    .optional({ nullable: true })
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage("Notes cannot exceed 500 characters."),
   body("reason")
     .optional({ nullable: true })
     .trim()
     .isLength({ max: 500 })
     .withMessage("Reason cannot exceed 500 characters."),
+  body("cancellationReason")
+    .optional({ nullable: true })
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage("Cancellation reason cannot exceed 500 characters."),
 ];
 
 const handleBookingAPIValidationErrors = (req, res, next) => {

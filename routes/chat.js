@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const ChatMessage = require('../models/chatMessage');
+const ChatMessage = require('../models/chatMessage.js');
 const { isLoggedIn } = require('../middleware');
 
 // Get chat history

@@ -100,7 +100,7 @@
                     <div class="detail-row">
                       <span class="label">Payment Type:</span>
                       <span class="value">
-                        <%= payment.type==='advance' ? 'Advance Payment' : 'Final Payment' %>
+                        <%= (payment.paymentType || payment.type) === 'advance' ? 'Advance Payment' : 'Final Payment' %>
                       </span>
                     </div>
                     <div class="detail-row">
