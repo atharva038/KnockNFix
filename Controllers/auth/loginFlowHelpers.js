@@ -1,14 +1,7 @@
 function buildLoginUserData(user, sessionType = "login") {
   return {
-    _id: user._id,
-    name: user.name,
-    phone: user.phone,
+    userId: user._id,
     role: user.role,
-    username: user.username,
-    email: user.email || null,
-    profileImage: user.profileImage || null,
-    addresses: user.addresses || [],
-    status: user.status,
     isLoginAttempt: true,
     timestamp: new Date(),
     sessionType,

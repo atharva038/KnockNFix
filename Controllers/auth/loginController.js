@@ -203,7 +203,7 @@ const loginController = {
         }
       }
 
-      const userId = otpDoc.userData._id;
+      const userId = otpDoc.userData.userId || otpDoc.userData._id;
       const user = await User.findById(userId);
 
       if (!user) {

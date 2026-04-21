@@ -2,7 +2,10 @@ const User = require("../../models/User");
 const OTP = require("../../models/OTP");
 const ServiceProvider = require("../../models/ServiceProvider");
 const { sendSmsOTP, verifyOTPWithProvider, resendOTP } = require("../../utils/otp");
-const { createVerifiedUserFromOtp } = require("./registerFlowHelpers");
+const {
+  buildOtpRegistrationData,
+  createVerifiedUserFromOtp,
+} = require("./registerFlowHelpers");
 
 const {
   isDevelopment,
@@ -218,10 +221,11 @@ const registerController = {
         }
       }
 
+      const otpUserData = buildOtpRegistrationData(userData);
       const otpDoc = new OTP({
         phone,
         phoneOTP: smsResult.dev_mode ? smsResult.otp : "AUTOGEN",
-        userData,
+        userData: otpUserData,
         sessionId: smsResult.sessionId,
       });
 
@@ -609,10 +613,11 @@ const registerController = {
         });
       }
 
+      const otpUserData = buildOtpRegistrationData(userData);
       const otpDoc = new OTP({
         phone,
         phoneOTP: smsResult.dev_mode ? smsResult.otp : "AUTOGEN",
-        userData,
+        userData: otpUserData,
         sessionId: smsResult.sessionId,
       });
 
