@@ -14,7 +14,7 @@ async function getCustomerDashboardData(userId) {
             path: "provider",
             populate: { path: "user" }
         })
-        .sort({ bookingDate: -1 })
+        .sort({ date: -1 })
         .lean();
 
     return {
@@ -63,7 +63,7 @@ async function getProviderDashboardData(userId) {
             model: "User",
             select: "name email phone profileImage"
         })
-        .sort({ bookingDate: -1 })
+        .sort({ date: -1 })
         .lean();
 
     // Process bookings to ensure image URLs are valid

@@ -402,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('modal-customer-name').textContent = booking.customer.name;
 
             // Format date
-            const bookingDate = new Date(booking.bookingDate);
+            const bookingDate = new Date(booking.bookingDate || booking.date);
             const dateStr = bookingDate.toLocaleDateString('en-IN', {
                 weekday: 'long',
                 year: 'numeric',

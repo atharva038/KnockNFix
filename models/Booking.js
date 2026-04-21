@@ -25,14 +25,14 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  // Add both date fields for compatibility
+  // Canonical service date.
   date: {
     type: Date,
     required: true
   },
+  // Backward-compat mirror for older reads/templates.
   bookingDate: {
-    type: Date,
-    default: Date.now,
+    type: Date
   },
   status: {
     type: String,
@@ -154,11 +154,9 @@ bookingSchema.pre('save', function (next) {
     this.totalCost = this.cost;
   }
 
-  // Ensure date and bookingDate are synchronized
-  if (this.date && !this.bookingDate) {
+  // Keep backward-compat field aligned with canonical date.
+  if (this.date) {
     this.bookingDate = this.date;
-  } else if (this.bookingDate && !this.date) {
-    this.date = this.bookingDate;
   }
 
   // Set completion timestamp

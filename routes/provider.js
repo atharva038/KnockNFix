@@ -1,6 +1,5 @@
 const express = require("express");
-const ServiceProvider = require("../models/ServiceProvider");
-const Service = require("../models/Service");
+const providerController = require("../Controllers/providerController");
 const { isLoggedIn, isServiceProvider } = require("../middleware");
 const {
   validateServiceIdParam,
@@ -12,15 +11,7 @@ const router = express.Router();
 router.use(isLoggedIn, isServiceProvider);
 
 // Route for service providers to view their services
-router.get("/myservices", async (req, res) => {
-  try {
-    // Fix typo: getProviderDashboardDat -> removed
-    const services = await Service.find({ provider: req.user.id });
-    res.render("myservices", { services });
-  } catch (err) {
-    res.status(500).send("Server error");
-  }
-});
+router.get("/myservices", providerController.showMyServices);
 
 // Route for service providers to edit a service
 router.post(
@@ -28,20 +19,7 @@ router.post(
   validateServiceIdParam,
   validateProviderServiceUpdate,
   handleProviderValidationErrors,
-  async (req, res) => {
-  const { name, description, cost, availability } = req.body;
-  try {
-    const service = await Service.findByIdAndUpdate(req.params.serviceId, {
-      name,
-      description,
-      cost,
-      availability,
-    });
-    res.redirect("/provider/myservices");
-  } catch (err) {
-    res.status(500).send("Server error");
-  }
-}
+  providerController.editService
 );
 
 module.exports = router;

@@ -17,8 +17,11 @@ const configureSession = require("./config/session");
 const configurePassport = require("./config/passport");
 const dbCheck = require("./middleware/dbCheck");
 const errorHandler = require("./middleware/errorHandler");
+const { createCorsMiddleware } = require("./middleware/cors");
+const { setFlashAndCurrentUser, setCurrentRoleUser } = require("./middleware/requestContext");
+const { createAutoLoginMiddleware } = require("./middleware/autoLogin");
+const { createSystemRoutes } = require("./routes/system");
 
-const User = require("./models/User.js");
 const authorisationRoutes = require("./routes/auth.js");
 const bookingRoutes = require("./routes/booking.js");
 const servicesRoutes = require("./routes/services.js");
@@ -67,34 +70,7 @@ app.use(express.static(path.join(__dirname, "/public")));
 configureSession(app);
 
 // CORS middleware
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  const isAllowedOrigin = origin && allowedOrigins.includes(origin);
-
-  if (isAllowedOrigin) {
-    res.header("Access-Control-Allow-Origin", origin);
-    res.header("Vary", "Origin");
-    res.header("Access-Control-Allow-Credentials", "true");
-  }
-
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-
-  if (req.method === "OPTIONS") {
-    if (origin && !isAllowedOrigin) {
-      return res.status(403).json({
-        success: false,
-        error: "CORS origin not allowed",
-      });
-    }
-    return res.sendStatus(204);
-  }
-
-  next();
-});
+app.use(createCorsMiddleware(allowedOrigins));
 
 // Method override for forms
 app.use(methodOverride("_method"));
@@ -102,12 +78,7 @@ app.use(methodOverride("_method"));
 configurePassport(app);
 
 // Global variables middleware
-app.use((req, res, next) => {
-  res.locals.success = req.flash("success");
-  res.locals.error = req.flash("error");
-  res.locals.currUser = req.user;
-  next();
-});
+app.use(setFlashAndCurrentUser);
 
 app.use(dbCheck);
 
@@ -115,109 +86,19 @@ app.use("/uploads", express.static("uploads"));
 
 
 // Auto-login middleware using remember me cookies
-app.use(async (req, res, next) => {
-  // Only proceed if user is not already logged in and cookies exist
-  if (
-    !req.isAuthenticated() &&
-    req.cookies &&
-    isDatabaseConnected()
-  ) {
-    const username = req.cookies.username;
-    const rememberToken = req.cookies.rememberToken;
-    const rememberMe = req.cookies.rememberMe;
-
-    // Check if we have stored credentials
-    if (username && rememberToken && rememberMe === "true") {
-      try {
-        // Find the user with valid remember token
-        const user = await User.findOne({
-          username: decodeURIComponent(username),
-          rememberToken: rememberToken,
-          rememberTokenExpires: {$gt: Date.now()},
-        });
-
-        if (user) {
-          // Manually authenticate the user
-          req.login(user, async (err) => {
-            if (err) {
-              console.error("Auto-login error:", err);
-              return next();
-            }
-
-            // Set user ID in session
-            req.session.userId = user._id;
-            console.log(`✅ Auto-login successful for user: ${user.username}`);
-
-            // Continue to the next middleware/route handler
-            return next();
-          });
-        } else {
-          // Invalid token or expired, clear cookies
-          res.clearCookie("username");
-          res.clearCookie("rememberToken");
-          res.clearCookie("rememberMe");
-          return next();
-        }
-      } catch (err) {
-        console.error("Auto-login error:", err);
-        return next();
-      }
-    } else {
-      return next();
-    }
-  } else {
-    // User is already authenticated or no cookies or no database
-    return next();
-  }
-});
-
-// Middleware to set current provider/customer
-function setCurrentProvider(req, res, next) {
-  if (req.isAuthenticated()) {
-    if (req.user.role === "provider") {
-      res.locals.currProvider = req.user;
-    } else if (req.user.role === "customer") {
-      res.locals.currCustomer = req.user;
-    }
-  }
-  next();
-}
-
-// Apply provider middleware globally
-app.use(setCurrentProvider);
+app.use(createAutoLoginMiddleware({ isDatabaseConnected }));
+app.use(setCurrentRoleUser);
 
 // Passport configuration - Custom authentication strategy
 // Routes
 
-// Home route
-app.get("/", (req, res) => {
-  res.render("pages/home", {
-    dbConnected: isDatabaseConnected(),
-  });
-});
-
-// Database status route for debugging
-app.get("/db-status", (req, res) => {
-  if (process.env.NODE_ENV !== "development") {
-    return res.status(404).json({
-      success: false,
-      error: "Not found",
-    });
-  }
-  res.json(getDatabaseStatus());
-});
-
-// Chatbot route with authentication
-app.get("/chatbot", (req, res) => {
-  if (!req.isAuthenticated()) {
-    req.flash("error", "Please login first");
-    return res.redirect("/login");
-  }
-  res.render("pages/chatbot", {
-    title: "Chat Assistant",
-    currUser: req.user,
-  });
-});
+app.use(
+  "/",
+  createSystemRoutes({
+    isDatabaseConnected,
+    getDatabaseStatus,
+  })
+);
 
 // API Routes (organize by prefix)
 app.use("/", authorisationRoutes);

@@ -2,6 +2,7 @@ const express = require("express");
 const Booking = require("../models/Booking");
 const ServiceProvider = require("../models/ServiceProvider");
 const bookingApiRoutes = require("../routes/api/bookings");
+const userRoutes = require("../routes/user");
 
 const {
   validateBookingIdParam,
@@ -154,6 +155,7 @@ app.get(
 );
 
 app.use("/api/bookings", bookingApiRoutes);
+app.use("/user", userRoutes);
 
 const tests = [
   {
@@ -327,6 +329,34 @@ const tests = [
     path: "/api/bookings/booking-already-processed/accept",
     body: {},
     expected: 404,
+  },
+  {
+    name: "user add-address missing required fields -> 302",
+    method: "POST",
+    path: "/user/add-address",
+    body: {},
+    expected: 302,
+  },
+  {
+    name: "user update-address invalid index -> 302",
+    method: "POST",
+    path: "/user/update-address/not-a-number",
+    body: {
+      city: "Mumbai",
+      state: "Maharashtra",
+      pincode: "400001",
+    },
+    expected: 302,
+  },
+  {
+    name: "user update-location invalid latitude -> 400",
+    method: "POST",
+    path: "/user/update-location",
+    body: {
+      latitude: 123,
+      longitude: 72.88,
+    },
+    expected: 400,
   },
 ];
 
