@@ -1,5 +1,45 @@
 let cropper;
 
+const knfCore = window.KNFCore || {};
+const knfApi = knfCore.api;
+const knfNotify = knfCore.notify;
+
+function showToast(type, message, options) {
+    if (knfNotify && typeof knfNotify[type] === 'function') {
+        knfNotify[type](message, options);
+        return;
+    }
+    alert(message);
+}
+
+async function postData(url, payload) {
+    if (knfApi && typeof knfApi.post === 'function') {
+        return knfApi.post(url, payload);
+    }
+
+    const requestOptions = {
+        method: 'POST'
+    };
+
+    if (payload instanceof FormData) {
+        requestOptions.body = payload;
+    } else {
+        requestOptions.headers = {
+            'Content-Type': 'application/json'
+        };
+        requestOptions.body = JSON.stringify(payload);
+    }
+
+    const response = await fetch(url, requestOptions);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error((data && (data.message || data.error)) || 'Request failed');
+    }
+
+    return data;
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const profileImage = document.getElementById("profileImage");
     const cropImage = document.getElementById("cropImage");
@@ -10,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                alert("File size too large. Please select an image under 5MB.");
+                showToast('error', 'File size too large. Please select an image under 5MB.');
                 return;
             }
 
@@ -61,12 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const formData = new FormData();
             formData.append("profileImage", blob, "profile.jpg");
 
-            const response = await fetch("/profile/update", {
-                method: "POST",
-                body: formData
-            });
-
-            const data = await response.json();
+            const data = await postData('/profile/update', formData);
             if (data.success) {
                 // Update all instances of the profile image
                 const profileImages = document.querySelectorAll('.profile-image');
@@ -103,15 +138,7 @@ async function saveProfile() {
     }
 
     try {
-        const response = await fetch("/profile/update", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ name, phone, address }),
-        });
-
-        const data = await response.json();
+        const data = await postData('/profile/update', { name, phone, address });
         if (data.success) {
             // Update UI
             document.querySelector('.user-name').textContent = name;
@@ -131,15 +158,7 @@ async function saveProfile() {
     }
 }
 
-function showToast(type, message) {
-    // Assuming you have a toast notification system
-    // Replace this with your actual toast implementation
-    if (type === 'error') {
-        alert(message);
-    } else {
-        alert(message);
-    }
-} function openEditModal() {
+function openEditModal() {
     const editProfileModal = new bootstrap.Modal(document.getElementById('editProfileModal'));
 
     // Pre-fill the form with current values
