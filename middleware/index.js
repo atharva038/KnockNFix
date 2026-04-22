@@ -1,14 +1,20 @@
 module.exports.isLoggedIn = (req, res, next) => {
   if (!req.isAuthenticated()) {
     req.session.redirectUrl = req.originalUrl;
-    req.flash("error", "You must be logged in to create listing");
+    req.flash("error", "You must be logged in to access this page.");
     return res.redirect("/login");
   }
   next();
 };
 
 module.exports.isServiceProvider = async (req, res, next) => {
-  if (req.user && req.user.role === 'provider') {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required'
+    });
+  }
+  if (req.user.role === 'provider') {
     return next();
   }
   return res.status(403).json({

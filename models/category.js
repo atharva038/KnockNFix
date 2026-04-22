@@ -1,30 +1,4 @@
-const mongoose = require("mongoose");
-
-// Define the Category Schema
-const categorySchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  img: {
-    type: String, // Field for the category image URL
-    required: true, // Ensure an image is provided
-  },
-  description: {
-    type: String,
-    required: false, // Set to true if you want it mandatory
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  services: [
-    {
-      type: mongoose.Schema.Types.ObjectId, // Change to ObjectId
-      ref: "Service", // Reference to Service
-    },
-  ],
-});
-
-const Category = mongoose.model("Category", categorySchema);
-module.exports = Category;
+// models/category.js — backward-compat shim
+// All imports of models/category (lowercase) resolve here and are forwarded to Category.js.
+// Do NOT define a schema here — Category.js is the canonical definition.
+module.exports = require('./Category');

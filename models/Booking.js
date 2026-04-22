@@ -9,7 +9,7 @@ const bookingSchema = new mongoose.Schema({
   },
   providerUserId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "ServiceProvider",
+    ref: "User", // stores the provider's User _id (not ServiceProvider _id)
   },
   service: {
     type: mongoose.Schema.Types.ObjectId,
@@ -112,6 +112,10 @@ const bookingSchema = new mongoose.Schema({
     submittedAt: {
       type: Date,
       default: Date.now
+    },
+    submittedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
     }
   },
   providerPayout: {

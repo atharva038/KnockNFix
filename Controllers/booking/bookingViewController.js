@@ -76,10 +76,10 @@ exports.getBookingSuccess = async (req, res) => {
         let booking = null;
         let payment = null;
 
-        // First try to get the most recent completed booking for this user
+        // BUG-023: Include 'pending' — new bookings start as pending, not confirmed
         booking = await Booking.findOne({
             customer: req.user._id,
-            status: { $in: ['confirmed', 'completed'] }
+            status: { $in: ['pending', 'confirmed', 'completed'] }
         })
             .populate('service')
             .populate({
@@ -99,14 +99,18 @@ exports.getBookingSuccess = async (req, res) => {
 
             console.log('Found booking and payment for success page');
         } else {
-            // If no booking found, try to get the most recent automated payment
+            // BUG-009: Always scope the fallback payment query to this user's bookings
+            const userBookingIds = await Booking
+                .find({ customer: req.user._id })
+                .distinct('_id');
+
             payment = await Payment.findOne({
                 status: 'completed',
-                paymentType: 'advance' // For automated advance payments
+                paymentType: 'advance',
+                booking: { $in: userBookingIds }
             })
                 .populate({
                     path: 'booking',
-                    match: { customer: req.user._id },
                     populate: [
                         { path: 'service' },
                         {
@@ -119,7 +123,6 @@ exports.getBookingSuccess = async (req, res) => {
 
             if (payment && payment.booking) {
                 booking = payment.booking;
-                console.log('Found booking through payment record');
             }
         }
 

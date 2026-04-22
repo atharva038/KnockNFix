@@ -37,12 +37,21 @@ exports.completeBooking = async (req, res) => {
             setPaymentCompleted: true
         });
 
+        // BUG-007: Verify final payment was received before completing + triggering payout
+        if (!booking.finalPayment?.paid) {
+            return res.status(400).json({
+                success: false,
+                error: 'Final payment must be completed before marking this booking as done.'
+            });
+        }
+
         if (!transition.ok) {
             return res.status(400).json({
                 success: false,
                 error: transition.error
             });
         }
+
 
         await booking.save();
 

@@ -3,6 +3,95 @@
  * Handles booking management, payments, and user interactions
  */
 
+const knfCore = window.KNFCore || {};
+const knfApi = knfCore.api;
+const knfNotify = knfCore.notify;
+
+function notify(type, message, options) {
+    if (knfNotify && typeof knfNotify[type] === 'function') {
+        knfNotify[type](message, options);
+        return;
+    }
+    alert(message);
+}
+
+function confirmAction(message) {
+    if (knfNotify && typeof knfNotify.confirm === 'function') {
+        return knfNotify.confirm(message);
+    }
+    return window.confirm(message);
+}
+
+function getErrorInfo(error, fallbackMessage) {
+    const status = error?.response?.status || error?.status || null;
+    const message =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        error?.data?.error ||
+        error?.data?.message ||
+        error?.message ||
+        fallbackMessage;
+
+    return { status, message };
+}
+
+async function apiGet(url, options = {}) {
+    if (knfApi && typeof knfApi.get === 'function') {
+        return knfApi.get(url, options);
+    }
+
+    if (window.axios) {
+        const response = await window.axios.get(url, options);
+        return response.data;
+    }
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json'
+        }
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        const error = new Error((data && (data.error || data.message)) || 'Request failed');
+        error.status = response.status;
+        error.data = data;
+        throw error;
+    }
+
+    return data;
+}
+
+async function apiPost(url, body = {}, options = {}) {
+    if (knfApi && typeof knfApi.post === 'function') {
+        return knfApi.post(url, body, options);
+    }
+
+    if (window.axios) {
+        const response = await window.axios.post(url, body, options);
+        return response.data;
+    }
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        const error = new Error((data && (data.error || data.message)) || 'Request failed');
+        error.status = response.status;
+        error.data = data;
+        throw error;
+    }
+
+    return data;
+}
+
 // ============================================================================
 // INITIALIZATION
 // ============================================================================
@@ -147,7 +236,7 @@ function setupBookingActionListeners() {
         cancelButtons.forEach(button => {
             button.addEventListener("click", async function () {
                 const bookingId = this.getAttribute("data-id");
-                if (confirm("Are you sure you want to cancel this booking?")) {
+                if (confirmAction('Are you sure you want to cancel this booking?')) {
                     await cancelBooking(bookingId);
                 }
             });
@@ -168,16 +257,10 @@ async function fetchBookingDetails(bookingId) {
         // Show loading state
         showLoadingState();
 
-        // Fetch booking details from the server using Axios
-        const response = await axios.get(`/api/bookings/${bookingId}`, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            timeout: 10000 // 10 second timeout
+        const data = await apiGet(`/api/bookings/${bookingId}`, {
+            timeout: 10000
         });
-
-        const booking = response.data.booking;
+        const booking = data.booking;
 
         // Update modal with booking details
         updateBookingModal(booking);
@@ -191,17 +274,16 @@ async function fetchBookingDetails(bookingId) {
 
         let errorMessage = 'Failed to load booking details. Please try again.';
 
-        if (error.response) {
-            // Server responded with error status
-            errorMessage = error.response.data.error || errorMessage;
+        const { status, message } = getErrorInfo(error, errorMessage);
+        if (status === 401) {
+            showSessionExpiredAlert();
+            return;
+        }
 
-            if (error.response.status === 401) {
-                showSessionExpiredAlert();
-                return;
-            }
-        } else if (error.request) {
-            // Network error
+        if (!status && (error.request || error.message === 'Failed to fetch')) {
             errorMessage = 'Network error. Please check your connection.';
+        } else {
+            errorMessage = message;
         }
 
         showErrorAlert(errorMessage);
@@ -435,21 +517,16 @@ function updateActionButtons(booking) {
  * @param {string} bookingId - The booking ID to make advance payment for
  */
 async function makeAdvancePayment(bookingId) {
-    if (!confirm('Proceed with advance payment (15%) for this booking?')) {
+    if (!confirmAction('Proceed with advance payment (15%) for this booking?')) {
         return;
     }
 
     try {
         showLoadingAlert('Initiating payment...');
 
-        const response = await axios.post(`/payment/${bookingId}/advance-payment`, {}, {
-            headers: {
-                'Content-Type': 'application/json'
-            },
+        const data = await apiPost(`/payment/${bookingId}/advance-payment`, {}, {
             timeout: 15000
         });
-
-        const data = response.data;
 
         if (!data.success) {
             throw new Error(data.error || 'Failed to initiate payment');
@@ -491,11 +568,7 @@ async function makeAdvancePayment(bookingId) {
 
         let errorMessage = 'Failed to initiate payment. Please try again.';
 
-        if (error.response?.data?.error) {
-            errorMessage = error.response.data.error;
-        } else if (error.message) {
-            errorMessage = error.message;
-        }
+        errorMessage = getErrorInfo(error, errorMessage).message;
 
         showErrorAlert(errorMessage);
     }
@@ -506,21 +579,16 @@ async function makeAdvancePayment(bookingId) {
  * @param {string} bookingId - The booking ID to complete payment for
  */
 async function completePayment(bookingId) {
-    if (!confirm('Proceed with the remaining payment for this booking?')) {
+    if (!confirmAction('Proceed with the remaining payment for this booking?')) {
         return;
     }
 
     try {
         showLoadingAlert('Initiating final payment...');
 
-        const response = await axios.post(`/payment/${bookingId}/complete-payment`, {}, {
-            headers: {
-                'Content-Type': 'application/json'
-            },
+        const data = await apiPost(`/payment/${bookingId}/complete-payment`, {}, {
             timeout: 15000
         });
-
-        const data = response.data;
 
         if (!data.success) {
             throw new Error(data.error || 'Failed to initiate payment');
@@ -566,11 +634,7 @@ async function completePayment(bookingId) {
 
         let errorMessage = 'Failed to initiate payment. Please try again.';
 
-        if (error.response?.data?.error) {
-            errorMessage = error.response.data.error;
-        } else if (error.message) {
-            errorMessage = error.message;
-        }
+        errorMessage = getErrorInfo(error, errorMessage).message;
 
         showErrorAlert(errorMessage);
     }
@@ -594,20 +658,15 @@ async function verifyPayment(razorpayResponse, bookingId, paymentType) {
             paymentType: paymentType
         });
 
-        const response = await axios.post('/payment/verify-payment', {
+        const data = await apiPost('/payment/verify-payment', {
             razorpay_order_id: razorpayResponse.razorpay_order_id,
             razorpay_payment_id: razorpayResponse.razorpay_payment_id,
             razorpay_signature: razorpayResponse.razorpay_signature,
             bookingId: bookingId,
             paymentType: paymentType
         }, {
-            headers: {
-                'Content-Type': 'application/json'
-            },
             timeout: 10000
         });
-
-        const data = response.data;
 
         if (!data.success) {
             throw new Error(data.error || 'Payment verification failed');
@@ -634,9 +693,7 @@ async function verifyPayment(razorpayResponse, bookingId, paymentType) {
 
         let errorMessage = 'Payment verification failed. Please contact support.';
 
-        if (error.response?.data?.error) {
-            errorMessage = error.response.data.error;
-        }
+        errorMessage = getErrorInfo(error, errorMessage).message;
 
         showErrorAlert(errorMessage);
     }
@@ -656,16 +713,11 @@ async function cancelBooking(bookingId) {
 
         showLoadingAlert('Cancelling booking...');
 
-        const response = await axios.post(`/booking/cancel/${bookingId}`, {
+        const data = await apiPost(`/booking/cancel/${bookingId}`, {
             reason: reason || 'No reason provided'
         }, {
-            headers: {
-                'Content-Type': 'application/json'
-            },
             timeout: 10000
         });
-
-        const data = response.data;
 
         if (!data.success) {
             throw new Error(data.error || 'Failed to cancel booking');
@@ -684,8 +736,9 @@ async function cancelBooking(bookingId) {
 
         let errorMessage = 'Failed to cancel booking';
 
-        if (error.response?.data?.error) {
-            const serverError = error.response.data.error;
+        const { status, message: serverError } = getErrorInfo(error, errorMessage);
+
+        if (serverError && serverError !== errorMessage) {
 
             // Handle specific error cases
             if (serverError.includes('24 hours') || serverError.includes('2 hours')) {
@@ -703,7 +756,7 @@ async function cancelBooking(bookingId) {
             }
 
             errorMessage = serverError;
-        } else if (error.response?.status === 401) {
+        } else if (status === 401) {
             showSessionExpiredAlert();
             return;
         }
@@ -762,7 +815,7 @@ function hideLoadingAlert() {
  * @param {string} message - Success message
  */
 function showSuccessAlert(message) {
-    alert(`✅ ${message}`);
+    notify('success', message);
 }
 
 /**
@@ -770,7 +823,7 @@ function showSuccessAlert(message) {
  * @param {string} message - Error message
  */
 function showErrorAlert(message) {
-    alert(`❌ ${message}`);
+    notify('error', message);
 }
 
 /**
@@ -778,7 +831,7 @@ function showErrorAlert(message) {
  * @param {string} message - Warning message
  */
 function showWarningAlert(message) {
-    alert(`⚠️ ${message}`);
+    notify('warn', message, { delay: 5000 });
 }
 
 /**
@@ -786,15 +839,25 @@ function showWarningAlert(message) {
  * @param {string} message - Info message
  */
 function showInfoAlert(message) {
-    alert(`ℹ️ ${message}`);
+    notify('info', message);
 }
 
 /**
  * Show session expired alert and redirect to login
  */
 function showSessionExpiredAlert() {
-    alert('⚠️ Session expired. Please log in again.');
-    window.location.href = '/login';
+    notify('warn', 'Session expired. Please log in again.', {
+        delay: 1500,
+        onHidden: function () {
+            window.location.href = '/login';
+        }
+    });
+
+    setTimeout(function () {
+        if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+        }
+    }, 1600);
 }
 
 // ============================================================================

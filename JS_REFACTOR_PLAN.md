@@ -1,6 +1,6 @@
 # KnockNFix Frontend JS Refactor Plan
 
-Status: Draft for execution
+Status: In progress (Phase 1 underway)
 Date: 2026-04-21
 Scope: public/js/pages + related inline JS usage in views
 
@@ -114,6 +114,22 @@ Tasks:
 Exit criteria:
 - No script has duplicate toast helpers.
 - At least 2 scripts use shared api + notify utilities.
+
+Progress update (2026-04-21):
+- Added shared frontend core modules under `public/js/core`: `dom.js`, `api.js`, `notify.js`.
+- Migrated `public/js/pages/admin/provider-payouts.js` to shared `api` and `notify` helpers.
+- Migrated `public/js/pages/profile/edit.js` to shared `api` and `notify` helpers while preserving `openEditModal` and `saveProfile` globals for inline handlers.
+- Migrated `public/js/pages/payment/payment.js` to shared `api` and `notify` helpers with compatibility fallback.
+- Added `notify.confirm(...)` in shared `public/js/core/notify.js` for centralized confirmation prompts.
+- Migrated `public/js/pages/customer/dashboard.js` to shared `notify` + centralized `apiGet/apiPost` wrappers (using `KNFCore.api` with fallbacks).
+- Updated script loading in:
+  - `views/pages/admin/provider-payouts.ejs`
+  - `views/components/customerDashboard/profile.ejs`
+  - `views/pages/booking-confirm.ejs`
+  - `views/pages/customerDashboard.ejs`
+- Exit criteria status:
+  - `at least 2 scripts use shared api + notify` => met
+  - `no script has duplicate toast helpers` => pending full sweep in remaining page scripts
 
 ---
 

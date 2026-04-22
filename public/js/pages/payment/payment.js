@@ -1,5 +1,63 @@
+const knfCore = window.KNFCore || {};
+const knfApi = knfCore.api;
+const knfNotify = knfCore.notify;
+
+function showToast(type, message, options) {
+    if (knfNotify && typeof knfNotify[type] === 'function') {
+        knfNotify[type](message, options);
+        return;
+    }
+    alert(message);
+}
+
+function getErrorMessage(error, fallbackMessage) {
+    if (!error) return fallbackMessage;
+    if (error.response && error.response.data && error.response.data.error) {
+        return error.response.data.error;
+    }
+    if (error.data && (error.data.error || error.data.message)) {
+        return error.data.error || error.data.message;
+    }
+    return error.message || fallbackMessage;
+}
+
+async function postJson(url, payload) {
+    if (knfApi && typeof knfApi.post === 'function') {
+        return knfApi.post(url, payload);
+    }
+
+    if (window.axios) {
+        const { data } = await window.axios.post(url, payload, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return data;
+    }
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        const error = new Error((data && (data.error || data.message)) || 'Request failed');
+        error.status = response.status;
+        error.data = data;
+        throw error;
+    }
+
+    return data;
+}
+
 document.addEventListener('DOMContentLoaded', async function () {
     const payButton = document.getElementById('rzp-button');
+    if (!payButton) return;
+
     const spinner = payButton.querySelector('.spinner-border');
 
     // Disable button initially during setup
@@ -92,14 +150,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         console.log('Automated payment payload:', payload);
 
-        const { data: orderData } = await axios({
-            method: 'post',
-            url: `/payment/${paymentType === 'advance' ? 'create-advance-order' : 'create-final-order'}`,
-            data: payload,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        const orderData = await postJson(
+            `/payment/${paymentType === 'advance' ? 'create-advance-order' : 'create-final-order'}`,
+            payload
+        );
 
         if (!orderData.success) {
             throw new Error(orderData.error || 'Failed to create automated payment order');
@@ -172,7 +226,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 rzp.open();
             } catch (err) {
                 console.error('Error opening Razorpay:', err);
-                alert('Could not initialize payment. Please try again.');
+                showToast('error', 'Could not initialize payment. Please try again.');
                 this.disabled = false;
             }
         });
@@ -222,7 +276,7 @@ async function handlePaymentSuccess(response, orderData, paymentType, paymentFlo
         paymentFlow: paymentFlow
     };
 
-    const { data: verifyData } = await axios.post('/payment/verify-automated', verifyPayload);
+    const verifyData = await postJson('/payment/verify-automated', verifyPayload);
 
     if (verifyData.success && verifyData.redirectUrl) {
         console.log('Automated payment processed successfully');
@@ -265,39 +319,40 @@ function handlePaymentError(error) {
     console.error('Payment verification failed:', error);
 
     let errorMessage = 'Payment verification failed. Please try again.';
-    if (error.response && error.response.data && error.response.data.error) {
-        errorMessage = `Payment error: ${error.response.data.error}`;
-    }
+    errorMessage = `Payment error: ${getErrorMessage(error, errorMessage)}`;
 
-    alert(errorMessage);
+    showToast('error', errorMessage);
     resetPaymentButton();
 }
 
 // Handle initialization errors
 function handleInitializationError(error) {
+    const status = error?.response?.status || error?.status;
+
     console.log('Error details:', {
         message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
+        response: error.response?.data || error.data,
+        status: status
     });
 
     let errorMessage = 'Failed to initialize automated payment. Please try again.';
 
-    if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
+    const parsedMessage = getErrorMessage(error, errorMessage);
+    if (parsedMessage) {
+        errorMessage = parsedMessage;
     }
 
-    if (error.response && error.response.status) {
-        if (error.response.status === 404) {
+    if (status) {
+        if (status === 404) {
             errorMessage = 'Payment service not available. Please try again later.';
-        } else if (error.response.status === 400) {
+        } else if (status === 400) {
             errorMessage = 'Invalid payment data. Please check your details and try again.';
-        } else if (error.response.status === 502) {
-            errorMessage = error.response?.data?.error || 'Payment gateway authentication failed. Please contact support.';
+        } else if (status === 502) {
+            errorMessage = getErrorMessage(error, 'Payment gateway authentication failed. Please contact support.');
         }
     }
 
-    alert(errorMessage);
+    showToast('error', errorMessage);
     resetPaymentButton();
 }
 

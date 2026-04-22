@@ -14,6 +14,12 @@ exports.showFeedbackPage = async (req, res) => {
       return res.redirect("/dashboard");
     }
 
+    // Ownership check — only the booking's customer can view their feedback page
+    if (booking.customer.toString() !== req.user._id.toString()) {
+      req.flash("error", "You are not authorized to view this feedback page.");
+      return res.status(403).redirect("/booking/mybookings");
+    }
+
     return res.render("pages/feedback", {
       booking,
       service: booking.service,

@@ -14,6 +14,11 @@ const complaintSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    category: {
+        type: String,
+        enum: ['service_quality', 'payment', 'provider_behaviour', 'other'],
+        default: null
+    },
     status: {
         type: String,
         enum: ['pending', 'in-progress', 'resolved'],

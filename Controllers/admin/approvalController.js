@@ -219,15 +219,27 @@ const approvalController = {
         isVerified: false,
       });
 
-      await logAdminAction(
-        req.user?._id,
-        "REJECT_PROVIDER",
-        providerId,
-        "provider",
-        { reason: reason.trim() }
-      );
+      try {
+        if (typeof logAdminAction === "function") {
+          await logAdminAction(
+            req.user?._id,
+            "REJECT_PROVIDER",
+            providerId,
+            "provider",
+            { reason: reason.trim() }
+          );
+        }
+      } catch (logError) {
+        console.warn("Failed to log admin action:", logError.message);
+      }
 
-      await notifyProviderApproval(providerId, false, reason.trim());
+      try {
+        if (typeof notifyProviderApproval === "function") {
+          await notifyProviderApproval(providerId, false, reason.trim());
+        }
+      } catch (notifyError) {
+        console.warn("Failed to notify provider:", notifyError.message);
+      }
 
       return res.json({
         success: true,

@@ -47,7 +47,7 @@ const notifyAdminNewProvider = async (providerId) => {
     }
     State: ${provider.addresses?.[0]?.state || "N/A"}
     Pincode: ${provider.addresses?.[0]?.pincode || "N/A"}
-    Aadhar: ${serviceProvider.aadharCard}
+    Aadhar: ${serviceProvider.aadharCard ? serviceProvider.aadharCard.replace(/\d(?=\d{4})/g, '*') : 'N/A'}
     PAN: ${serviceProvider.panCard}
     Status: ${provider.status}
     Verification Status: ${serviceProvider.verificationStatus}

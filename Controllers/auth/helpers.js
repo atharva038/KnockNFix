@@ -1,10 +1,6 @@
 const cloudinary = require("cloudinary").v2;
 
-const isDevelopment = () => {
-  return (
-    process.env.NODE_ENV === "development" || process.env.SKIP_OTP === "true"
-  );
-};
+const isDevelopment = () => process.env.NODE_ENV === "development";
 
 const extractValue = (value) => {
   if (!value) return "";

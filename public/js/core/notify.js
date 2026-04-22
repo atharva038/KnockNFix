@@ -68,6 +68,9 @@
         },
         warn(message, options) {
             createToast('warn', message, options);
+        },
+        confirm(message) {
+            return window.confirm(message);
         }
     };
 
