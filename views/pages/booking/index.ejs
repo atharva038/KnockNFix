@@ -1,5 +1,78 @@
 <% layout("/layouts/boilerplate.ejs") %>
 
+  <style>
+    /* Refactored booking styles - most layout moved to Bootstrap 5 utilities in EJS */
+    .booking-progress {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      flex: 1;
+    }
+    .step-icon {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background-color: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      color: #6c757d;
+      transition: all 0.3s ease;
+    }
+    .step-text {
+      font-size: 0.85rem;
+      color: #6c757d;
+      text-align: center;
+      font-weight: 500;
+    }
+    .progress-line {
+      height: 3px;
+      background-color: #e9ecef;
+      flex: 1;
+      margin: 0 10px;
+      margin-bottom: 25px;
+    }
+    .progress-step.active .step-icon {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .progress-step.active .step-text {
+      color: #495057;
+      font-weight: 600;
+    }
+    #map {
+      height: 250px;
+      width: 100%;
+      margin-top: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+    .hidden-data, #datetime-combined {
+      display: none;
+    }
+    @media (max-width: 767px) {
+      .booking-progress {
+        padding: 0 0.5rem;
+      }
+      .step-text {
+        font-size: 0.75rem;
+      }
+      .progress-line {
+        margin-bottom: 30px;
+      }
+    }
+  </style>
+
   <!-- Enhanced Google Maps API key setup for booking page -->
   <% if (typeof googleMapsApiKey !=='undefined' && googleMapsApiKey) { %>
     <script>

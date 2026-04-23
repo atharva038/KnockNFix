@@ -1,17 +1,17 @@
 <div class="dashboard-section" id="locations-section" style="display: none;">
-    <div class="section-header d-flex justify-content-between align-items-center mb-3">
-        <h2 class="fs-4 mb-0"><i class="fas fa-map-marker-alt me-2"></i> Service Locations</h2>
-        <button type="button" class="btn btn-sm btn-primary" id="saveAllLocationSettings">
-            <i class="fas fa-save me-1"></i>Save All Changes
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom gap-3">
+        <h2 class="fs-4 fw-bold text-dark mb-0"><i class="fas fa-map-marker-alt text-primary me-2"></i> Service Locations</h2>
+        <button type="button" class="btn btn-primary rounded px-4 shadow-sm" id="saveAllLocationSettings">
+            <i class="fas fa-save me-2"></i>Save All Changes
         </button>
     </div>
 
     <!-- Service Area Section -->
-    <div class="card shadow-sm mb-3">
-        <div class="card-header bg-light py-2">
-            <h5 class="mb-0 fs-5">General Service Coverage</h5>
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="mb-0 fs-5 fw-bold text-dark">General Service Coverage</h5>
         </div>
-        <div class="card-body py-3">
+        <div class="card-body p-4">
             <div class="alert alert-info py-2 px-3 mb-3">
                 <i class="fas fa-info-circle me-2"></i>
                 <small>Set your service area to specify how far you're willing to travel for bookings.</small>
@@ -70,11 +70,11 @@
     </div>
 
     <!-- Availability Settings -->
-    <div class="card shadow-sm mb-3">
-        <div class="card-header bg-light py-2">
-            <h5 class="mb-0 fs-5">Availability Settings</h5>
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="mb-0 fs-5 fw-bold text-dark">Availability Settings</h5>
         </div>
-        <div class="card-body py-3">
+        <div class="card-body p-4">
             <div class="alert alert-info py-2 px-3 mb-3">
                 <i class="fas fa-info-circle me-2"></i>
                 <small>Set your working hours to determine when you're available for bookings.</small>
@@ -110,19 +110,19 @@
                         });
                     }
                 %>
-                    <div class="day-container mb-2 p-2 border-bottom" data-day="<%= day %>">
-                        <div class="day-header d-flex align-items-center mb-2">
-                            <div class="form-check form-switch">
+                    <div class="day-container mb-3 pb-3 border-bottom" data-day="<%= day %>">
+                        <div class="day-header d-flex align-items-center mb-3">
+                            <div class="form-check form-switch mb-0">
                                 <% if (dayData.isAvailable) { %>
                                     <input class="form-check-input day-toggle" type="checkbox" id="<%= day %>-available" data-day="<%= day %>" checked>
                                 <% } else { %>
                                     <input class="form-check-input day-toggle" type="checkbox" id="<%= day %>-available" data-day="<%= day %>">
                                 <% } %>
-                                <label class="form-check-label small fw-bold text-capitalize" for="<%= day %>-available">
+                                <label class="form-check-label fw-bold text-capitalize ms-2" for="<%= day %>-available">
                                     <%= day %>
                                 </label>
                             </div>
-                            <button type="button" class="btn btn-xs btn-outline-primary ms-auto add-slot-btn" data-day="<%= day %>">
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 ms-auto add-slot-btn" data-day="<%= day %>">
                                 <i class="fas fa-plus me-1"></i> Add Slot
                             </button>
                         </div>
@@ -136,24 +136,24 @@
                                 var slot = dayData.slots[j];
                                 var index = j;
                             %>
-                                <div class="slot-row d-flex align-items-center mb-2" data-index="<%= index %>">
-                                    <div class="time-range flex-grow-1">
-                                        <div class="input-group input-group-sm">
-                                            <input type="time" class="form-control slot-start" value="<%= slot.startTime %>" name="<%= day %>-start-<%= index %>" required>
-                                            <span class="input-group-text">to</span>
-                                            <input type="time" class="form-control slot-end" value="<%= slot.endTime %>" name="<%= day %>-end-<%= index %>" required>
+                                <div class="slot-row bg-light rounded-3 p-3 mb-2 d-flex align-items-center shadow-sm border border-light" data-index="<%= index %>">
+                                    <div class="time-range flex-grow-1 me-3">
+                                        <div class="input-group input-group-sm shadow-sm">
+                                            <input type="time" class="form-control border-0 slot-start" value="<%= slot.startTime %>" name="<%= day %>-start-<%= index %>" required>
+                                            <span class="input-group-text bg-white border-0 text-secondary">to</span>
+                                            <input type="time" class="form-control border-0 slot-end" value="<%= slot.endTime %>" name="<%= day %>-end-<%= index %>" required>
                                         </div>
                                     </div>
-                                    <div class="form-check form-switch ms-2 me-1">
+                                    <div class="form-check form-switch ms-2 me-3 mb-0 d-flex align-items-center">
                                         <% if (slot.isActive) { %>
-                                            <input class="form-check-input slot-active" type="checkbox" id="<%= day %>-slot-<%= index %>-active" checked>
+                                            <input class="form-check-input slot-active m-0 me-2 shadow-sm" type="checkbox" id="<%= day %>-slot-<%= index %>-active" checked>
                                         <% } else { %>
-                                            <input class="form-check-input slot-active" type="checkbox" id="<%= day %>-slot-<%= index %>-active">
+                                            <input class="form-check-input slot-active m-0 me-2 shadow-sm" type="checkbox" id="<%= day %>-slot-<%= index %>-active">
                                         <% } %>
-                                        <label class="form-check-label small" for="<%= day %>-slot-<%= index %>-active">Active</label>
+                                        <label class="form-check-label small fw-medium text-secondary" for="<%= day %>-slot-<%= index %>-active">Active</label>
                                     </div>
                                     <% if (index > 0) { %>
-                                        <button type="button" class="btn btn-xs btn-outline-danger remove-slot-btn">
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center remove-slot-btn" style="width: 32px; height: 32px;">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     <% } %>
@@ -171,11 +171,11 @@
     </div>
 
     <!-- Service Locations Map -->
-    <div class="card shadow-sm mb-3">
-        <div class="card-header bg-light py-2">
-            <h5 class="mb-0 fs-5">Specific Service Locations</h5>
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="mb-0 fs-5 fw-bold text-dark">Specific Service Locations</h5>
         </div>
-        <div class="card-body py-3">
+        <div class="card-body p-4">
             <div class="alert alert-info py-2 px-3 mb-3">
                 <i class="fas fa-info-circle me-2"></i>
                 <small>Add specific locations where you offer services. Each location can have its own custom radius.</small>
@@ -185,17 +185,17 @@
                     <h6 class="fs-6 mb-2">Current Service Areas</h6>
                     <div id="existing-service-areas" class="border rounded p-2 bg-light">
                         <% if (provider && provider.serviceAreas && provider.serviceAreas.length > 0) { %>
-                            <div class="location-tags">
+                            <div class="d-flex flex-wrap gap-2 mt-2 location-tags">
                                 <% for (var k = 0; k < provider.serviceAreas.length; k++) {
                                     var area = provider.serviceAreas[k];
                                 %>
-                                    <div class="location-tag d-inline-block bg-primary text-white rounded-pill px-3 py-1 me-2 mb-2"
+                                    <div class="bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-pill px-3 py-1 d-inline-flex align-items-center gap-2 shadow-sm location-tag"
                                         data-id="<%= area._id %>" data-lat="<%= area.lat %>" data-lng="<%= area.lng %>"
                                         data-radius="<%= area.radius %>" data-name="<%= area.name %>">
-                                        <small><%= area.name %></small>
-                                        <button class="btn-remove-location border-0 bg-transparent text-white p-0 ms-1"
+                                        <small class="fw-medium text-dark"><%= area.name %></small>
+                                        <button class="btn btn-link text-danger p-0 border-0 text-decoration-none btn-remove-location"
                                             data-id="<%= area._id %>">
-                                            <i class="fas fa-times-circle"></i>
+                                            <i class="fas fa-times-circle fs-6"></i>
                                         </button>
                                     </div>
                                 <% } %>
@@ -235,18 +235,18 @@
                             <i class="fas fa-location-arrow"></i> Detect My Location
                         </button>
                     </div>
-                    <div id="location-map" class="rounded border" style="height: 300px;"></div>
+                    <div id="location-map" class="rounded-4 border shadow-sm mt-3" style="height: 300px; overflow: hidden;"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Travel Fees -->
-    <div class="card shadow-sm mb-3">
-        <div class="card-header bg-light py-2">
-            <h5 class="mb-0 fs-5">Travel Fee Settings</h5>
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="mb-0 fs-5 fw-bold text-dark">Travel Fee Settings</h5>
         </div>
-        <div class="card-body py-3">
+        <div class="card-body p-4">
             <div class="form-check form-switch mb-3">
                 <input class="form-check-input" type="checkbox" id="travel-fee-toggle">
                 <label class="form-check-label small" for="travel-fee-toggle">
@@ -254,11 +254,11 @@
                 </label>
             </div>
 
-            <div id="travel-fee-options" class="mb-3" style="display: none;">
-                <label class="form-label small">Travel Fee per km (beyond base radius)</label>
-                <div class="input-group input-group-sm mb-2" style="max-width: 200px;">
-                    <span class="input-group-text">₹</span>
-                    <input type="number" class="form-control" id="travel-fee-amount" placeholder="Amount per km" value="5">
+            <div id="travel-fee-options" class="mb-3 bg-light p-3 rounded-3 border" style="display: none;">
+                <label class="form-label small fw-medium text-dark mb-2">Travel Fee per km (beyond base radius)</label>
+                <div class="input-group input-group-sm mb-0 shadow-sm" style="max-width: 200px;">
+                    <span class="input-group-text bg-white border-end-0">₹</span>
+                    <input type="number" class="form-control border-start-0" id="travel-fee-amount" placeholder="Amount per km" value="5">
                 </div>
             </div>
 
@@ -267,99 +267,7 @@
     </div>
 </div>
 
-<style>
-    .location-tag {
-        transition: all 0.2s;
-    }
 
-    .location-tag:hover {
-        background-color: #0056b3 !important;
-    }
-
-    .btn-xs {
-        padding: 0.125rem 0.25rem;
-        font-size: 0.75rem;
-        line-height: 1.5;
-    }
-
-    .fs-7 {
-        font-size: 0.75rem;
-    }
-
-    #location-map {
-        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .card {
-        border-radius: 0.5rem;
-        overflow: hidden;
-    }
-
-    .alert {
-        border-radius: 0.375rem;
-    }
-
-    .btn-remove-location:hover {
-        opacity: 0.8;
-        transform: scale(1.1);
-    }
-
-    .map-loading {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 300px;
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
-    }
-
-    .map-error {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 300px;
-        background-color: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 0.375rem;
-        color: #856404;
-    }
-
-    /* Custom styles for location search */
-    .pac-container {
-        z-index: 9999;
-        font-size: 14px;
-    }
-
-    .pac-item {
-        padding: 8px;
-        font-size: 14px;
-    }
-
-    /* Fix for autocomplete dropdown styling */
-    .pac-container .pac-item {
-        border-top: 1px solid #e6e6e6;
-        cursor: pointer;
-    }
-
-    .pac-container .pac-item:hover {
-        background-color: #ebebeb;
-    }
-
-    .pac-container .pac-item-selected {
-        background-color: #4285f4;
-        color: white;
-    }
-
-    /* Ensure input field height consistency */
-    #new-location,
-    #radius-select,
-    #add-location-btn,
-    #detect-location-btn {
-        height: 32px !important;
-        line-height: 1.4;
-    }
-</style>
 
 <script>
 (function() {

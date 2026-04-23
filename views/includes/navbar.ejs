@@ -1,123 +1,98 @@
-<nav class="navbar navbar-expand-lg sticky-top">
-  <!-- Brand Logo -->
-  <a class="navbar-brand" href="/">
-    <div class="logo-container">
-      <img src="/img/icon.png" alt="KnockNFix Logo" class="logo-img" />
-    </div>
-    <span class="brand-text">KnockNFix</span>
-  </a>
+<nav class="navbar navbar-expand-lg sticky-top bg-white border-bottom shadow-sm py-2 px-3 px-lg-4 z-3">
+  <div class="container-fluid">
+    <!-- Brand Logo -->
+    <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none" href="/">
+      <img src="/img/icon.png" alt="KnockNFix Logo" width="32" height="32" class="object-fit-contain" />
+      <span class="fw-bold" style="font-size: 1.15rem; letter-spacing: -0.3px; background: linear-gradient(135deg, #ef4444, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">KnockNFix</span>
+    </a>
 
-  <!-- Location Bar (New Addition) -->
-  <div class="location-bar d-none d-lg-flex">
-    <div class="location-input-container">
-      <i class="fas fa-map-marker-alt location-icon"></i>
-      <input
-        type="text"
+    <!-- Location Bar (Desktop) -->
+    <div class="d-none d-lg-flex align-items-center gap-2 border rounded-pill px-3 py-1 ms-4 me-auto" style="max-width: 260px; background: #f0fdf4; border-color: #bbf7d0 !important; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#locationModal">
+      <i class="fas fa-map-marker-alt" style="color: #16a34a; font-size: 0.85rem;"></i>
+      <span
         id="navbar-location"
-        class="location-input"
-        placeholder="Detecting location..."
-        readonly
-      />
-      <button
-        type="button"
-        id="change-location-btn"
-        class="change-location-btn"
-      >
-        <i class="fas fa-edit"></i>
-      </button>
+        class="text-truncate fw-medium small"
+        style="color: #15803d; max-width: 160px;"
+      >Detecting location...</span>
+      <i class="fas fa-chevron-down ms-auto" style="color: #16a34a; font-size: 0.7rem;"></i>
     </div>
-  </div>
 
-  <!-- Toggle Button -->
-  <button
-    class="navbar-toggler"
-    type="button"
-    data-bs-toggle="collapse"
-    data-bs-target="#navbarNavAltMarkup"
-    aria-controls="navbarNavAltMarkup"
-    aria-expanded="false"
-    aria-label="Toggle navigation"
-  >
-    <span class="toggler-icon">
-      <i class="fas fa-bars"></i>
-    </span>
-  </button>
+    <!-- Toggle Button -->
+    <button
+      class="navbar-toggler border-0 shadow-none"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-  <!-- Navbar Content -->
-  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-    <!-- Mobile Location Bar -->
-    <div class="mobile-location-bar d-lg-none">
-      <div class="location-input-container mobile">
-        <i class="fas fa-map-marker-alt location-icon"></i>
-        <input
-          type="text"
-          id="mobile-navbar-location"
-          class="location-input"
-          placeholder="Detecting location..."
-          readonly
-        />
-        <button
-          type="button"
-          id="mobile-change-location-btn"
-          class="change-location-btn"
-        >
-          <i class="fas fa-edit"></i>
-        </button>
+    <!-- Navbar Content -->
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <!-- Mobile Location Bar -->
+      <div class="d-lg-none mt-3 mb-2 px-2">
+        <div class="d-flex align-items-center gap-2 rounded-pill px-3 py-2 w-100" style="background: #f0fdf4; border: 1px solid #bbf7d0; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#locationModal">
+          <i class="fas fa-map-marker-alt" style="color: #16a34a; font-size: 0.85rem;"></i>
+          <span
+            id="mobile-navbar-location"
+            class="text-truncate fw-medium small flex-grow-1"
+            style="color: #15803d;"
+          >Detecting location...</span>
+          <i class="fas fa-chevron-down" style="color: #16a34a; font-size: 0.7rem;"></i>
+        </div>
       </div>
-    </div>
 
-    <!-- Main Navigation Links -->
-    <ul class="navbar-nav mx-auto">
-      <li class="nav-item">
-        <a class="nav-link" href="/">
-          <i class="fas fa-home nav-icon"></i>
-          <span>Home</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/services">
-          <i class="fas fa-tools nav-icon"></i>
-          <span>Services</span>
-        </a>
-      </li>
-      <% if (typeof currProvider !=="undefined" && currProvider) { %>
-      <li class="nav-item">
-        <a class="nav-link" href="/dashboard">
-          <i class="fas fa-columns nav-icon"></i>
-          <span>Dashboard</span>
-        </a>
-      </li>
-      <% } %> <% if (typeof currCustomer !=="undefined" && currCustomer) { %>
-      <li class="nav-item">
-        <a class="nav-link" href="/dashboard">
-          <i class="fas fa-user-circle nav-icon"></i>
-          <span>Dashboard</span>
-        </a>
-      </li>
-      <% } %> <% if (typeof currUser !=="undefined" && currUser && currUser.role === 'admin') { %>
-      <li class="nav-item">
-        <a class="nav-link" href="/admin/dashboard">
-          <i class="fas fa-shield-alt nav-icon"></i>
-          <span>Admin</span>
-        </a>
-      </li>
-      <% } %>
-    </ul>
+      <!-- Main Navigation Links -->
+      <ul class="navbar-nav mx-auto gap-1 gap-lg-3 my-2 my-lg-0 align-items-lg-center">
+        <li class="nav-item">
+          <a class="nav-link text-secondary fw-medium px-3 py-2 rounded-3 transition-base hover-bg-light d-flex align-items-center gap-2" href="/">
+            <i class="fas fa-home"></i> <span>Home</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-secondary fw-medium px-3 py-2 rounded-3 transition-base hover-bg-light d-flex align-items-center gap-2" href="/services">
+            <i class="fas fa-tools"></i> <span>Services</span>
+          </a>
+        </li>
+        <% if (typeof currProvider !=="undefined" && currProvider) { %>
+        <li class="nav-item">
+          <a class="nav-link text-secondary fw-medium px-3 py-2 rounded-3 transition-base hover-bg-light d-flex align-items-center gap-2" href="/dashboard">
+            <i class="fas fa-columns"></i> <span>Dashboard</span>
+          </a>
+        </li>
+        <% } %> <% if (typeof currCustomer !=="undefined" && currCustomer) { %>
+        <li class="nav-item">
+          <a class="nav-link text-secondary fw-medium px-3 py-2 rounded-3 transition-base hover-bg-light d-flex align-items-center gap-2" href="/dashboard">
+            <i class="fas fa-user-circle"></i> <span>Dashboard</span>
+          </a>
+        </li>
+        <% } %> <% if (typeof currUser !=="undefined" && currUser && currUser.role === 'admin') { %>
+        <li class="nav-item">
+          <a class="nav-link text-secondary fw-medium px-3 py-2 rounded-3 transition-base hover-bg-light d-flex align-items-center gap-2" href="/admin/dashboard">
+            <i class="fas fa-shield-alt"></i> <span>Admin</span>
+          </a>
+        </li>
+        <% } %>
+      </ul>
 
-    <!-- Right-aligned Auth Links -->
-    <div class="navbar-nav auth-links">
-      <% if(!currUser){ %>
-      <a class="nav-link login-link" href="/login">
-        <i class="fas fa-sign-in-alt me-1"></i> Login
-      </a>
-      <a class="signup-btn" href="/register">
-        <i class="fas fa-user-plus me-1"></i> Sign Up
-      </a>
-      <% } else { %>
-      <a class="logout-btn" href="/logout">
-        <i class="fas fa-sign-out-alt me-1"></i> Logout
-      </a>
-      <% } %>
+      <!-- Right-aligned Auth Links -->
+      <div class="navbar-nav align-items-lg-center gap-2 mt-2 mt-lg-0 pb-3 pb-lg-0">
+        <% if(!currUser){ %>
+        <a class="btn btn-light fw-medium px-4 rounded-pill d-flex align-items-center gap-2 justify-content-center" href="/login">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        <a class="btn btn-primary fw-medium px-4 rounded-pill shadow-sm d-flex align-items-center gap-2 justify-content-center" href="/register">
+          <i class="fas fa-user-plus"></i> Sign Up
+        </a>
+        <% } else { %>
+        <a class="btn btn-danger bg-opacity-10 text-danger bg-light border-0 fw-medium px-4 rounded-pill transition-base hover-danger d-flex align-items-center gap-2 justify-content-center" href="/logout">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+        <% } %>
+      </div>
     </div>
   </div>
 </nav>
@@ -180,8 +155,29 @@
     </div>
   </div>
 </div>
-<link rel="stylesheet" href="/css/navbar.css" />
-
+<style>
+  .transition-base { transition: all 0.2s ease-in-out; }
+  .hover-bg-light:hover { background-color: rgba(0, 0, 0, 0.04); color: #0f172a !important; }
+  .hover-danger:hover { background-color: #dc3545 !important; color: white !important; }
+  
+  /* Location Autocomplete Overrides */
+  .pac-container {
+    z-index: 1060 !important;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border: none;
+    margin-top: 5px;
+    font-family: inherit;
+  }
+  .pac-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-top: 1px solid #f8f9fa;
+  }
+  .pac-item:hover {
+    background-color: #f8f9fa;
+  }
+</style>
 <!-- Load axios from CDN -->
 <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
 

@@ -1,57 +1,81 @@
-<button id="sidebarToggle" class="sidebar-toggle">
+<button id="sidebarToggle" class="btn btn-light border position-fixed shadow-sm d-md-none z-3" style="top: 80px; left: 20px;">
   <i class="fas fa-bars"></i>
 </button>
 
-<div class="sidebar">
-  <div class="sidebar-header">
-    <div class="sidebar-profile">
-      <img src="<%= user.profileImage || '/img/default-avatar.png' %>" alt="Profile" class="sidebar-profile-img" onerror="this.src='/img/default-avatar.png'" />
-      <div class="sidebar-status-indicator"></div>
+<div class="sidebar bg-white border-end d-flex flex-column z-2 position-sticky top-0 transition-base" style="width: 260px; height: calc(100vh - 70px); top: 70px;">
+  <div class="p-4 border-bottom bg-white">
+    <div class="position-relative mb-3 mx-auto" style="width: 64px; height: 64px;">
+      <img src="<%= user.profileImage || '/img/default-avatar.png' %>" alt="Profile" class="rounded border shadow-sm w-100 h-100 object-fit-cover" onerror="this.src='/img/default-avatar.png'" />
+      <div class="position-absolute bottom-0 end-0 rounded-circle bg-success border border-2 border-white" style="width: 14px; height: 14px; right: -4px; bottom: -4px;"></div>
     </div>
-    <h5 class="sidebar-name">
+    <h5 class="fw-bold text-dark m-0 fs-6 text-truncate text-center">
       <%= user.name %>
     </h5>
-    <p class="sidebar-email">
+    <p class="text-muted small text-truncate m-0 text-center">
       <%= user.username %>
     </p>
   </div>
 
-  <nav class="sidebar-nav">
-    <a href="#bookings" class="nav-link active" data-section="bookings">
-      <div class="nav-icon"><i class="fas fa-calendar-check"></i></div>
+  <nav class="p-3 flex-grow-1 overflow-y-auto">
+    <a href="#bookings" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg active-nav-link" data-section="bookings">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-calendar-check"></i></div>
       <span>Bookings</span>
     </a>
-    <a href="#profile" class="nav-link" data-section="profile">
-      <div class="nav-icon"><i class="fas fa-user"></i></div>
+    <a href="#profile" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg" data-section="profile">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-user"></i></div>
       <span>Profile</span>
     </a>
-    <a href="#settings" class="nav-link" data-section="settings">
-      <div class="nav-icon"><i class="fas fa-cog"></i></div>
+    <a href="#settings" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg" data-section="settings">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-cog"></i></div>
       <span>Settings</span>
     </a>
 
-    <div class="sidebar-divider">
+    <div class="mt-4 mb-2 px-2 text-muted fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;">
       <span>Support</span>
     </div>
 
-    <a href="/chatbot" class="nav-link chatbot-link">
-      <div class="nav-icon"><i class="fas fa-robot"></i></div>
+    <a href="/chatbot" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg chatbot-link">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-robot"></i></div>
       <span>Chat Assistant</span>
       <div class="chat-badge pulse" style="margin-left: auto; font-size: 0.7rem; background: #3b82f6; color: white; padding: 2px 6px; border-radius: 4px;">New</div>
     </a>
 
     <!-- Replace the help center link with complaints link -->
-    <a href="/complaints" class="nav-link">
-      <div class="nav-icon"><i class="fas fa-exclamation-circle"></i></div>
+    <a href="/complaints" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-exclamation-circle"></i></div>
       <span>Raise Issue</span>
     </a>
 
-    <a href="/logout" class="nav-link logout-link">
-      <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
+    <a href="/logout" class="d-flex align-items-center gap-2 p-3 mt-3 rounded-0 border-top text-danger text-decoration-none fw-medium transition-hover-bg logout-link">
+      <div class="d-flex align-items-center justify-content-center" style="width: 24px;"><i class="fas fa-sign-out-alt"></i></div>
       <span>Logout</span>
     </a>
   </nav>
 </div>
+
+<style>
+  /* Extra utility classes that aren't natively in Bootstrap */
+  .transition-base { transition: all 0.2s ease; }
+  .transition-hover-bg:hover { background-color: #f1f5f9; color: #0f172a !important; }
+  .transition-hover-bg:hover .text-muted { color: #475569 !important; }
+  .active-nav-link { background-color: #f1f5f9; color: #0f172a !important; font-weight: 600 !important; }
+  .active-nav-link .text-muted { color: #0f172a !important; }
+  
+  /* Responsive sidebar behavior */
+  @media (max-width: 768px) {
+    .sidebar {
+      transform: translateX(-100%);
+      position: fixed;
+      box-shadow: 10px 0 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    .sidebar.active { transform: translateX(0); }
+    body.sidebar-open::before {
+      content: "";
+      position: fixed; top: 70px; left: 0; width: 100%; height: calc(100vh - 70px);
+      background-color: rgba(15, 23, 42, 0.4); z-index: 80;
+    }
+  }
+</style>
 
 
 
@@ -79,7 +103,7 @@
     }
 
     // Navigation item click
-    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link[data-section]');
+    const navLinks = document.querySelectorAll('.sidebar [data-section]');
     navLinks.forEach(link => {
       link.addEventListener('click', function (e) {
         // Prevent default only for dashboard navigation, not for external links
@@ -87,8 +111,8 @@
           e.preventDefault();
 
           // Update active class
-          navLinks.forEach(navLink => navLink.classList.remove('active'));
-          this.classList.add('active');
+          navLinks.forEach(navLink => navLink.classList.remove('active-nav-link'));
+          this.classList.add('active-nav-link');
 
           // Show corresponding section
           const targetSection = this.getAttribute('data-section');
@@ -114,7 +138,7 @@
     // Handle initial hash
     const initialHash = window.location.hash.substring(1);
     if (initialHash) {
-      const activeNavLink = document.querySelector(`.sidebar-nav .nav-link[data-section="${initialHash}"]`);
+      const activeNavLink = document.querySelector(`.sidebar [data-section="${initialHash}"]`);
       if (activeNavLink) {
         activeNavLink.click();
       }

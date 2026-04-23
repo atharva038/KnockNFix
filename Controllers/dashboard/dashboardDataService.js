@@ -1,5 +1,6 @@
 const ServiceProvider = require("../../models/ServiceProvider");
 const Service = require("../../models/Service");
+const Category = require("../../models/category");
 const Booking = require("../../models/Booking");
 const Payment = require("../../models/Payment");
 
@@ -234,6 +235,9 @@ async function getProviderDashboardData(userId) {
       .limit(5)
       .lean();
 
+    const categories = await Category.find().lean();
+    const availableServices = await Service.find().populate("category").lean();
+
     return {
       provider: providerWithServices || serviceProviderData,
       bookings: processedBookings,
@@ -243,10 +247,12 @@ async function getProviderDashboardData(userId) {
       earnings: totalEarnings,
       automatedEarnings,
       recentPayments: recentPayments.filter((p) => p.booking),
+      categories: categories || [],
+      availableServices: availableServices || [],
     };
   } catch (error) {
     console.error("Error fetching provider dashboard data:", error);
-    return { provider: null, bookings: [], services: [], bookingStats: { total: 0, pending: 0, confirmed: 0, completed: 0, cancelled: 0, increase: 0 }, ratings: { average: 0, total: 0 }, earnings: 0, automatedEarnings: 0, recentPayments: [] };
+    return { provider: null, bookings: [], services: [], bookingStats: { total: 0, pending: 0, confirmed: 0, completed: 0, cancelled: 0, increase: 0 }, ratings: { average: 0, total: 0 }, earnings: 0, automatedEarnings: 0, recentPayments: [], categories: [], availableServices: [] };
   }
 }
 

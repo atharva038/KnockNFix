@@ -166,49 +166,17 @@ function updateProviderInfo(formData) {
         });
 }
 
-// Global toast function
+// Toast notifications – delegates to KNFCore.notify if available, falls back to alert
 function showToast(type, message) {
-    const toastContainer = document.getElementById('toast-container') || createToastContainer();
-
-    const toast = document.createElement('div');
-    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
-    toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'assertive');
-    toast.setAttribute('aria-atomic', 'true');
-
-    toast.innerHTML = `
-      <div class="d-flex">
-        <div class="toast-body">
-          <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
-          ${message}
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-    `;
-
-    toastContainer.appendChild(toast);
-
-    // Use Bootstrap's toast functionality if available
-    if (typeof bootstrap !== 'undefined') {
-        const bsToast = new bootstrap.Toast(toast, { delay: 5000 });
-        bsToast.show();
-    } else {
-        // Manual fallback
-        toast.style.display = 'block';
-        setTimeout(() => {
-            toast.remove();
-        }, 5000);
+    const _notify = window.KNFCore && window.KNFCore.notify;
+    if (_notify) {
+        if (type === 'success' && typeof _notify.success === 'function') return _notify.success(message);
+        if (type === 'error' && typeof _notify.error === 'function') return _notify.error(message);
+        if (type === 'info' && typeof _notify.info === 'function') return _notify.info(message);
     }
+    alert(message);
 }
 
-function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toast-container';
-    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-    container.style.zIndex = '1080';
-    document.body.appendChild(container);
-    return container;
-}
 
 // Main event listener for when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function () {
@@ -222,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // SECTION 1: DASHBOARD NAVIGATION
     // ---------------------------------------------
-    const navLinks = document.querySelectorAll('.nav-link[data-section]');
+    const navLinks = document.querySelectorAll('.sidebar [data-section]');
     const sections = document.querySelectorAll('.dashboard-section');
 
     function showSection(sectionId) {
@@ -247,9 +215,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Update active state in navigation
         navLinks.forEach(link => {
-            link.classList.remove('active');
+            link.classList.remove('active-nav-link');
             if (link.getAttribute('data-section') === sectionId) {
-                link.classList.add('active');
+                link.classList.add('active-nav-link');
             }
         });
     }
@@ -784,10 +752,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 saveBtn.classList.remove('saving');
             });
     }
-});
-// Add this to your providerDashboard.js file
-document.addEventListener('DOMContentLoaded', function () {
-    // Service area form handling
+
+    // ─── SERVICE AREA SECTION ───────────────────────────────────────────────
     const saveServiceAreaBtn = document.getElementById('saveServiceAreaBtn');
     if (saveServiceAreaBtn) {
         saveServiceAreaBtn.addEventListener('click', saveServiceArea);
@@ -833,53 +799,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    function showToast(type, message) {
-        const toastContainer = document.getElementById('toast-container') || createToastContainer();
-
-        const toast = document.createElement('div');
-        toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
-        toast.setAttribute('role', 'alert');
-        toast.setAttribute('aria-live', 'assertive');
-        toast.setAttribute('aria-atomic', 'true');
-
-        toast.innerHTML = `
-      <div class="d-flex">
-        <div class="toast-body">
-          <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
-          ${message}
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-    `;
-
-        toastContainer.appendChild(toast);
-
-        // Use Bootstrap's toast functionality if available
-        if (typeof bootstrap !== 'undefined') {
-            const bsToast = new bootstrap.Toast(toast, { delay: 5000 });
-            bsToast.show();
-        } else {
-            // Manual fallback
-            toast.style.display = 'block';
-            setTimeout(() => {
-                toast.remove();
-            }, 5000);
-        }
-    }
-
-    function createToastContainer() {
-        const container = document.createElement('div');
-        container.id = 'toast-container';
-        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-        container.style.zIndex = '1080';
-        document.body.appendChild(container);
-        return container;
-    }
-});
-// Add this to your providerDashboard.js file (after the existing code)
-
-// Bank details form handling
-document.addEventListener('DOMContentLoaded', function () {
+    // ─── BANK DETAILS SECTION ────────────────────────────────────────────────
     const bankDetailsForm = document.getElementById('bankDetailsForm');
     if (bankDetailsForm) {
         bankDetailsForm.addEventListener('submit', function (event) {

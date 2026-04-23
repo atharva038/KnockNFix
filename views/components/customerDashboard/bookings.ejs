@@ -114,7 +114,11 @@
                   </div>
                 </td>
                 <td data-label="Status" class="py-3 px-4 border-bottom">
-                  <span class="status-badge status-<%= booking.status.toLowerCase() %>">
+                  <span class="badge rounded-pill px-3 py-2 text-uppercase fw-bold
+                    <%= booking.status.toLowerCase() === 'pending' ? 'bg-warning text-dark' : 
+                        booking.status.toLowerCase() === 'confirmed' ? 'bg-info text-dark' : 
+                        booking.status.toLowerCase() === 'completed' ? 'bg-success' : 
+                        booking.status.toLowerCase() === 'cancelled' ? 'bg-danger' : 'bg-secondary' %>">
                     <%= booking.status %>
                   </span>
                 </td>

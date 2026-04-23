@@ -844,18 +844,15 @@ document.addEventListener("DOMContentLoaded", function () {
       // Update location display
       function updateLocationDisplay(text, state) {
         state = state || "normal";
-        const inputs = [locationInput, mobileLocationInput].filter(Boolean);
-        const containers = document.querySelectorAll(
-          ".location-input-container"
-        );
+        const displays = [locationInput, mobileLocationInput].filter(Boolean);
 
-        inputs.forEach(function (input) {
-          input.value = text;
-          input.className = "location-input " + state;
-        });
-
-        containers.forEach(function (container) {
-          container.className = "location-input-container " + state;
+        displays.forEach(function (el) {
+          // Support both <input> (legacy) and <span> (new design)
+          if (el.tagName === 'INPUT') {
+            el.value = text;
+          } else {
+            el.textContent = text;
+          }
         });
       }
 

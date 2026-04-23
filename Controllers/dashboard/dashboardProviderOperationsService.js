@@ -23,21 +23,14 @@ exports.updateProviderInfo = async (req, res) => {
 };
 
 exports.showRegisterService = async (req, res) => {
-  try {
-    const categories = await Category.find().lean();
-    const services = await Service.find().populate("category").lean();
-    return res.render("pages/public/registerService", { categories, services, user: req.user, title: "Register Service" });
-  } catch (err) {
-    req.flash("error", "Unable to load categories and services");
-    return res.redirect("/dashboard");
-  }
+  return res.redirect("/dashboard#registerService");
 };
 
 exports.registerService = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     req.flash("error", errors.array().map((e) => e.msg).join(", "));
-    return res.redirect("/dashboard/registerService");
+    return res.redirect("/dashboard#registerService");
   }
 
   try {
@@ -52,7 +45,7 @@ exports.registerService = async (req, res) => {
       );
       if (isDuplicate) {
         req.flash("error", "You have already registered for this service");
-        return res.redirect("/dashboard/registerService");
+        return res.redirect("/dashboard#registerService");
       }
 
       const existingCategoryIndex = serviceProvider.servicesOffered.findIndex(
@@ -87,7 +80,7 @@ exports.registerService = async (req, res) => {
   } catch (err) {
     console.error("Service registration error:", err);
     req.flash("error", "Failed to register service. Please try again.");
-    return res.redirect("/dashboard/registerService");
+    return res.redirect("/dashboard#registerService");
   }
 };
 

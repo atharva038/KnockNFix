@@ -1,4 +1,14 @@
 (function () {
+  // KNFCore utilities — available because core scripts load before this file
+  var _api    = (window.KNFCore && window.KNFCore.api)    || null;
+  var _notify = (window.KNFCore && window.KNFCore.notify) || null;
+
+  function showToast(type, message) {
+    if (_notify && typeof _notify[type] === 'function') return _notify[type](message);
+    if (_notify && type === 'error' && typeof _notify.error === 'function') return _notify.error(message);
+    alert(message);
+  }
+
   // Global variables
   let map = null;
   let marker = null;
@@ -454,43 +464,31 @@
     const radius = parseInt(radiusSelect.value);
     const address = locationInput.value.trim();
 
-    const processLocationData = (position) => {
-      // Send to server
-      fetch("/dashboard/api/provider/locations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: address,
-          address: address,
-          lat: position.lat,
-          lng: position.lng,
-          radius: radius,
-        }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            showToast("success", "Location added successfully");
-            updateLocationsList(data, position, address, radius);
+    const processLocationData = async (position) => {
+      try {
+        const data = _api
+          ? await _api.post('/dashboard/api/provider/locations', {
+              name: address, address: address,
+              lat: position.lat, lng: position.lng, radius: radius
+            })
+          : await fetch('/dashboard/api/provider/locations', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: address, address: address, lat: position.lat, lng: position.lng, radius: radius })
+            }).then(r => r.json());
 
-            // Clear form
-            locationInput.value = "";
-            locationInput.dataset.lat = "";
-            locationInput.dataset.lng = "";
-          } else {
-            throw new Error(data.message || "Failed to add location");
-          }
-        })
-        .catch((error) => {
-          showToast("error", error.message || "Error adding location");
-        })
-        .finally(() => {
-          // Reset button
-          addLocationBtn.disabled = false;
-          addLocationBtn.innerHTML = "Add";
-        });
+        if (!data.success) throw new Error(data.message || 'Failed to add location');
+        showToast('success', 'Location added successfully');
+        updateLocationsList(data, position, address, radius);
+        locationInput.value = '';
+        locationInput.dataset.lat = '';
+        locationInput.dataset.lng = '';
+      } catch (error) {
+        showToast('error', error.message || 'Error adding location');
+      } finally {
+        addLocationBtn.disabled = false;
+        addLocationBtn.innerHTML = 'Add';
+      }
     };
 
     // If we already have coordinates, use them directly
@@ -626,22 +624,18 @@
       return;
     }
 
-    if (confirm("Are you sure you want to remove this location?")) {
-      // Show loading state
+    if (confirm('Are you sure you want to remove this location?')) {
       buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
       buttonElement.disabled = true;
 
-      fetch(`/dashboard/api/provider/locations/${locationId}`, {
-        method: "DELETE",
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Server returned status ${response.status}`);
-          }
-          return response.json();
-        })
+      const doRemove = _api
+        ? _api.delete(`/dashboard/api/provider/locations/${locationId}`)
+        : fetch(`/dashboard/api/provider/locations/${locationId}`, { method: 'DELETE' })
+            .then(r => { if (!r.ok) throw new Error(`Server returned status ${r.status}`); return r.json(); });
+
+      doRemove
         .then((data) => {
-          if (data.success) {
+          if (!data.success) throw new Error(data.message || 'Failed to remove location');
             // Remove from UI
             const locationTag = buttonElement.closest(".location-tag");
             if (locationTag) {
@@ -714,23 +708,15 @@
     button.innerHTML =
       '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
 
-    // Save to server
-    fetch("/profile/travel-fee", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        enabled: travelFeeEnabled,
-        amount: amount,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Server returned status ${response.status}`);
-        }
-        return response.json();
-      })
+    const doSave = _api
+      ? _api.post('/profile/travel-fee', { enabled: travelFeeEnabled, amount: amount })
+      : fetch('/profile/travel-fee', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: travelFeeEnabled, amount: amount })
+        }).then(r => { if (!r.ok) throw new Error(`Server returned status ${r.status}`); return r.json(); });
+
+    doSave
       .then((data) => {
         if (data.success) {
           // Update provider data

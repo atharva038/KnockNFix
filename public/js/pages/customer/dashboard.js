@@ -1,23 +1,19 @@
-/**
- * Customer Dashboard JavaScript
- * Handles booking management, payments, and user interactions
- */
-
-var knfCore = window.KNFCore || {};
-var knfApi = knfCore.api;
-var knfNotify = knfCore.notify;
+// Resolve KNFCore utilities
+var _api    = (window.KNFCore && window.KNFCore.api)    || null;
+var _notify = (window.KNFCore && window.KNFCore.notify) || null;
+var _book   = (window.KNFCore && window.KNFCore.booking) || null;
 
 function notify(type, message, options) {
-    if (knfNotify && typeof knfNotify[type] === 'function') {
-        knfNotify[type](message, options);
+    if (_notify && typeof _notify[type] === 'function') {
+        _notify[type](message, options);
         return;
     }
     alert(message);
 }
 
 function confirmAction(message) {
-    if (knfNotify && typeof knfNotify.confirm === 'function') {
-        return knfNotify.confirm(message);
+    if (_notify && typeof _notify.confirm === 'function') {
+        return _notify.confirm(message);
     }
     return window.confirm(message);
 }
@@ -31,66 +27,31 @@ function getErrorInfo(error, fallbackMessage) {
         error?.data?.message ||
         error?.message ||
         fallbackMessage;
-
     return { status, message };
 }
 
-async function apiGet(url, options = {}) {
-    if (knfApi && typeof knfApi.get === 'function') {
-        return knfApi.get(url, options);
-    }
-
-    if (window.axios) {
-        const response = await window.axios.get(url, options);
-        return response.data;
-    }
-
-    const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json'
-        }
-    });
-
+async function apiGet(url, options) {
+    if (_api && typeof _api.get === 'function') return _api.get(url, options);
+    const response = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } });
     const data = await response.json();
     if (!response.ok) {
         const error = new Error((data && (data.error || data.message)) || 'Request failed');
-        error.status = response.status;
-        error.data = data;
-        throw error;
+        error.status = response.status; error.data = data; throw error;
     }
-
     return data;
 }
 
-async function apiPost(url, body = {}, options = {}) {
-    if (knfApi && typeof knfApi.post === 'function') {
-        return knfApi.post(url, body, options);
-    }
-
-    if (window.axios) {
-        const response = await window.axios.post(url, body, options);
-        return response.data;
-    }
-
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    });
-
+async function apiPost(url, body, options) {
+    if (_api && typeof _api.post === 'function') return _api.post(url, body, options);
+    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const data = await response.json();
     if (!response.ok) {
         const error = new Error((data && (data.error || data.message)) || 'Request failed');
-        error.status = response.status;
-        error.data = data;
-        throw error;
+        error.status = response.status; error.data = data; throw error;
     }
-
     return data;
 }
+
 
 // ============================================================================
 // INITIALIZATION
@@ -323,20 +284,11 @@ function updateBookingModal(booking) {
     setElementText('modal-service-name', booking.service?.name || 'Unknown Service');
     setElementText('modal-provider-name', booking.provider?.user?.name || 'Unknown Provider');
 
-    // Format and set date/time
     const bookingDate = new Date(booking.bookingDate || booking.date);
-    const dateStr = bookingDate.toLocaleDateString('en-IN', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-    const timeStr = bookingDate.toLocaleTimeString('en-IN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-    });
-    setElementText('modal-booking-date', `${dateStr} at ${timeStr}`);
+    const dateTimeStr = _book ? _book.formatBookingDate(bookingDate)
+        : bookingDate.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+          + ' at ' + bookingDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    setElementText('modal-booking-date', dateTimeStr);
 
     // Address and notes
     setElementText('modal-booking-address', booking.address || "Not specified");
@@ -367,11 +319,10 @@ function updateBookingModal(booking) {
  * @returns {string} Formatted payment status text
  */
 function getPaymentStatusText(paymentStatus) {
-    const statusMap = {
-        'completed': 'Fully Paid',
-        'partially_paid': 'Advance Paid',
-        'pending': 'Pending'
-    };
+    if (_book && typeof _book.getPaymentStatusText === 'function') {
+        return _book.getPaymentStatusText(paymentStatus);
+    }
+    const statusMap = { 'completed': 'Fully Paid', 'partially_paid': 'Advance Paid', 'pending': 'Pending' };
     return statusMap[paymentStatus] || 'Pending';
 }
 

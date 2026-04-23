@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const toggle = document.getElementById('sidebarToggle');
     const overlay = document.querySelector('.sidebar-overlay');
     const body = document.body;
-    const navLinks = document.querySelectorAll('.nav-link[data-section]');
+    const navLinks = document.querySelectorAll('.sidebar [data-section]');
 
     // Setup tooltip data attributes for all navigation links
     navLinks.forEach(link => {
@@ -65,8 +65,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (targetSection) {
                     // Update active link
-                    navLinks.forEach(navLink => navLink.classList.remove('active'));
-                    this.classList.add('active');
+                    navLinks.forEach(navLink => navLink.classList.remove('active-nav-link'));
+                    this.classList.add('active-nav-link');
 
                     // Hide all sections, show target section
                     const sections = document.querySelectorAll('.dashboard-section');
@@ -98,12 +98,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const handleHashNavigation = () => {
         const hash = window.location.hash.substring(1);
         if (hash) {
-            const targetLink = document.querySelector(`.nav-link[data-section="${hash}"]`);
+            const targetLink = document.querySelector(`.sidebar [data-section="${hash}"]`);
             if (targetLink) {
                 targetLink.click();
             }
         } else {
-            const firstLink = document.querySelector('.nav-link[data-section]');
+            const firstLink = document.querySelector('.sidebar [data-section]');
             if (firstLink) {
                 firstLink.click();
             }

@@ -1,67 +1,79 @@
 <section id="profile" class="dashboard-section">
-  <div class="section-header">
-    <h2><i class="fas fa-user-circle me-2"></i>Profile Information</h2>
-    <div class="profile-actions">
-      <a href="/auth/reset-password" class="btn btn-outline-primary btn-sm me-2">
-        <i class="fas fa-key me-1"></i>Change Password
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom gap-3">
+    <h2 class="fs-4 fw-bold text-dark mb-0"><i class="fas fa-user-circle text-primary me-2"></i>Profile Information</h2>
+    <div class="d-flex gap-2">
+      <a href="/auth/reset-password" class="btn btn-outline-primary btn-sm rounded shadow-sm px-3 d-flex align-items-center">
+        <i class="fas fa-key me-2"></i>Change Password
       </a>
-      <button class="btn btn-primary btn-sm" onclick="openEditModal()">
-        <i class="fas fa-edit me-1"></i>Edit Profile
+      <button class="btn btn-primary btn-sm rounded shadow-sm px-3 d-flex align-items-center" onclick="openEditModal()">
+        <i class="fas fa-edit me-2"></i>Edit Profile
       </button>
     </div>
   </div>
 
-  <div class="content-card">
+  <div class="card border-0 shadow-sm rounded-4 p-4 mt-4 bg-white">
     <div class="row">
       <!-- Profile Image Section - Removed change photo functionality -->
-      <div class="col-md-4 text-center">
-        <div class="profile-image-container mb-4">
-          <img src="<%= user.profileImage || '/img/default-avatar.png' %>" alt="Profile" class="profile-image"
+      <div class="col-md-4 text-center border-md-end pe-md-4 mb-4 mb-md-0">
+        <div class="position-relative d-inline-block mb-3">
+          <img src="<%= user.profileImage || '/img/default-avatar.png' %>" alt="Profile" 
+            class="rounded-circle object-fit-cover shadow border border-3 border-white"
+            style="width: 150px; height: 150px;"
             id="profilePreview" />
-          <!-- Removed image overlay and file input for main profile view -->
         </div>
 
-        <h3 class="user-name mb-2">
+        <h3 class="fw-bold text-dark mb-1 fs-4">
           <%= user.name %>
         </h3>
-        <p class="user-email mb-4">
+        <p class="text-secondary mb-3">
           <%= user.username %>
         </p>
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-medium">Provider Account</span>
       </div>
 
       <!-- Profile Details Section -->
-      <div class="col-md-8">
-        <div class="profile-details">
-          <div class="detail-item">
-            <label><i class="fas fa-phone me-2"></i>Phone Number</label>
-            <p>
-              <%= user.phone || 'Not provided' %>
-            </p>
+      <div class="col-md-8 ps-md-4">
+        <div class="row g-4">
+          <div class="col-sm-6">
+            <div class="p-3 bg-light rounded-3 h-100">
+              <label class="text-secondary small fw-bold text-uppercase letter-spacing-1 mb-2 d-flex align-items-center"><i class="fas fa-phone text-primary me-2"></i>Phone Number</label>
+              <p class="fw-medium text-dark mb-0 fs-6">
+                <%= user.phone || 'Not provided' %>
+              </p>
+            </div>
           </div>
-          <div class="detail-item">
-            <label><i class="fas fa-map-marker-alt me-2"></i>Address</label>
-            <p>
-              <%= user.address || 'Not provided' %>
-            </p>
+          <div class="col-sm-6">
+            <div class="p-3 bg-light rounded-3 h-100">
+              <label class="text-secondary small fw-bold text-uppercase letter-spacing-1 mb-2 d-flex align-items-center"><i class="fas fa-map-marker-alt text-primary me-2"></i>Address</label>
+              <p class="fw-medium text-dark mb-0 fs-6">
+                <%= user.address || 'Not provided' %>
+              </p>
+            </div>
           </div>
-          <div class="detail-item">
-            <label><i class="fas fa-id-card me-2"></i>Experience</label>
-            <p>
-              <%= provider.experience || 'Not specified' %> years
-            </p>
+          <div class="col-sm-6">
+            <div class="p-3 bg-light rounded-3 h-100">
+              <label class="text-secondary small fw-bold text-uppercase letter-spacing-1 mb-2 d-flex align-items-center"><i class="fas fa-id-card text-primary me-2"></i>Experience</label>
+              <p class="fw-medium text-dark mb-0 fs-6">
+                <%= provider.experience || 'Not specified' %> years
+              </p>
+            </div>
           </div>
-          <div class="detail-item">
-            <label><i class="fas fa-certificate me-2"></i>Specialization</label>
-            <p>
-              <%= provider.specialization || 'Not specified' %>
-            </p>
+          <div class="col-sm-6">
+            <div class="p-3 bg-light rounded-3 h-100">
+              <label class="text-secondary small fw-bold text-uppercase letter-spacing-1 mb-2 d-flex align-items-center"><i class="fas fa-certificate text-primary me-2"></i>Specialization</label>
+              <p class="fw-medium text-dark mb-0 fs-6">
+                <%= provider.specialization || 'Not specified' %>
+              </p>
+            </div>
           </div>
-          <div class="detail-item">
-            <label><i class="fas fa-calendar me-2"></i>Member Since</label>
-            <p>
-              <%= new Date(user.createdAt).toLocaleDateString('en-IN', { year: 'numeric' , month: 'long' ,
-                day: 'numeric' }) %>
-            </p>
+          <div class="col-12">
+            <div class="p-3 bg-light rounded-3">
+              <label class="text-secondary small fw-bold text-uppercase letter-spacing-1 mb-2 d-flex align-items-center"><i class="fas fa-calendar text-primary me-2"></i>Member Since</label>
+              <p class="fw-medium text-dark mb-0 fs-6">
+                <%= new Date(user.createdAt).toLocaleDateString('en-IN', { year: 'numeric' , month: 'long' ,
+                  day: 'numeric' }) %>
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -146,34 +158,7 @@
   </div>
 </section>
 
-<style>
-  /* Added styles for the profile actions buttons */
-  .profile-actions {
-    display: flex;
-    gap: 10px;
-  }
 
-  .btn-outline-primary {
-    color: #6366f1;
-    border-color: #6366f1;
-    background-color: transparent;
-    transition: all 0.3s ease;
-  }
-
-  .btn-outline-primary:hover {
-    color: #fff;
-    background-color: #6366f1;
-    border-color: #6366f1;
-  }
-
-  /* Ensuring the section header has proper layout for the buttons */
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-</style>
 
 <script>
   // Function to handle the "Change Password" button

@@ -1,23 +1,28 @@
 <% layout("/layouts/boilerplate.ejs") %>
-  <link rel="stylesheet" href="/css/dashboardSidebar.css" />
-  <link rel="stylesheet" href="/css/providerDashboard.css" />
-  <link rel="stylesheet" href="/css/providerDashboard/locations.css" />
+  <style>
+    .dashboard-section { display: none; }
+    .dashboard-section.active { display: block; }
+    .transition-hover { transition: all 0.2s ease-in-out; }
+    .transition-hover:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important; border-color: #cbd5e1 !important; }
+    .transition-base { transition: all 0.2s ease; }
+    .profile-image-wrapper:hover .image-overlay-custom { opacity: 1 !important; }
+  </style>
 
-  <div class="dashboard-container">
+  <div class="d-flex align-items-start bg-light min-vh-100 position-relative">
     <!-- Sidebar -->
     <%- include('../../components/providerDashboard/providerSidebar', { user: currUser }) %>
 
 
       <!-- Main Content -->
-      <div class="main-content">
-        <%- include('../../components/providerDashboard/overview', { user: currUser, provider: provider, bookings:
-          bookings, bookingStats: bookingStats, ratings: ratings }) %>
+      <div class="flex-grow-1 p-3 p-md-5 mx-auto bg-light transition-base w-100" style="max-width: 1400px; overflow-x: hidden;">
+        <%- include('../../components/providerDashboard/overview', { user: currUser, provider: provider, bookings: bookings, bookingStats: bookingStats, ratings: ratings }) %>
           <%- include('../../components/providerDashboard/services', { provider: provider, services: services }) %>
             <%- include('../../components/providerDashboard/bookings', { bookings: bookings, user: currUser }) %>
               <%- include('../../components/providerDashboard/locations', { provider: provider }) %>
                 <%- include('../../components/providerDashboard/profile', { user: currUser, provider: provider }) %>
                   <%- include('../../components/providerDashboard/settings', { user: currUser, provider: provider }) %>
                     <%- include('../../components/providerDashboard/banking') %>
+                      <%- include('../../components/providerDashboard/registerService', { categories: categories, availableServices: availableServices }) %>
       </div>
   </div>
 
@@ -30,7 +35,14 @@
     });
   </script>
 
-  <!-- Load other scripts -->
+  <!-- KNFCore utilities (must load before page scripts) -->
+  <script src="/js/core/dom.js"></script>
+  <script src="/js/core/api.js"></script>
+  <script src="/js/core/notify.js"></script>
+  <script src="/js/core/booking.js"></script>
+  <script src="/js/core/btnState.js"></script>
+
+  <!-- Page scripts -->
   <script src="/js/pages/provider/dashboard.js"></script>
   <script src="/js/pages/common/sidebarToggle.js"></script>
   <script src="/js/pages/provider/locations.js"></script>

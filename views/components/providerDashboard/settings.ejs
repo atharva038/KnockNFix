@@ -1,35 +1,33 @@
 <section id="settings" class="dashboard-section">
-  <div class="section-header">
-    <h2><i class="fas fa-cog me-2"></i>Settings</h2>
-    <button type="button" class="btn btn-primary" id="saveAvailabilityBtn">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom gap-3">
+    <h2 class="fs-4 fw-bold text-dark mb-0"><i class="fas fa-cog text-primary me-2"></i>Settings</h2>
+    <button type="button" class="btn btn-primary rounded px-4" id="saveAvailabilityBtn">
       <i class="fas fa-save me-2"></i>Save Changes
     </button>
   </div>
 
-  <div class="content-card">
-
-
+  <div class="card border-0 shadow-sm rounded-4 p-4 mt-4 bg-white">
     <!-- Notification settings -->
-    <div class="setting-section mt-4">
-      <h4>Notifications</h4>
-      <div class="notification-settings">
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="email-notifications" checked />
-          <label class="form-check-label" for="email-notifications">Email Notifications</label>
+    <div class="mb-5">
+      <h4 class="fs-5 fw-bold text-dark mb-3">Notifications</h4>
+      <div class="bg-light p-3 rounded-3">
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input shadow-sm" type="checkbox" id="email-notifications" checked />
+          <label class="form-check-label fw-medium text-dark" for="email-notifications">Email Notifications</label>
         </div>
         <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="sms-notifications" checked />
-          <label class="form-check-label" for="sms-notifications">SMS Notifications</label>
+          <input class="form-check-input shadow-sm" type="checkbox" id="sms-notifications" checked />
+          <label class="form-check-label fw-medium text-dark" for="sms-notifications">SMS Notifications</label>
         </div>
       </div>
     </div>
 
     <!-- Account settings -->
-    <div class="setting-section mt-4">
-      <h4>Account</h4>
-      <div class="account-settings">
-        <button class="btn btn-outline-primary">Change Password</button>
-        <button class="btn btn-outline-danger">Deactivate Account</button>
+    <div>
+      <h4 class="fs-5 fw-bold text-dark mb-3">Account</h4>
+      <div class="d-flex gap-3 bg-light p-3 rounded-3">
+        <button class="btn btn-outline-primary rounded px-4">Change Password</button>
+        <button class="btn btn-outline-danger rounded px-4">Deactivate Account</button>
       </div>
     </div>
   </div>

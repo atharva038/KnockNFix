@@ -1,13 +1,20 @@
 <% layout("/layouts/boilerplate.ejs") %>
-  <link rel="stylesheet" href="/css/dashboardSidebar.css" />
-  <link rel="stylesheet" href="/css/customerDashboard.css" />
 
-  <div class="dashboard-container">
+  <style>
+    .dashboard-section { display: none; }
+    .dashboard-section.active { display: block; }
+    .transition-hover { transition: all 0.2s ease-in-out; }
+    .transition-hover:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important; border-color: #cbd5e1 !important; }
+    .transition-base { transition: all 0.2s ease; }
+    .profile-image-wrapper:hover .image-overlay-custom { opacity: 1 !important; }
+  </style>
+
+  <div class="d-flex align-items-start bg-light min-vh-100 position-relative">
     <!-- Sidebar -->
     <%- include('../../components/customerDashboard/customerSidebar', { user: currUser }) %>
 
       <!-- Main Content -->
-      <div class="main-content">
+      <div class="flex-grow-1 p-3 p-md-5 mx-auto bg-light transition-base" style="max-width: 1400px;">
         <% try { %> <%- include('../../components/customerDashboard/bookings', { bookings }) %>
             <% } catch (e) { %>
               <div class="alert alert-danger">
@@ -18,8 +25,12 @@
       </div>
   </div>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <!-- KNFCore utilities -->
   <script src="/js/core/dom.js"></script>
   <script src="/js/core/api.js"></script>
   <script src="/js/core/notify.js"></script>
+  <script src="/js/core/booking.js"></script>
+  <script src="/js/core/btnState.js"></script>
+  <!-- Page scripts -->
   <script src="/js/pages/customer/dashboard.js"></script>
   <script src="/js/pages/common/sidebarToggle.js"></script>

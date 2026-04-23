@@ -1,0 +1,114 @@
+<section id="registerService" class="dashboard-section" style="display: none;">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom gap-3">
+    <div>
+      <h2 class="fs-4 fw-bold text-dark mb-0"><i class="fas fa-plus-circle text-primary me-2"></i>Register for a new service</h2>
+      <p class="text-secondary mb-0 small mt-1">Select a category and service to add to your profile.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12 col-lg-8 col-xl-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+
+    <form action="/dashboard/registerService" method="post" class="needs-validation" novalidate>
+      <!-- Select Category -->
+      <div class="mb-4">
+        <label for="serviceCategories" class="form-label fw-medium text-dark">
+          <i class="fas fa-folder text-primary me-2"></i>Service Category <span class="text-danger">*</span>
+        </label>
+        <select name="serviceCategories" class="form-select shadow-sm border-0 bg-light" id="serviceCategories"
+          onchange="updateServices()" required>
+          <option value="">Select a Category</option>
+          <% categories.forEach(category=> { %>
+            <option value="<%= category._id %>">
+              <%= category.name %>
+            </option>
+          <% }); %>
+        </select>
+        <div class="invalid-feedback">Please select a category.</div>
+      </div>
+
+      <!-- Select Services -->
+      <div class="mb-4">
+        <label for="services" class="form-label fw-medium text-dark">
+          <i class="fas fa-tools text-primary me-2"></i>Select Service <span class="text-danger">*</span>
+        </label>
+        <select name="services" class="form-select shadow-sm border-0 bg-light" id="services" required>
+          <option value="">First select a category</option>
+        </select>
+        <div class="invalid-feedback">Please select a service.</div>
+      </div>
+
+      <!-- Price -->
+      <div class="mb-4">
+        <label for="cost" class="form-label fw-medium text-dark">
+          <i class="fas fa-rupee-sign text-primary me-2"></i>Service Cost (₹) <span class="text-danger">*</span>
+        </label>
+        <input type="number" name="cost" id="cost" class="form-control shadow-sm border-0 bg-light" placeholder="e.g., 500" required />
+        <div class="invalid-feedback">Please enter a valid cost.</div>
+      </div>
+
+      <!-- Experience -->
+      <div class="mb-4">
+        <label for="experience" class="form-label fw-medium text-dark">
+          <i class="fas fa-id-card text-primary me-2"></i>Years of Experience <span class="text-danger">*</span>
+        </label>
+        <input type="number" name="experience" id="experience" class="form-control shadow-sm border-0 bg-light" placeholder="e.g., 2" required />
+        <div class="invalid-feedback">Please enter your experience.</div>
+      </div>
+
+      <div class="mt-4 pt-3 border-top">
+        <button class="btn btn-primary rounded px-4 shadow-sm w-100 py-2 fw-medium" type="submit">
+          <i class="fas fa-check-circle me-2"></i>Register Service
+        </button>
+      </div>
+    </form>
+  </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Store all services in a JavaScript object
+  const allServices = <%- JSON.stringify(availableServices || []) %>;
+
+  function updateServices() {
+    const categoryId = document.getElementById("serviceCategories").value;
+    const servicesSelect = document.getElementById("services");
+
+    // Clear previous options
+    servicesSelect.innerHTML = '<option value="">Select a service</option>';
+
+    if (!categoryId) return;
+    // Filter services for selected category
+    const categoryServices = allServices.filter(
+      (service) => service.category && service.category._id &&
+        service.category._id.toString() === categoryId
+    );
+    // Add filtered services to select element
+    categoryServices.forEach((service) => {
+      const option = document.createElement("option");
+      option.value = service._id;
+      option.textContent = service.name;
+      servicesSelect.appendChild(option);
+    });
+  }
+
+  // Add form validation
+  (function () {
+    "use strict";
+    const form = document.querySelector(".needs-validation");
+
+    form.addEventListener(
+      "submit",
+      function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add("was-validated");
+      },
+      false
+    );
+  })();
+</script>

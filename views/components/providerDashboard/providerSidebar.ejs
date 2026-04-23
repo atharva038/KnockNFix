@@ -1,62 +1,74 @@
-<button id="sidebarToggle" class="sidebar-toggle">
+<button id="sidebarToggle" class="btn btn-light border position-fixed shadow-sm d-md-none z-3" style="top: 80px; left: 20px;">
   <i class="fas fa-bars"></i>
 </button>
 
-<div class="sidebar">
-  <div class="sidebar-header">
-    <div class="sidebar-profile">
-      <img src="<%= user.profileImage || '/img/default-avatar.png' %>" alt="Profile" class="sidebar-profile-img" onerror="this.src='/img/default-avatar.png'" />
-      <div class="sidebar-status-indicator"></div>
+<div class="sidebar bg-white border-end d-flex flex-column z-2 position-sticky top-0 transition-base" style="width: 260px; height: calc(100vh - 70px); top: 70px;">
+  <div class="p-4 border-bottom bg-white">
+    <div class="position-relative mb-3 mx-auto" style="width: 64px; height: 64px;">
+      <img src="<%= user.profileImage || '/img/default-avatar.png' %>" alt="Profile" class="rounded border shadow-sm w-100 h-100 object-fit-cover" onerror="this.src='/img/default-avatar.png'" />
+      <div class="position-absolute bottom-0 end-0 rounded-circle bg-success border border-2 border-white" style="width: 14px; height: 14px; right: -4px; bottom: -4px;"></div>
     </div>
-    <h5 class="sidebar-name"><%= user.name %></h5>
-    <p class="sidebar-email"><%= user.username %></p>
+    <h5 class="fw-bold text-dark m-0 fs-6 text-truncate text-center"><%= user.name %></h5>
+    <p class="text-muted small text-truncate m-0 text-center"><%= user.username %></p>
   </div>
 
-  <nav class="sidebar-nav">
-    <a href="#overview" class="nav-link active" data-section="overview">
-      <i class="fas fa-home nav-icon"></i>
+  <nav class="p-3 flex-grow-1 overflow-y-auto">
+    <a href="#overview" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg active-nav-link" data-section="overview">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-home"></i></div>
       <span>Dashboard</span>
     </a>
-    <a href="#services" class="nav-link" data-section="services">
-      <i class="fas fa-tools nav-icon"></i>
+    <a href="#services" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg" data-section="services">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-tools"></i></div>
       <span>My Services</span>
     </a>
-    <a href="#bookings" class="nav-link" data-section="bookings">
-      <i class="fas fa-calendar-check nav-icon"></i>
+    <a href="#bookings" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg" data-section="bookings">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-calendar-check"></i></div>
       <span>Bookings</span>
     </a>
-    <a href="#profile" class="nav-link" data-section="profile">
-      <i class="fas fa-user nav-icon"></i>
+    <a href="#profile" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg" data-section="profile">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-user"></i></div>
       <span>Profile</span>
     </a>
-    <a href="#settings" class="nav-link" data-section="settings">
-      <i class="fas fa-cog nav-icon"></i>
+    <a href="#settings" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg" data-section="settings">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-cog"></i></div>
       <span>Settings</span>
     </a>
-    <a href="#locations" class="nav-link" data-section="locations">
-      <i class="fas fa-map-marker-alt nav-icon"></i>
+    <a href="#locations" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg" data-section="locations">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-map-marker-alt"></i></div>
       <span>Locations & Availability</span>
     </a>
-    <a href="#banking" class="nav-link" data-section="banking">
-      <i class="fas fa-university nav-icon"></i>
+    <a href="#banking" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg" data-section="banking">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-university"></i></div>
       <span>Banking & Payments</span>
     </a>
-    <a href="/dashboard/registerService" class="nav-link">
-      <i class="fas fa-plus-circle nav-icon"></i>
+    <a href="#registerService" class="d-flex align-items-center gap-2 p-2 rounded text-secondary text-decoration-none fw-medium mb-1 transition-hover-bg" data-section="registerService">
+      <div class="d-flex align-items-center justify-content-center text-muted" style="width: 24px;"><i class="fas fa-plus-circle"></i></div>
       <span>Register Service</span>
     </a>
-    <div class="sidebar-divider">
+    
+    <div class="mt-4 mb-2 px-2 text-muted fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;">
       <span>Account</span>
     </div>
-    <a href="/logout" class="nav-link logout-link">
-      <i class="fas fa-sign-out-alt nav-icon"></i>
+    <a href="/logout" class="d-flex align-items-center gap-2 p-3 mt-3 rounded-0 border-top text-danger text-decoration-none fw-medium transition-hover-bg logout-link">
+      <div class="d-flex align-items-center justify-content-center" style="width: 24px;"><i class="fas fa-sign-out-alt"></i></div>
       <span>Logout</span>
     </a>
   </nav>
 </div>
 
-<!-- Add overlay for mobile -->
-<div class="sidebar-overlay"></div>
+<style>
+  .transition-base { transition: all 0.2s ease; }
+  .transition-hover-bg:hover { background-color: #f1f5f9; color: #0f172a !important; }
+  .transition-hover-bg:hover .text-muted { color: #475569 !important; }
+  .active-nav-link { background-color: #f1f5f9; color: #0f172a !important; font-weight: 600 !important; }
+  .active-nav-link .text-muted { color: #0f172a !important; }
+  
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); position: fixed; box-shadow: 10px 0 15px -3px rgba(0, 0, 0, 0.1); }
+    .sidebar.active { transform: translateX(0); }
+    body.sidebar-open::before { content: ""; position: fixed; top: 70px; left: 0; width: 100%; height: calc(100vh - 70px); background-color: rgba(15, 23, 42, 0.4); z-index: 80; }
+  }
+</style>
 
 <script>
   // This ensures elements are defined before sidebarToggle.js runs

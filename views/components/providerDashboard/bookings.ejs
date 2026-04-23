@@ -1,160 +1,111 @@
 <section id="bookings" class="dashboard-section">
-  <div class="section-header">
-    <h2><i class="fas fa-calendar-check me-2"></i>Bookings</h2>
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom gap-3">
+    <h2 class="fs-4 fw-bold text-dark mb-0"><i class="fas fa-calendar-check text-primary me-2"></i>Bookings</h2>
     <div class="d-flex gap-2">
       <div class="dropdown">
         <button
-          class="btn btn-outline-secondary dropdown-toggle"
+          class="btn btn-outline-secondary dropdown-toggle bg-white shadow-sm"
           type="button"
           id="filterDropdown"
           data-bs-toggle="dropdown"
         >
           <i class="fas fa-filter me-1"></i>Filter
         </button>
-        <ul class="dropdown-menu" aria-labelledby="filterDropdown">
-          <li>
-            <a class="dropdown-item filter-item" href="#" data-status="all"
-              >All</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item filter-item" href="#" data-status="pending"
-              >Pending</a
-            >
-          </li>
-          <li>
-            <a
-              class="dropdown-item filter-item"
-              href="#"
-              data-status="confirmed"
-              >Confirmed</a
-            >
-          </li>
-          <li>
-            <a
-              class="dropdown-item filter-item"
-              href="#"
-              data-status="completed"
-              >Completed</a
-            >
-          </li>
-          <li>
-            <a
-              class="dropdown-item filter-item"
-              href="#"
-              data-status="cancelled"
-              >Cancelled</a
-            >
-          </li>
+        <ul class="dropdown-menu shadow" aria-labelledby="filterDropdown">
+          <li><a class="dropdown-item filter-item" href="#" data-status="all">All</a></li>
+          <li><a class="dropdown-item filter-item" href="#" data-status="pending">Pending</a></li>
+          <li><a class="dropdown-item filter-item" href="#" data-status="confirmed">Confirmed</a></li>
+          <li><a class="dropdown-item filter-item" href="#" data-status="completed">Completed</a></li>
+          <li><a class="dropdown-item filter-item" href="#" data-status="cancelled">Cancelled</a></li>
         </ul>
       </div>
-      <div class="input-group">
+      <div class="input-group shadow-sm" style="max-width: 250px;">
         <input
           type="text"
-          class="form-control"
+          class="form-control border-end-0"
           placeholder="Search bookings"
           id="bookingSearch"
         />
-        <button class="btn btn-outline-secondary" type="button">
+        <button class="btn btn-outline-secondary border-start-0 bg-white text-primary" type="button">
           <i class="fas fa-search"></i>
         </button>
       </div>
     </div>
   </div>
 
-  <div class="content-card">
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="table-responsive">
-      <table class="table booking-table">
-        <thead>
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light text-secondary small text-uppercase">
           <tr>
-            <th>Service</th>
-            <th>Date & Time</th>
-            <th>Client</th>
-            <th>Address</th>
-            <th>Status</th>
-            <th>Payment</th>
-            <th>Actions</th>
+            <th class="ps-4 py-3 fw-semibold">Service</th>
+            <th class="py-3 fw-semibold">Date & Time</th>
+            <th class="py-3 fw-semibold">Client</th>
+            <th class="py-3 fw-semibold">Address</th>
+            <th class="py-3 fw-semibold">Status</th>
+            <th class="py-3 fw-semibold">Payment</th>
+            <th class="pe-4 py-3 fw-semibold text-end">Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="border-top-0">
           <% bookings.forEach(booking => { %>
           <tr data-status="<%= booking.status.toLowerCase() %>">
-            <td>
-              <%= (booking.service && booking.service.name) ?
-              booking.service.name : 'N/A' %>
+            <td class="ps-4 py-3 fw-medium text-dark">
+              <%= (booking.service && booking.service.name) ? booking.service.name : 'N/A' %>
             </td>
-            <td>
-              <div class="booking-time">
-                <% try { %>
-                <div class="booking-date">
-                  <%= new Date(booking.bookingDate).toLocaleDateString('en-IN',
-                  { year: 'numeric', month: 'short', day: 'numeric' }) %>
-                </div>
-                <div class="booking-hour">
-                  <%= new Date(booking.bookingDate).toLocaleTimeString('en-IN',
-                  { hour: '2-digit', minute: '2-digit', hour12: true }) %>
-                </div>
-                <% } catch(e) { %> N/A <% } %>
+            <td class="py-3 text-secondary">
+              <% try { %>
+              <div class="fw-medium text-dark">
+                <%= new Date(booking.bookingDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) %>
               </div>
+              <div class="small">
+                <%= new Date(booking.bookingDate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) %>
+              </div>
+              <% } catch(e) { %> N/A <% } %>
             </td>
-            <td>
-              <div class="client-info">
+            <td class="py-3">
+              <div class="d-flex align-items-center gap-2">
                 <img
                   src="<%= (booking.customer && booking.customer.profileImage) ? booking.customer.profileImage : '/img/default-avatar.png' %>"
                   alt="Client"
-                  class="client-img"
+                  class="rounded-circle object-fit-cover shadow-sm"
+                  style="width: 36px; height: 36px;"
                 />
-                <span
-                  ><%= (booking.customer && booking.customer.name) ?
-                  booking.customer.name : 'N/A' %></span
-                >
+                <span class="fw-medium text-dark"><%= (booking.customer && booking.customer.name) ? booking.customer.name : 'N/A' %></span>
               </div>
             </td>
-            <td><%= booking.address || 'N/A' %></td>
-            <td>
-              <span
-                class="status-badge status-<%= booking.status.toLowerCase() %>"
-              >
+            <td class="py-3 text-secondary text-truncate" style="max-width: 150px;">
+              <%= booking.address || 'N/A' %>
+            </td>
+            <td class="py-3">
+              <span class="badge rounded-pill px-3 py-2 text-uppercase fw-bold
+                <%= booking.status.toLowerCase() === 'pending' ? 'bg-warning text-dark' : 
+                    booking.status.toLowerCase() === 'confirmed' ? 'bg-info text-dark' : 
+                    booking.status.toLowerCase() === 'completed' ? 'bg-success' : 
+                    booking.status.toLowerCase() === 'cancelled' ? 'bg-danger' : 'bg-secondary' %>">
                 <%= booking.status %>
               </span>
             </td>
-            <td>
-              <span
-                class="payment-status <%= booking.paymentStatus === 'paid' ? 'text-success' : 'text-warning' %>"
-              >
+            <td class="py-3">
+              <span class="badge <%= booking.paymentStatus === 'paid' ? 'bg-success bg-opacity-10 text-success' : 'bg-warning bg-opacity-10 text-warning' %> px-2 py-1">
+                <i class="fas <%= booking.paymentStatus === 'paid' ? 'fa-check-circle' : 'fa-clock' %> me-1"></i>
                 <%= booking.paymentStatus === 'paid' ? 'Paid' : 'Pending' %>
               </span>
             </td>
-            <td>
-              <div class="action-buttons">
-                <button
-                  class="btn btn-sm btn-outline-primary view-booking"
-                  data-id="<%= booking._id %>"
-                  title="View Details"
-                >
+            <td class="pe-4 py-3 text-end">
+              <div class="d-flex gap-2 justify-content-end">
+                <button class="btn btn-sm btn-light border text-primary rounded-circle view-booking" data-id="<%= booking._id %>" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;" title="View Details">
                   <i class="fas fa-eye"></i>
                 </button>
                 <% if (booking.status === 'pending') { %>
-                <button
-                  class="btn btn-sm btn-outline-success accept-booking"
-                  data-id="<%= booking._id %>"
-                  title="Accept Booking"
-                >
+                <button class="btn btn-sm btn-light border text-success rounded-circle accept-booking" data-id="<%= booking._id %>" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;" title="Accept Booking">
                   <i class="fas fa-check"></i>
                 </button>
-                <button
-                  class="btn btn-sm btn-outline-danger reject-booking"
-                  data-id="<%= booking._id %>"
-                  title="Reject Booking"
-                >
+                <button class="btn btn-sm btn-light border text-danger rounded-circle reject-booking" data-id="<%= booking._id %>" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;" title="Reject Booking">
                   <i class="fas fa-times"></i>
                 </button>
                 <% } else if (booking.status === 'confirmed') { %>
-                <button
-                  class="btn btn-sm btn-outline-info complete-booking"
-                  data-id="<%= booking._id %>"
-                  title="Mark Complete"
-                >
+                <button class="btn btn-sm btn-light border text-info rounded-circle complete-booking" data-id="<%= booking._id %>" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;" title="Mark Complete">
                   <i class="fas fa-clipboard-check"></i>
                 </button>
                 <% } %>

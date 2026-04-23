@@ -10,14 +10,13 @@
     <div class="row align-items-center">
       <!-- Profile Image Section -->
       <div class="col-md-4 text-center mb-4 mb-md-0 border-end-md">
-        <div class="profile-image-container mb-4">
-          <img src="<%= user.profileImage || '/img/default-avatar.png' %>" alt="Profile" class="profile-image"
-            id="profilePreview" />
-          <div class="image-overlay" onclick="document.getElementById('profileImage').click()">
-            <i class="fas fa-camera"></i>
-            <span>Change Photo</span>
+        <div class="position-relative mx-auto mb-4 rounded-circle overflow-hidden shadow-sm border border-3 border-white profile-image-wrapper" style="width: 120px; height: 120px; cursor: pointer;" onclick="document.getElementById('profileImage').click()">
+          <img src="<%= user.profileImage || '/img/default-avatar.png' %>" alt="Profile" class="w-100 h-100 object-fit-cover" id="profilePreview" />
+          <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex flex-column align-items-center justify-content-center text-white opacity-0 transition-base hover-opacity-100 image-overlay-custom">
+            <i class="fas fa-camera fs-4 mb-1"></i>
+            <span class="fw-medium" style="font-size: 0.8rem;">Change Photo</span>
           </div>
-          <input type="file" id="profileImage" name="profileImage" accept="image/*" style="display: none" />
+          <input type="file" id="profileImage" name="profileImage" accept="image/*" class="d-none" />
         </div>
 
         <h3 class="fs-3 fw-bold text-dark mb-1">
