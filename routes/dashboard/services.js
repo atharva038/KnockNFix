@@ -15,7 +15,7 @@ router.get('/registerService', async (req, res) => {
         const categories = await Category.find().lean();
         const services = await Service.find().populate('category').lean();
 
-        res.render('pages/registerService', {
+        res.render('pages/public/registerService', {
             categories,
             services,
             title: 'Register Service'

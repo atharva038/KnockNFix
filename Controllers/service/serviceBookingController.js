@@ -44,7 +44,7 @@ exports.bookService = async (req, res) => {
     service.cost = serviceDetails.customCost;
     service.providerExperience = serviceDetails.experience;
 
-    res.render("pages/booking", {
+    res.render("pages/booking/index", {
       service,
       provider,
       addresses,

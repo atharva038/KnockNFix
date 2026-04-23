@@ -11,7 +11,7 @@ exports.showDashboard = async (req, res) => {
 
     if (user.role === "customer") {
       const data = await getCustomerDashboardData(user._id);
-      return res.render("pages/customerDashboard", {
+      return res.render("pages/customer/dashboard", {
         currUser: user,
         user,
         userLocation,
@@ -23,7 +23,7 @@ exports.showDashboard = async (req, res) => {
 
     if (user.role === "provider") {
       const data = await getProviderDashboardData(user._id);
-      return res.render("pages/providerDashboard", {
+      return res.render("pages/provider/dashboard", {
         currUser: user,
         user,
         googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,

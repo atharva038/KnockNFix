@@ -174,7 +174,7 @@ exports.confirmBooking = async (req, res) => {
         console.log('Booking data prepared:', bookingData);
 
         // Render confirmation page
-        res.render('pages/booking-confirm', {
+        res.render('pages/booking/confirm', {
             service,
             provider,
             bookingData,

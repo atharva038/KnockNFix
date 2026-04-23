@@ -112,7 +112,7 @@ exports.getProviders = async (req, res) => {
       `Final results: ${processedProviders.available.length} available, ${processedProviders.unavailable.length} unavailable`
     );
 
-    res.render("pages/providers", {
+    res.render("pages/public/providers", {
       providers: processedProviders,
       service,
       serviceId,

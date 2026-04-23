@@ -9,7 +9,7 @@ router.get("/", isLoggedIn, async (req, res) => {
         const userId = req.session.userId;
         const data = await getCustomerDashboardData(userId);
 
-        return res.render("pages/customerDashboard", {
+        return res.render("pages/customer/dashboard", {
             currUser: req.user,
             ...data
         });

@@ -4,17 +4,17 @@
 
   <div class="dashboard-container">
     <!-- Sidebar -->
-    <%- include('../components/customerDashboard/customerSidebar', { user: currUser }) %>
+    <%- include('../../components/customerDashboard/customerSidebar', { user: currUser }) %>
 
       <!-- Main Content -->
       <div class="main-content">
-        <% try { %> <%- include('../components/customerDashboard/bookings', { bookings }) %>
+        <% try { %> <%- include('../../components/customerDashboard/bookings', { bookings }) %>
             <% } catch (e) { %>
               <div class="alert alert-danger">
                 Error loading bookings component: <%= e.message %>
               </div>
-              <% } %> <%- include('../components/customerDashboard/profile', { user: currUser }) %> <%-
-                    include('../components/customerDashboard/settings') %>
+              <% } %> <%- include('../../components/customerDashboard/profile', { user: currUser }) %> <%-
+                    include('../../components/customerDashboard/settings') %>
       </div>
   </div>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>

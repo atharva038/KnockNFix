@@ -8,11 +8,11 @@ exports.getAllServices = async (req, res) => {
     const categories = await Category.find();
 
     // Render the services page with the category data
-    res.render("pages/service", {categories});
+    res.render("pages/public/service", {categories});
   } catch (err) {
     console.error("Error fetching categories:", err);
     req.flash("error", "Failed to load services");
-    res.status(500).render("pages/service", {categories: []});
+    res.status(500).render("pages/public/service", {categories: []});
   }
 };
 
@@ -27,7 +27,7 @@ exports.getServicesByCategory = async (req, res) => {
 
     if (!category) {
       req.flash("error", "Category not found");
-      return res.status(404).render("pages/services", {
+      return res.status(404).render("pages/public/services", {
         error: "Category not found.",
         services: [],
         category: null,
@@ -42,7 +42,7 @@ exports.getServicesByCategory = async (req, res) => {
     // Check if there are services for this category
     if (services.length === 0) {
       req.flash("info", `No services found for ${category.name} category`);
-      return res.render("pages/services", {
+      return res.render("pages/public/services", {
         services: [],
         category,
         message: `No services available in ${category.name} category yet.`,
@@ -50,11 +50,11 @@ exports.getServicesByCategory = async (req, res) => {
     }
 
     // Render the services page with the list of services under that category
-    res.render("pages/services", {services, category});
+    res.render("pages/public/services", {services, category});
   } catch (err) {
     console.error("Error fetching services by category:", err);
     req.flash("error", "Failed to load services");
-    res.status(500).render("pages/services", {
+    res.status(500).render("pages/public/services", {
       services: [],
       category: null,
       error: "Server error occurred",

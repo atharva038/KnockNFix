@@ -1,62 +1,52 @@
-<style>
-  .flash-container {
-    position: fixed;
-    top: 90px; /* Below the 70px navbar */
-    right: 20px;
-    z-index: 1050;
-    min-width: 300px;
-    max-width: 450px;
-    pointer-events: none;
-  }
-  .flash-container .alert {
-    pointer-events: auto;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    border: none;
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    animation: slideInRight 0.3s ease-out forwards;
-  }
-  .flash-container .alert-success {
-    background-color: rgba(212, 237, 218, 0.9);
-    border-left: 5px solid #28a745;
-  }
-  .flash-container .alert-danger {
-    background-color: rgba(248, 215, 218, 0.9);
-    border-left: 5px solid #dc3545;
-  }
-  @keyframes slideInRight {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-</style>
-<div class="flash-container">
-  <% if (success && success.length) {%>
-  <div class="alert alert-success alert-dismissible fade show" role="alert">
-    <%= success %>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  </div>
-  <% } %> 
-  <% if (error && error.length) {%>
-  <div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <%= error %>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  </div>
-  <% } %>
-</div>
+<!-- Toastify JS CSS & Script -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
 <script>
-  // Auto-dismiss flash messages after 5 seconds
   document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-      const alerts = document.querySelectorAll('.flash-container .alert');
-      alerts.forEach(function(alert) {
-        if(window.bootstrap && window.bootstrap.Alert) {
-          var bsAlert = new bootstrap.Alert(alert);
-          bsAlert.close();
-        } else {
-          alert.style.display = 'none';
-        }
-      });
-    }, 5000);
+    // Reusable function to create stylish toasts
+    function showToast(message, type) {
+      if (!message) return;
+      
+      const isError = type === 'error';
+      
+      Toastify({
+        text: message,
+        duration: isError ? 6000 : 4000,
+        close: true,
+        gravity: "top", // `top` or `bottom`
+        position: "right", // `left`, `center` or `right`
+        stopOnFocus: true, // Prevents dismissing of toast on hover
+        style: {
+          background: isError ? "linear-gradient(to right, #ef4444, #f87171)" : "linear-gradient(to right, #10b981, #34d399)",
+          color: "white",
+          borderRadius: "12px",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+          fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif",
+          fontWeight: "500",
+          maxWidth: "400px",
+          padding: "14px 20px",
+          wordBreak: "break-word",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          zIndex: 9999
+        },
+        escapeMarkup: false
+      }).showToast();
+    }
+
+    <% if (typeof success !== 'undefined' && success && success.length) { %>
+      <% success.forEach(function(msg) { %>
+        // Safe string escaping for EJS to JS
+        showToast(`<%- msg.toString().replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\n/g, '\\n') %>`, 'success');
+      <% }); %>
+    <% } %>
+    
+    <% if (typeof error !== 'undefined' && error && error.length) { %>
+      <% error.forEach(function(msg) { %>
+        showToast(`<%- msg.toString().replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\n/g, '\\n') %>`, 'error');
+      <% }); %>
+    <% } %>
   });
 </script>

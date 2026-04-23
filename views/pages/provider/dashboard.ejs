@@ -5,19 +5,19 @@
 
   <div class="dashboard-container">
     <!-- Sidebar -->
-    <%- include('../components/providerDashboard/providerSidebar', { user: currUser }) %>
+    <%- include('../../components/providerDashboard/providerSidebar', { user: currUser }) %>
 
 
       <!-- Main Content -->
       <div class="main-content">
-        <%- include('../components/providerDashboard/overview', { user: currUser, provider: provider, bookings:
+        <%- include('../../components/providerDashboard/overview', { user: currUser, provider: provider, bookings:
           bookings, bookingStats: bookingStats, ratings: ratings }) %>
-          <%- include('../components/providerDashboard/services', { provider: provider, services: services }) %>
-            <%- include('../components/providerDashboard/bookings', { bookings: bookings, user: currUser }) %>
-              <%- include('../components/providerDashboard/locations', { provider: provider }) %>
-                <%- include('../components/providerDashboard/profile', { user: currUser, provider: provider }) %>
-                  <%- include('../components/providerDashboard/settings', { user: currUser, provider: provider }) %>
-                    <%- include('../components/providerDashboard/banking') %>
+          <%- include('../../components/providerDashboard/services', { provider: provider, services: services }) %>
+            <%- include('../../components/providerDashboard/bookings', { bookings: bookings, user: currUser }) %>
+              <%- include('../../components/providerDashboard/locations', { provider: provider }) %>
+                <%- include('../../components/providerDashboard/profile', { user: currUser, provider: provider }) %>
+                  <%- include('../../components/providerDashboard/settings', { user: currUser, provider: provider }) %>
+                    <%- include('../../components/providerDashboard/banking') %>
       </div>
   </div>
 

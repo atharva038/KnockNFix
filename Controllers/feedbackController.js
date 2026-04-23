@@ -20,7 +20,7 @@ exports.showFeedbackPage = async (req, res) => {
       return res.status(403).redirect("/booking/mybookings");
     }
 
-    return res.render("pages/feedback", {
+    return res.render("pages/support/feedback", {
       booking,
       service: booking.service,
       provider: booking.provider,

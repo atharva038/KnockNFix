@@ -1,15 +1,15 @@
 <section id="profile" class="dashboard-section">
-  <div class="section-header">
-    <h2><i class="fas fa-user-circle me-2"></i>Profile Information</h2>
-    <button class="btn btn-primary btn-sm" onclick="openEditModal()">
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <h2 class="fs-4 fw-bold text-dark m-0 d-flex align-items-center gap-2"><i class="fas fa-user-circle text-secondary fs-5"></i>Profile Information</h2>
+    <button class="btn btn-primary btn-sm shadow-sm fw-medium px-3" onclick="openEditModal()">
       <i class="fas fa-edit me-1"></i>Edit Profile
     </button>
   </div>
 
-  <div class="content-card" data-aos="fade-up">
-    <div class="row">
+  <div class="bg-white rounded-4 shadow-sm p-4 border transition-hover mb-4" data-aos="fade-up">
+    <div class="row align-items-center">
       <!-- Profile Image Section -->
-      <div class="col-md-4 text-center">
+      <div class="col-md-4 text-center mb-4 mb-md-0 border-end-md">
         <div class="profile-image-container mb-4">
           <img src="<%= user.profileImage || '/img/default-avatar.png' %>" alt="Profile" class="profile-image"
             id="profilePreview" />
@@ -20,37 +20,43 @@
           <input type="file" id="profileImage" name="profileImage" accept="image/*" style="display: none" />
         </div>
 
-        <h3 class="user-name mb-1">
+        <h3 class="fs-3 fw-bold text-dark mb-1">
           <%= user.name %>
         </h3>
-        <p class="user-email mb-4">
+        <p class="text-secondary mb-0">
           <%= user.username %>
         </p>
       </div>
 
       <!-- Profile Details Section -->
-      <div class="col-md-8">
-        <div class="profile-details">
-          <div class="detail-item">
-            <label><i class="fas fa-phone"></i>Phone</label>
-            <p>
+      <div class="col-md-8 px-md-5">
+        <div class="bg-light rounded-4 p-4 border shadow-sm">
+          <div class="d-flex flex-column flex-md-row align-items-md-center py-3 border-bottom">
+            <div class="text-secondary fw-medium d-flex align-items-center gap-2" style="width: 140px;">
+              <i class="fas fa-phone text-muted" style="width: 20px;"></i>Phone
+            </div>
+            <div class="fw-semibold text-dark m-0 mt-2 mt-md-0">
               <%= user.phone || 'Not provided' %>
-            </p>
+            </div>
           </div>
 
-          <div class="detail-item">
-            <label><i class="fas fa-envelope"></i>Email</label>
-            <p>
+          <div class="d-flex flex-column flex-md-row align-items-md-center py-3 border-bottom">
+            <div class="text-secondary fw-medium d-flex align-items-center gap-2" style="width: 140px;">
+              <i class="fas fa-envelope text-muted" style="width: 20px;"></i>Email
+            </div>
+            <div class="fw-semibold text-dark m-0 mt-2 mt-md-0">
               <%= user.username %>
-            </p>
+            </div>
           </div>
           
-          <div class="detail-item">
-            <label><i class="fas fa-calendar-check"></i>Joined</label>
-            <p>
+          <div class="d-flex flex-column flex-md-row align-items-md-center py-3">
+            <div class="text-secondary fw-medium d-flex align-items-center gap-2" style="width: 140px;">
+              <i class="fas fa-calendar-check text-muted" style="width: 20px;"></i>Joined
+            </div>
+            <div class="fw-semibold text-dark m-0 mt-2 mt-md-0">
               <%= new Date(user.createdAt).toLocaleDateString('en-IN', { year: 'numeric' , month: 'long' ,
                 day: 'numeric' }) %>
-            </p>
+            </div>
           </div>
         </div>
       </div>
@@ -60,33 +66,32 @@
   <!-- Edit Profile Modal -->
   <div class="modal fade" id="editProfileModal" tabindex="-1">
     <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Edit Profile</h5>
+      <div class="modal-content rounded-4 shadow">
+        <div class="modal-header border-bottom px-4">
+          <h5 class="modal-title fw-bold">Edit Profile</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body p-4">
           <form id="editProfileForm">
             <div class="mb-3">
-              <label class="form-label">Full Name</label>
+              <label class="form-label fw-medium text-secondary">Full Name</label>
               <input type="text" class="form-control" id="editName" value="<%= user.name %>" required />
             </div>
             <div class="mb-3">
-              <label class="form-label">Phone Number</label>
+              <label class="form-label fw-medium text-secondary">Phone Number</label>
               <input type="tel" class="form-control" id="editPhone" value="<%= user.phone || '' %>" />
             </div>
             <div class="mb-3">
-              <label class="form-label">Address</label>
-              <textarea class="form-control" id="editAddress" rows="3">
-<%= user.address || '' %></textarea>
+              <label class="form-label fw-medium text-secondary">Address</label>
+              <textarea class="form-control" id="editAddress" rows="3"><%= user.address || '' %></textarea>
             </div>
           </form>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <div class="modal-footer bg-light border-top px-4">
+          <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">
             Cancel
           </button>
-          <button type="button" class="btn btn-primary" onclick="saveProfile()">
+          <button type="button" class="btn btn-primary shadow-sm" onclick="saveProfile()">
             Save Changes
           </button>
         </div>
@@ -97,21 +102,21 @@
   <!-- Image Crop Modal -->
   <div class="modal fade" id="imageCropModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Crop Profile Picture</h5>
+      <div class="modal-content rounded-4 shadow">
+        <div class="modal-header border-bottom px-4">
+          <h5 class="modal-title fw-bold">Crop Profile Picture</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body p-4">
           <div class="img-container bg-light rounded overflow-hidden" style="max-height: 400px;">
             <img id="cropImage" src="" alt="Picture to crop" class="w-100" />
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <div class="modal-footer border-top bg-light px-4">
+          <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">
             Cancel
           </button>
-          <button type="button" class="btn btn-primary" id="cropButton">
+          <button type="button" class="btn btn-primary shadow-sm" id="cropButton">
             <i class="fas fa-crop me-1"></i>Crop & Save
           </button>
         </div>
@@ -119,10 +124,10 @@
     </div>
   </div>
 
-  <div class="content-card mt-4" data-aos="fade-up" data-aos-delay="100">
-    <div class="d-flex align-items-center justify-content-between mb-4">
+  <div class="bg-white rounded-4 shadow-sm p-4 border transition-hover mt-4" data-aos="fade-up" data-aos-delay="100">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
       <h3 class="mb-0 fs-4 fw-bold text-dark"><i class="fas fa-map-marked-alt text-primary me-2 bg-primary bg-opacity-10 p-2 rounded"></i>My Addresses</h3>
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+      <button class="btn btn-primary shadow-sm fw-medium px-3" data-bs-toggle="modal" data-bs-target="#addAddressModal">
         <i class="fas fa-plus me-2"></i>Add New Address
       </button>
     </div>
@@ -132,57 +137,55 @@
         <div class="row g-4">
           <% user.addresses.forEach((address, index)=> { %>
             <div class="col-md-6">
-              <div class="address-card h-100 <%= address.isDefault ? 'border-primary' : '' %>">
-                <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-start mb-3">
-                    <h6 class="mb-0 d-flex align-items-center gap-2">
-                      <span class="badge <%= address.isDefault ? 'bg-primary' : 'bg-secondary' %> px-3 py-2 rounded-pill">
-                        <i class="fas <%= address.label === 'Home' ? 'fa-home' : address.label === 'Work' ? 'fa-briefcase' : 'fa-map-pin' %> me-1"></i>
-                        <%= address.label %>
-                      </span>
-                      <% if (address.isDefault) { %>
-                        <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1 rounded-pill">Default</span>
-                        <% } %>
-                    </h6>
-                    <div class="dropdown">
-                      <button class="btn btn-sm btn-light rounded-circle" data-bs-toggle="dropdown">
-                        <i class="fas fa-ellipsis-v text-muted"></i>
-                      </button>
-                      <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+              <div class="bg-white rounded-4 border shadow-sm h-100 transition-hover <%= address.isDefault ? 'border-primary bg-primary bg-opacity-10' : '' %>" style="padding: 1.25rem;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <h6 class="mb-0 d-flex align-items-center gap-2">
+                    <span class="badge <%= address.isDefault ? 'bg-primary' : 'bg-secondary' %> px-3 py-2 rounded-pill">
+                      <i class="fas <%= address.label === 'Home' ? 'fa-home' : address.label === 'Work' ? 'fa-briefcase' : 'fa-map-pin' %> me-1"></i>
+                      <%= address.label %>
+                    </span>
+                    <% if (address.isDefault) { %>
+                      <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1 rounded-pill">Default</span>
+                      <% } %>
+                  </h6>
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-light rounded-circle shadow-sm" data-bs-toggle="dropdown">
+                      <i class="fas fa-ellipsis-v text-muted"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                      <li>
+                        <button class="dropdown-item py-2 fw-medium" data-bs-toggle="modal"
+                          data-bs-target="#editAddressModal<%= index %>">
+                          <i class="fas fa-edit me-2 text-primary"></i>Edit Address
+                        </button>
+                      </li>
+                      <% if (!address.isDefault) { %>
                         <li>
-                          <button class="dropdown-item py-2" data-bs-toggle="modal"
-                            data-bs-target="#editAddressModal<%= index %>">
-                            <i class="fas fa-edit me-2 text-primary"></i>Edit Address
-                          </button>
+                          <form action="/user/set-default-address/<%= index %>" method="POST">
+                            <button type="submit" class="dropdown-item py-2 fw-medium">
+                              <i class="fas fa-check-circle me-2 text-success"></i>Set as Default
+                            </button>
+                          </form>
                         </li>
-                        <% if (!address.isDefault) { %>
+                        <% } %>
                           <li>
-                            <form action="/user/set-default-address/<%= index %>" method="POST">
-                              <button type="submit" class="dropdown-item py-2">
-                                <i class="fas fa-check-circle me-2 text-success"></i>Set as Default
+                            <hr class="dropdown-divider">
+                          </li>
+                          <li>
+                            <form action="/user/delete-address/<%= index %>" method="POST"
+                              onsubmit="return confirm('Are you sure you want to delete this address?')">
+                              <button type="submit" class="dropdown-item py-2 text-danger fw-medium">
+                                <i class="fas fa-trash-alt me-2"></i>Remove Address
                               </button>
                             </form>
                           </li>
-                          <% } %>
-                            <li>
-                              <hr class="dropdown-divider">
-                            </li>
-                            <li>
-                              <form action="/user/delete-address/<%= index %>" method="POST"
-                                onsubmit="return confirm('Are you sure you want to delete this address?')">
-                                <button type="submit" class="dropdown-item py-2 text-danger">
-                                  <i class="fas fa-trash-alt me-2"></i>Remove Address
-                                </button>
-                              </form>
-                            </li>
-                      </ul>
-                    </div>
+                    </ul>
                   </div>
-                  <div class="text-secondary ps-1">
-                    <p class="mb-1 fw-medium text-dark"><i class="fas fa-map-marker-alt text-muted me-2 w-15px text-center"></i><%= address.street %></p>
-                    <p class="mb-1"><i class="fas fa-city text-muted me-2 w-15px text-center"></i><%= address.city %>, <%= address.state %></p>
-                    <p class="mb-0"><i class="fas fa-mail-bulk text-muted me-2 w-15px text-center"></i>PIN: <span class="fw-medium text-dark"><%= address.pincode %></span></p>
-                  </div>
+                </div>
+                <div class="text-secondary ps-1">
+                  <p class="mb-1 fw-medium text-dark"><i class="fas fa-map-marker-alt text-muted me-2 text-center" style="width: 15px;"></i><%= address.street %></p>
+                  <p class="mb-1"><i class="fas fa-city text-muted me-2 text-center" style="width: 15px;"></i><%= address.city %>, <%= address.state %></p>
+                  <p class="mb-0"><i class="fas fa-mail-bulk text-muted me-2 text-center" style="width: 15px;"></i>PIN: <span class="fw-medium text-dark"><%= address.pincode %></span></p>
                 </div>
               </div>
             </div>
@@ -190,16 +193,16 @@
             <!-- Edit Address Modal for this address -->
             <div class="modal fade" id="editAddressModal<%= index %>" tabindex="-1" aria-hidden="true">
               <div class="modal-dialog">
-                <div class="modal-content">
+                <div class="modal-content rounded-4 shadow">
                   <form action="/user/update-address/<%= index %>" method="POST">
-                    <div class="modal-header">
-                      <h5 class="modal-title">Edit Address</h5>
+                    <div class="modal-header border-bottom px-4">
+                      <h5 class="modal-title fw-bold">Edit Address</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body p-4">
                       <!-- Address form fields pre-filled with existing values -->
                       <div class="mb-3">
-                        <label for="label<%= index %>" class="form-label">Address Label</label>
+                        <label for="label<%= index %>" class="form-label fw-medium text-secondary">Address Label</label>
                         <select class="form-select" id="label<%= index %>" name="label" required>
                           <option value="Home" <%=address.label==='Home' ? 'selected' : '' %>>Home</option>
                           <option value="Work" <%=address.label==='Work' ? 'selected' : '' %>>Work</option>
@@ -207,37 +210,37 @@
                         </select>
                       </div>
                       <div class="mb-3">
-                        <label for="street<%= index %>" class="form-label">Street Address</label>
+                        <label for="street<%= index %>" class="form-label fw-medium text-secondary">Street Address</label>
                         <input type="text" class="form-control" id="street<%= index %>" name="street"
                           value="<%= address.street %>" placeholder="Street address, landmark, etc.">
                       </div>
                       <div class="row mb-3">
                         <div class="col">
-                          <label for="city<%= index %>" class="form-label">City</label>
+                          <label for="city<%= index %>" class="form-label fw-medium text-secondary">City</label>
                           <input type="text" class="form-control" id="city<%= index %>" name="city"
                             value="<%= address.city %>" required>
                         </div>
                         <div class="col">
-                          <label for="state<%= index %>" class="form-label">State</label>
+                          <label for="state<%= index %>" class="form-label fw-medium text-secondary">State</label>
                           <input type="text" class="form-control" id="state<%= index %>" name="state"
                             value="<%= address.state %>" required>
                         </div>
                       </div>
                       <div class="mb-3">
-                        <label for="pincode<%= index %>" class="form-label">PIN Code</label>
+                        <label for="pincode<%= index %>" class="form-label fw-medium text-secondary">PIN Code</label>
                         <input type="text" class="form-control" id="pincode<%= index %>" name="pincode"
                           value="<%= address.pincode %>" required pattern="[0-9]{6}"
                           title="Enter a valid 6-digit PIN code">
                       </div>
                       <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="makeDefault<%= index %>" name="makeDefault"
+                        <input type="checkbox" class="form-check-input shadow-sm" id="makeDefault<%= index %>" name="makeDefault"
                           value="true" <%=address.isDefault ? 'checked' : '' %>>
-                        <label class="form-check-label" for="makeDefault<%= index %>">Set as default address</label>
+                        <label class="form-check-label fw-medium" for="makeDefault<%= index %>">Set as default address</label>
                       </div>
                     </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                      <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <div class="modal-footer border-top bg-light px-4">
+                      <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-primary shadow-sm">Save Changes</button>
                     </div>
                   </form>
                 </div>
@@ -246,13 +249,13 @@
             <% }); %>
         </div>
         <% } else { %>
-          <div class="text-center py-5 bg-light rounded-3 border border-dashed">
+          <div class="text-center py-5 bg-light rounded-4 border p-4">
             <div class="mb-3">
               <i class="fas fa-map-marked-alt text-primary opacity-50" style="font-size: 4rem;"></i>
             </div>
             <h4 class="fw-bold text-dark mb-2">No addresses added yet</h4>
-            <p class="text-secondary mb-4 max-w-md mx-auto">Add your home or work address for faster bookings and better service provider matching.</p>
-            <button class="btn btn-primary px-4 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+            <p class="text-secondary mb-4 mx-auto" style="max-width: 400px;">Add your home or work address for faster bookings and better service provider matching.</p>
+            <button class="btn btn-primary px-4 py-2 shadow-sm fw-medium" data-bs-toggle="modal" data-bs-target="#addAddressModal">
               <i class="fas fa-plus me-2"></i>Add Your First Address
             </button>
           </div>
@@ -263,16 +266,16 @@
   <!-- Add Address Modal -->
   <div class="modal fade" id="addAddressModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
+      <div class="modal-content rounded-4 shadow">
         <form action="/user/add-address" method="POST">
-          <div class="modal-header">
-            <h5 class="modal-title">Add New Address</h5>
+          <div class="modal-header border-bottom px-4">
+            <h5 class="modal-title fw-bold">Add New Address</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body">
+          <div class="modal-body p-4">
             <!-- Address form fields -->
             <div class="mb-3">
-              <label for="label" class="form-label">Address Label</label>
+              <label for="label" class="form-label fw-medium text-secondary">Address Label</label>
               <select class="form-select" id="label" name="label" required>
                 <option value="Home" selected>Home</option>
                 <option value="Work">Work</option>
@@ -280,45 +283,44 @@
               </select>
             </div>
             <div class="mb-3">
-              <label for="street" class="form-label">Street Address</label>
+              <label for="street" class="form-label fw-medium text-secondary">Street Address</label>
               <input type="text" class="form-control" id="street" name="street"
                 placeholder="Street address, landmark, etc.">
             </div>
             <div class="row mb-3">
               <div class="col">
-                <label for="city" class="form-label">City</label>
+                <label for="city" class="form-label fw-medium text-secondary">City</label>
                 <input type="text" class="form-control" id="city" name="city" required>
               </div>
               <div class="col">
-                <label for="state" class="form-label">State</label>
+                <label for="state" class="form-label fw-medium text-secondary">State</label>
                 <input type="text" class="form-control" id="state" name="state" required>
               </div>
             </div>
             <div class="mb-3">
-              <label for="pincode" class="form-label">PIN Code</label>
+              <label for="pincode" class="form-label fw-medium text-secondary">PIN Code</label>
               <input type="text" class="form-control" id="pincode" name="pincode" required pattern="[0-9]{6}"
                 title="Enter a valid 6-digit PIN code">
             </div>
             <div class="mb-3 form-check">
-              <input type="checkbox" class="form-check-input" id="makeDefault" name="makeDefault" value="true">
-              <label class="form-check-label" for="makeDefault">Set as default address</label>
+              <input type="checkbox" class="form-check-input shadow-sm" id="makeDefault" name="makeDefault" value="true">
+              <label class="form-check-label fw-medium" for="makeDefault">Set as default address</label>
             </div>
             <!-- Auto-detect location button -->
             <div class="d-grid mt-4">
-              <button type="button" class="btn btn-outline-primary border-dashed" id="detectLocationBtn">
+              <button type="button" class="btn btn-outline-primary shadow-sm fw-medium" id="detectLocationBtn">
                 <i class="fas fa-location-arrow me-2"></i>Auto-detect My Location
               </button>
             </div>
           </div>
-          <div class="modal-footer bg-light">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary px-4">Save Address</button>
+          <div class="modal-footer bg-light border-top px-4">
+            <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary px-4 shadow-sm">Save Address</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-
 
 </section>
 

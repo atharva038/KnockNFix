@@ -1,42 +1,42 @@
 <section id="settings" class="dashboard-section">
-  <div class="section-header" data-aos="fade-up">
-    <h2><i class="fas fa-cog me-2"></i>Settings</h2>
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" data-aos="fade-up">
+    <h2 class="fs-4 fw-bold text-dark m-0 d-flex align-items-center gap-2"><i class="fas fa-cog text-secondary fs-5"></i>Settings</h2>
   </div>
-  <div class="content-card" data-aos="fade-up" data-aos-delay="100">
-    <div class="settings-grid">
-      <div class="setting-item">
-        <div class="setting-header">
-          <i class="fas fa-bell"></i>
-          <h3>Notifications</h3>
-        </div>
-        <div class="setting-content">
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="emailNotif" />
-            <label class="form-check-label" for="emailNotif"
-              >Email Notifications</label
-            >
+  <div class="bg-white rounded-4 shadow-sm p-4 border transition-hover" data-aos="fade-up" data-aos-delay="100">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="bg-white rounded-4 p-4 border shadow-sm h-100 transition-hover">
+          <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+            <i class="fas fa-bell fs-5 text-secondary"></i>
+            <h3 class="fs-5 fw-bold m-0 text-dark">Notifications</h3>
           </div>
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="smsNotif" />
-            <label class="form-check-label" for="smsNotif"
-              >SMS Notifications</label
-            >
+          <div>
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input shadow-sm" type="checkbox" id="emailNotif" />
+              <label class="form-check-label fw-medium" for="emailNotif">Email Notifications</label>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input shadow-sm" type="checkbox" id="smsNotif" />
+              <label class="form-check-label fw-medium" for="smsNotif">SMS Notifications</label>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="setting-item">
-        <div class="setting-header">
-          <i class="fas fa-lock"></i>
-          <h3>Security</h3>
-        </div>
-        <div class="setting-content">
-          <button class="btn btn-outline-primary mb-3 w-100">
-            <i class="fas fa-key me-2"></i>Change Password
-          </button>
-          <button class="btn btn-outline-primary w-100">
-            <i class="fas fa-shield-alt me-2"></i>Two-Factor Authentication
-          </button>
+      <div class="col-md-6">
+        <div class="bg-white rounded-4 p-4 border shadow-sm h-100 transition-hover">
+          <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+            <i class="fas fa-lock fs-5 text-secondary"></i>
+            <h3 class="fs-5 fw-bold m-0 text-dark">Security</h3>
+          </div>
+          <div>
+            <button class="btn btn-outline-primary mb-3 w-100 fw-medium shadow-sm">
+              <i class="fas fa-key me-2"></i>Change Password
+            </button>
+            <button class="btn btn-outline-primary w-100 fw-medium shadow-sm">
+              <i class="fas fa-shield-alt me-2"></i>Two-Factor Authentication
+            </button>
+          </div>
         </div>
       </div>
     </div>

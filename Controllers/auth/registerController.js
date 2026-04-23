@@ -24,7 +24,7 @@ const API_MISSING_PROVIDER_DATA_MESSAGE =
 
 const registerController = {
   showRegister: (req, res) => {
-    res.render("pages/register", {
+    res.render("pages/auth/register", {
       title: "Register - KnockNFix",
     });
   },
@@ -256,7 +256,7 @@ const registerController = {
       return res.redirect("/register");
     }
 
-    res.render("pages/verify-otp", {
+    res.render("pages/auth/verify-otp", {
       phone,
       userRole,
       title: "Verify Registration - KnockNFix",

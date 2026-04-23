@@ -6,7 +6,7 @@ exports.showComplaints = async (req, res) => {
       .sort({ createdAt: -1 })
       .exec();
 
-    return res.render("pages/complaints", {
+    return res.render("pages/support/complaints", {
       complaints,
       pageTitle: "My Complaints",
       user: req.user,

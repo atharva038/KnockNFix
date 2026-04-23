@@ -101,7 +101,7 @@ exports.showPaymentSuccess = async (req, res) => {
 
     const payment = await Payment.findOne({ booking: booking._id, status: "completed" }).sort({ createdAt: -1 });
 
-    return res.render("pages/success", { booking, service: booking.service, provider: booking.provider, payment, title: "Payment Successful", user: req.user });
+    return res.render("pages/payment/status", { booking, service: booking.service, provider: booking.provider, payment, title: "Payment Successful", user: req.user });
   } catch (error) {
     console.error("Error displaying payment success:", error);
     req.flash("error", "Error loading payment details");

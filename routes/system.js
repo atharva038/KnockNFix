@@ -4,7 +4,7 @@ function createSystemRoutes({ isDatabaseConnected, getDatabaseStatus }) {
   const router = express.Router();
 
   router.get("/", (req, res) => {
-    return res.render("pages/home", {
+    return res.render("pages/public/home", {
       dbConnected: isDatabaseConnected(),
     });
   });
@@ -26,7 +26,7 @@ function createSystemRoutes({ isDatabaseConnected, getDatabaseStatus }) {
       return res.redirect("/login");
     }
 
-    return res.render("pages/chatbot", {
+    return res.render("pages/support/chatbot", {
       title: "Chat Assistant",
       currUser: req.user,
     });

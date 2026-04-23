@@ -14,7 +14,7 @@ exports.getMyBookings = async (req, res) => {
 
         console.log(`Found ${bookings.length} bookings for user`);
 
-        res.render("pages/my-bookings", {
+        res.render("pages/booking/my-bookings", {
             bookings,
             user: req.user,
             title: "My Bookings"
@@ -55,7 +55,7 @@ exports.getBookingDetails = async (req, res) => {
 
         console.log('Booking details loaded successfully');
 
-        res.render('pages/booking-details', {
+        res.render('pages/booking/details', {
             booking,
             user: req.user,
             title: 'Booking Details'
@@ -131,7 +131,7 @@ exports.getBookingSuccess = async (req, res) => {
             console.log('No booking or payment found for user:', req.user._id);
         }
 
-        res.render('pages/payment-success', {
+        res.render('pages/payment/success', {
             booking: booking || null,
             service: booking ? booking.service : null,
             provider: booking ? booking.provider : null,

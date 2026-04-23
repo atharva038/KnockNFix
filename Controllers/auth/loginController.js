@@ -21,7 +21,7 @@ const loginController = {
       req.flash("success", "👋 User logged out successfully");
     }
 
-    res.render("pages/login", {
+    res.render("pages/auth/login", {
       title: "Login - KnockNFix",
     });
   },
@@ -115,7 +115,7 @@ const loginController = {
         return res.redirect("/login");
       }
 
-      return res.render("pages/verify-otp", {
+      return res.render("pages/auth/verify-otp", {
         phone,
         title: "Verify Login - KnockNFix",
         pageType: "login",

@@ -1,8 +1,8 @@
 <section id="bookings" class="dashboard-section active">
-  <div class="section-header">
-    <h2><i class="fas fa-calendar-alt me-2"></i>Your Bookings</h2>
-    <div class="section-actions">
-      <select class="form-select status-filter">
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <h2 class="fs-4 fw-bold text-dark m-0 d-flex align-items-center gap-2"><i class="fas fa-calendar-alt text-secondary fs-5"></i>Your Bookings</h2>
+    <div class="d-flex gap-2">
+      <select class="form-select status-filter shadow-sm border-secondary-subtle">
         <option value="all">All Bookings</option>
         <option value="pending">Pending</option>
         <option value="confirmed">Confirmed</option>
@@ -12,94 +12,100 @@
     </div>
   </div>
 
-  <div class="booking-stats-row" data-aos="fade-up">
-    <div class="stat-card">
-      <div class="stat-icon total"><i class="fas fa-list-ul"></i></div>
-      <div class="stat-details">
-        <h4>Total Bookings</h4>
-        <p class="stat-number"><%= bookings.length %></p>
+  <div class="row g-4 mb-4" data-aos="fade-up">
+    <div class="col-md-4">
+      <div class="bg-white rounded-4 shadow-sm p-3 border d-flex align-items-center gap-3 transition-hover h-100">
+        <div class="rounded-3 d-flex align-items-center justify-content-center fs-4 bg-light text-secondary" style="width: 48px; height: 48px;"><i class="fas fa-list-ul"></i></div>
+        <div>
+          <h4 class="text-secondary text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em; font-weight: 600;">Total Bookings</h4>
+          <p class="fs-3 fw-bold text-dark m-0 lh-1"><%= bookings.length %></p>
+        </div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon pending"><i class="fas fa-clock"></i></div>
-      <div class="stat-details">
-        <h4>Pending</h4>
-        <p class="stat-number"><%= bookings.filter(b => b.status === 'pending').length %></p>
+    <div class="col-md-4">
+      <div class="bg-white rounded-4 shadow-sm p-3 border d-flex align-items-center gap-3 transition-hover h-100">
+        <div class="rounded-3 d-flex align-items-center justify-content-center fs-4 bg-warning bg-opacity-10 text-warning" style="width: 48px; height: 48px;"><i class="fas fa-clock"></i></div>
+        <div>
+          <h4 class="text-secondary text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em; font-weight: 600;">Pending</h4>
+          <p class="fs-3 fw-bold text-dark m-0 lh-1"><%= bookings.filter(b => b.status === 'pending').length %></p>
+        </div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon completed"><i class="fas fa-check-circle"></i></div>
-      <div class="stat-details">
-        <h4>Completed</h4>
-        <p class="stat-number"><%= bookings.filter(b => b.status === 'completed').length %></p>
+    <div class="col-md-4">
+      <div class="bg-white rounded-4 shadow-sm p-3 border d-flex align-items-center gap-3 transition-hover h-100">
+        <div class="rounded-3 d-flex align-items-center justify-content-center fs-4 bg-success bg-opacity-10 text-success" style="width: 48px; height: 48px;"><i class="fas fa-check-circle"></i></div>
+        <div>
+          <h4 class="text-secondary text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em; font-weight: 600;">Completed</h4>
+          <p class="fs-3 fw-bold text-dark m-0 lh-1"><%= bookings.filter(b => b.status === 'completed').length %></p>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="content-card" data-aos="fade-up" data-aos-delay="100">
-    <div class="table-responsive">
-      <table class="table booking-table">
-        <thead>
+  <div class="bg-white rounded-4 shadow-sm p-4 border transition-hover" data-aos="fade-up" data-aos-delay="100">
+    <div class="table-responsive rounded-3 border">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light text-secondary" style="font-size: 0.8rem;">
           <tr>
-            <th>Service</th>
-            <th>Provider</th>
-            <th>Date & Time</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th class="py-3 px-4 fw-semibold border-bottom">Service</th>
+            <th class="py-3 px-4 fw-semibold border-bottom">Provider</th>
+            <th class="py-3 px-4 fw-semibold border-bottom">Date & Time</th>
+            <th class="py-3 px-4 fw-semibold border-bottom">Status</th>
+            <th class="py-3 px-4 fw-semibold border-bottom">Actions</th>
           </tr>
         </thead>
         <tbody>
           <% if(bookings.length === 0) { %>
             <tr>
-              <td colspan="5">
-                <div class="no-bookings-message">
-                  <i class="fas fa-calendar-times"></i>
-                  <h4>No Bookings Yet</h4>
-                  <p>You haven't made any bookings. Explore our services to get started!</p>
-                  <a href="/services" class="btn btn-primary mt-3">Browse Services</a>
+              <td colspan="5" class="py-5">
+                <div class="text-center py-4">
+                  <i class="fas fa-calendar-times text-secondary fs-1 mb-3"></i>
+                  <h4 class="fw-bold text-dark">No Bookings Yet</h4>
+                  <p class="text-secondary">You haven't made any bookings. Explore our services to get started!</p>
+                  <a href="/services" class="btn btn-primary mt-3 px-4 py-2 shadow-sm">Browse Services</a>
                 </div>
               </td>
             </tr>
           <% } else { %>
             <% bookings.forEach(booking=> { %>
               <tr data-aos="fade-up" data-aos-delay="150">
-                <td data-label="Service">
-                  <div class="service-info">
-                    <div class="service-icon"><i class="fas fa-tools"></i></div>
+                <td data-label="Service" class="py-3 px-4 border-bottom">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="fas fa-tools"></i></div>
                     <div>
-                      <div class="service-name">
+                      <div class="fw-semibold text-dark" style="font-size: 0.95rem;">
                         <%= booking.service.name %>
                       </div>
-                      <div class="service-price">₹<%= booking.totalCost %>
+                      <div class="text-secondary" style="font-size: 0.85rem;">₹<%= booking.totalCost %>
                       </div>
                     </div>
                   </div>
                 </td>
-                <td data-label="Provider">
-                  <div class="provider-info">
+                <td data-label="Provider" class="py-3 px-4 border-bottom">
+                  <div class="d-flex align-items-center gap-2">
                     <% if (booking.provider && booking.provider.user) { %>
                       <img src="<%= booking.provider.user.profileImage || '/img/default-avatar.png' %>" alt="Provider"
-                        class="provider-img" />
-                      <div class="provider-name">
+                        class="rounded-circle border" style="width: 32px; height: 32px; object-fit: cover;" />
+                      <div class="fw-medium" style="font-size: 0.9rem;">
                         <%= booking.provider.user.name %>
                       </div>
                       <% } else { %>
-                        <img src="/img/default-avatar.png" alt="Provider" class="provider-img" />
-                        <div class="provider-name">
+                        <img src="/img/default-avatar.png" alt="Provider" class="rounded-circle border" style="width: 32px; height: 32px; object-fit: cover;" />
+                        <div class="fw-medium" style="font-size: 0.9rem;">
                           <span class="text-muted">Not assigned</span>
                         </div>
                         <% } %>
                   </div>
                 </td>
-                <td data-label="Date & Time">
-                  <div class="booking-time">
-                    <div class="booking-date">
+                <td data-label="Date & Time" class="py-3 px-4 border-bottom text-dark" style="font-size: 0.9rem;">
+                  <div class="d-flex flex-column">
+                    <div class="fw-medium">
                       <% try { const bookingDate=new Date(booking.bookingDate); if (!isNaN(bookingDate.getTime())) { %>
                         <%= bookingDate.toLocaleDateString('en-IN', { weekday: 'short' , year: 'numeric' , month: 'short' ,
                           day: 'numeric' }) %>
                           <% } else { %>N/A<% } } catch (error) { %>Error<% } %>
                     </div>
-                    <div class="booking-hour">
+                    <div class="text-secondary" style="font-size: 0.85rem;">
                       <% try { const bookingDate=new Date(booking.bookingDate); if (!isNaN(bookingDate.getTime())) { %>
                         <%= bookingDate.toLocaleTimeString('en-IN', { hour: '2-digit' , minute: '2-digit' , hour12: true
                           }) %>
@@ -107,19 +113,19 @@
                     </div>
                   </div>
                 </td>
-                <td data-label="Status">
+                <td data-label="Status" class="py-3 px-4 border-bottom">
                   <span class="status-badge status-<%= booking.status.toLowerCase() %>">
                     <%= booking.status %>
                   </span>
                 </td>
-                <td data-label="Actions">
-                  <div class="booking-actions">
-                    <button class="btn view-booking-btn" title="View Details"
+                <td data-label="Actions" class="py-3 px-4 border-bottom">
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary view-booking-btn shadow-sm" title="View Details"
                       data-id="<%= booking._id %>" data-bs-toggle="modal" data-bs-target="#viewBookingModal">
                       <i class="fas fa-eye"></i>
                     </button>
                     <% if (booking.status==='pending' ) { %>
-                      <button class="btn cancel-booking-btn" title="Cancel Booking"
+                      <button class="btn btn-sm btn-outline-danger cancel-booking-btn shadow-sm" title="Cancel Booking"
                         data-id="<%= booking._id %>">
                         <i class="fas fa-times"></i>
                       </button>
@@ -137,55 +143,55 @@
   <div class="modal fade" id="viewBookingModal" tabindex="-1" aria-labelledby="viewBookingModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="viewBookingModalLabel">
+      <div class="modal-content rounded-4 shadow">
+        <div class="modal-header border-bottom px-4">
+          <h5 class="modal-title fw-bold" id="viewBookingModalLabel">
             <i class="fas fa-calendar-check me-2 text-primary"></i>Booking Details
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body p-4">
           <div class="booking-details-container">
-            <div class="row booking-header">
+            <div class="row align-items-center bg-light p-3 rounded-3 mb-4">
               <div class="col-md-8">
-                <h3 id="modal-service-name">Loading...</h3>
-                <p class="provider-name text-muted mt-2">
+                <h3 id="modal-service-name" class="fw-bold mb-1">Loading...</h3>
+                <p class="provider-name text-muted m-0">
                   <i class="fas fa-user-tie me-2"></i>
                   <span id="modal-provider-name">Loading...</span>
                 </p>
               </div>
               <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <span id="modal-booking-status" class="status-badge">Loading...</span>
+                <span id="modal-booking-status" class="status-badge fs-6">Loading...</span>
               </div>
             </div>
 
-            <div class="row mt-4">
+            <div class="row g-4">
               <div class="col-md-6">
-                <div class="detail-group">
-                  <label><i class="fas fa-calendar-day me-2"></i>Booking Date</label>
-                  <p id="modal-booking-date">Loading...</p>
+                <div class="mb-3">
+                  <label class="text-secondary fw-semibold mb-1" style="font-size: 0.9rem;"><i class="fas fa-calendar-day me-2"></i>Booking Date</label>
+                  <p id="modal-booking-date" class="text-dark fw-medium m-0">Loading...</p>
                 </div>
 
-                <div class="detail-group">
-                  <label><i class="fas fa-map-marker-alt me-2"></i>Service Address</label>
-                  <p id="modal-booking-address">Loading...</p>
+                <div class="mb-3">
+                  <label class="text-secondary fw-semibold mb-1" style="font-size: 0.9rem;"><i class="fas fa-map-marker-alt me-2"></i>Service Address</label>
+                  <p id="modal-booking-address" class="text-dark fw-medium m-0">Loading...</p>
                 </div>
 
-                <div class="detail-group">
-                  <label><i class="fas fa-clipboard-list me-2"></i>Notes</label>
-                  <p id="modal-booking-notes">Loading...</p>
+                <div class="mb-3">
+                  <label class="text-secondary fw-semibold mb-1" style="font-size: 0.9rem;"><i class="fas fa-clipboard-list me-2"></i>Notes</label>
+                  <p id="modal-booking-notes" class="text-dark fw-medium m-0">Loading...</p>
                 </div>
               </div>
 
               <div class="col-md-6">
-                <div class="detail-group">
-                  <label><i class="fas fa-receipt me-2"></i>Total Cost</label>
-                  <h4 id="modal-booking-cost" class="text-primary">Loading...</h4>
+                <div class="mb-3">
+                  <label class="text-secondary fw-semibold mb-1" style="font-size: 0.9rem;"><i class="fas fa-receipt me-2"></i>Total Cost</label>
+                  <h4 id="modal-booking-cost" class="text-primary fw-bold m-0">Loading...</h4>
                 </div>
 
-                <div class="detail-group">
-                  <label><i class="fas fa-money-check-alt me-2"></i>Payment Status</label>
-                  <p id="modal-payment-status">Loading...</p>
+                <div class="mb-3">
+                  <label class="text-secondary fw-semibold mb-1" style="font-size: 0.9rem;"><i class="fas fa-money-check-alt me-2"></i>Payment Status</label>
+                  <p id="modal-payment-status" class="text-dark fw-medium m-0">Loading...</p>
                 </div>
 
                 <div id="payment-info-container" class="mt-4 pt-3 border-top">
@@ -195,8 +201,8 @@
             </div>
           </div>
         </div>
-        <div class="modal-footer border-top-0 bg-light rounded-bottom">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <div class="modal-footer border-top bg-light px-4">
+          <button type="button" class="btn btn-secondary px-4 shadow-sm" data-bs-dismiss="modal">
             Close
           </button>
           <div id="modal-action-buttons">

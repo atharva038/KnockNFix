@@ -59,6 +59,10 @@ const dashboardAdminController = {
 
       return res.render("pages/admin/dashboard", {
         statistics,
+        totalBookings: statistics.bookingsCount,
+        totalUsers: statistics.usersCount,
+        totalProviders: statistics.providersCount,
+        totalServices: statistics.servicesCount,
         recentActivity,
         recentBookings: processedRecentBookings,
         notifications,

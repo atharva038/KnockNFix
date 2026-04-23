@@ -28,6 +28,16 @@ const bookingAdminController = {
           };
         }
 
+        if (!plainBooking.service) {
+          plainBooking.service = { name: "Unknown Service", category: { name: "Unknown Category" } };
+        } else if (!plainBooking.service.category) {
+          plainBooking.service.category = { name: "Unknown Category" };
+        }
+
+        if (!plainBooking.provider) {
+          plainBooking.provider = { name: "Not assigned", businessName: "N/A", user: { name: "Unknown" } };
+        }
+
         if (plainBooking.totalCost && !plainBooking.totalAmount) {
           plainBooking.totalAmount = plainBooking.totalCost;
         } else if (!plainBooking.totalAmount && !plainBooking.totalCost) {

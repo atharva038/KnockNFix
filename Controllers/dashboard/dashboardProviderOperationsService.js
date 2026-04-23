@@ -26,7 +26,7 @@ exports.showRegisterService = async (req, res) => {
   try {
     const categories = await Category.find().lean();
     const services = await Service.find().populate("category").lean();
-    return res.render("pages/registerService", { categories, services, user: req.user, title: "Register Service" });
+    return res.render("pages/public/registerService", { categories, services, user: req.user, title: "Register Service" });
   } catch (err) {
     req.flash("error", "Unable to load categories and services");
     return res.redirect("/dashboard");
