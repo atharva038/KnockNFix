@@ -1,0 +1,74 @@
+<% layout("/layouts/boilerplate.ejs") %>
+<%# This view is used by the manual payment flow (paymentManualService). %>
+<%# It receives: booking, service, provider, payment, user %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-lg text-center p-5">
+
+        <!-- Success Icon -->
+        <div class="mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-10"
+            style="width:100px;height:100px;">
+            <i class="fas fa-check-circle text-success" style="font-size:3.5rem;"></i>
+          </div>
+        </div>
+ 
+        <h2 class="fw-bold mb-2">Payment Successful!</h2>
+        <p class="text-muted mb-4">Thank you for choosing KnockNFix. Your booking has been confirmed.</p>
+
+        <!-- Booking Summary -->
+        <% if (booking) { %>
+          <div class="bg-light rounded p-4 text-start mb-4">
+            <h6 class="fw-semibold mb-3 border-bottom pb-2">Booking Summary</h6>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Booking ID</span>
+              <span class="fw-semibold text-truncate ms-3" style="max-width:200px;">#<%= booking._id %></span>
+            </div>
+            <% if (service) { %>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Service</span>
+              <span class="fw-semibold"><%= service.name %></span>
+            </div>
+            <% } %>
+            <% if (provider && provider.user) { %>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Provider</span>
+              <span class="fw-semibold"><%= provider.user.name %></span>
+            </div>
+            <% } %>
+            <% if (booking.date) { %>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Date</span>
+              <span class="fw-semibold">
+                <%= new Date(booking.date).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) %>
+              </span>
+            </div>
+            <% } %>
+            <% if (payment) { %>
+            <div class="d-flex justify-content-between pt-2 border-top mt-2">
+              <span class="text-muted fw-semibold">Amount Paid</span>
+              <span class="fw-bold text-primary fs-5">₹<%= payment.amount %></span>
+            </div>
+            <% } %>
+          </div>
+        <% } %>
+
+        <!-- Actions -->
+        <div class="d-grid gap-2">
+          <a href="/dashboard" class="btn btn-primary">
+            <i class="fas fa-home me-2"></i>Go to Dashboard
+          </a>
+          <a href="/booking/mybookings" class="btn btn-outline-secondary">
+            <i class="fas fa-list me-2"></i>View My Bookings
+          </a>
+        </div>
+
+        <p class="text-muted small mt-4 mb-0">
+          Need help? <a href="/contact" class="text-primary text-decoration-none">Contact Support</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

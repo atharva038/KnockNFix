@@ -32,7 +32,7 @@ exports.getAllBookings = async (req, res) => {
 
         console.log(`Found ${bookings.length} bookings out of ${totalBookings} total`);
 
-        res.render('admin/bookings', {
+        res.render('pages/admin/bookings', {
             bookings,
             currentPage: parseInt(page),
             totalPages,

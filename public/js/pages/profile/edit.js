@@ -1,8 +1,8 @@
 let cropper;
 
-const knfCore = window.KNFCore || {};
-const knfApi = knfCore.api;
-const knfNotify = knfCore.notify;
+var knfCore = window.KNFCore || {};
+var knfApi = knfCore.api;
+var knfNotify = knfCore.notify;
 
 function showToast(type, message, options) {
     if (knfNotify && typeof knfNotify[type] === 'function') {
@@ -43,7 +43,7 @@ async function postData(url, payload) {
 document.addEventListener("DOMContentLoaded", function () {
     const profileImage = document.getElementById("profileImage");
     const cropImage = document.getElementById("cropImage");
-    const imageCropModal = new bootstrap.Modal(document.getElementById("imageCropModal"));
+    const imageCropModal = bootstrap.Modal.getOrCreateInstance(document.getElementById("imageCropModal"));
 
     // Handle image selection
     profileImage.addEventListener("change", function (e) {
@@ -159,7 +159,7 @@ async function saveProfile() {
 }
 
 function openEditModal() {
-    const editProfileModal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+    const editProfileModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('editProfileModal'));
 
     // Pre-fill the form with current values
     document.getElementById('editName').value = document.querySelector('.user-name').textContent.trim();

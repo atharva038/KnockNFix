@@ -44,13 +44,16 @@
     <!-- Essential Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
+    <!-- AOS Animation Library CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
     <!-- Load Google Maps initialization script -->
     <script src="/js/pages/maps/mapInit.js"></script>
   </head>
 
   <body>
     <%- include("../includes/navbar.ejs") %> <%-
-    include('../partials/languageSwitcher.ejs') %><%-
+    include('../includes/languageSwitcher.ejs') %><%-
     include("../includes/flash.ejs") %> <%- body %> <%-
     include("../includes/footer.ejs") %>
 
@@ -60,6 +63,18 @@
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
       crossorigin="anonymous"
     ></script>
+
+    <!-- AOS Animation Library JS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        AOS.init({
+          duration: 800,
+          once: true,
+          offset: 100
+        });
+      });
+    </script>
 
     <!-- Initialize Google Maps API with your configuration -->
     <script>

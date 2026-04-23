@@ -114,11 +114,13 @@ async function getProviderDashboardData(userId) {
     let serviceProviderData = await ServiceProvider.findOne({ user: userId });
 
     if (!serviceProviderData) {
-      const defaultAvailability = {};
-      ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].forEach((day) => {
-        defaultAvailability[day] = { isAvailable: true, slots: [{ startTime: "09:00", endTime: "17:00", isActive: true }] };
-      });
-      serviceProviderData = await ServiceProvider.create({ user: userId, availability: defaultAvailability, earnings: 0, isVerified: false, isActive: true });
+      // BUG-021: Do NOT auto-create a ServiceProvider record.
+      // A missing record means the provider bypassed verification.
+      // Surface a clear error instead of silently creating an incomplete profile.
+      throw Object.assign(
+        new Error('Your provider profile is incomplete or pending verification. Please contact support.'),
+        { statusCode: 403, code: 'PROVIDER_PROFILE_MISSING' }
+      );
     }
 
     const providerWithServices = await ServiceProvider.findOne({ user: userId })
@@ -212,10 +214,10 @@ async function getProviderDashboardData(userId) {
       }
     });
 
-    if (totalEarnings !== serviceProviderData.earnings) {
-      await ServiceProvider.findByIdAndUpdate(serviceProviderData._id, { earnings: totalEarnings });
-      serviceProviderData.earnings = totalEarnings;
-    }
+    // BUG-037: Do NOT write earnings to DB on every dashboard load.
+    // Earnings are recalculated fresh here for display. The persisted value
+    // is updated only on booking completion (event-driven, not request-driven).
+    serviceProviderData.earnings = totalEarnings;
 
     if (!providerWithServices?.availability) {
       const defaultAvailability = {};

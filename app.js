@@ -5,6 +5,7 @@ const path = require("path");
 const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
 const cookieParser = require("cookie-parser");
+const mongoSanitize = require("express-mongo-sanitize");
 
 require("dotenv").config();
 
@@ -58,6 +59,8 @@ connectDatabase();
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.json());
+// BUG-032: Strip MongoDB operator keys ($gt, $where, etc.) from all user input
+app.use(mongoSanitize());
 
 // Template engine setup
 app.engine("ejs", ejsMate);
@@ -118,9 +121,19 @@ app.use("/", chatRoutes);
 app.use("/", addRoutes);
 app.use("/user", userRoutes);
 
+// Silence Chrome DevTools automatic probe — not a real app route
+app.get("/.well-known/appspecific/com.chrome.devtools.json", (req, res) => {
+  res.status(200).json({});
+});
+
+// Silence favicon requests — no favicon served, suppress 404 log noise
+app.get("/favicon.ico", (req, res) => res.status(204).end());
+
+
 // 404 Error handler - Redirect to home with flash message
 app.use("*", (req, res) => {
   console.log(`❌ 404 Error: ${req.method} ${req.originalUrl} not found`);
+
 
   // Check if it's an API request
   if (req.originalUrl.startsWith("/api/")) {

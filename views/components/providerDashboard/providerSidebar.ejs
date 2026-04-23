@@ -4,50 +4,52 @@
 
 <div class="sidebar">
   <div class="sidebar-header">
-    <img src="<%= user.profileImage || '/img/default-avatar.png' %>" alt="Profile" class="sidebar-profile-img" />
-    <h5 class="sidebar-name">
-      <%= user.name %>
-    </h5>
-    <p class="sidebar-email">
-      <%= user.username %>
-    </p>
+    <div class="sidebar-profile">
+      <img src="<%= user.profileImage || '/img/default-avatar.png' %>" alt="Profile" class="sidebar-profile-img" onerror="this.src='/img/default-avatar.png'" />
+      <div class="sidebar-status-indicator"></div>
+    </div>
+    <h5 class="sidebar-name"><%= user.name %></h5>
+    <p class="sidebar-email"><%= user.username %></p>
   </div>
 
   <nav class="sidebar-nav">
     <a href="#overview" class="nav-link active" data-section="overview">
-      <i class="fas fa-home"></i>
+      <i class="fas fa-home nav-icon"></i>
       <span>Dashboard</span>
     </a>
     <a href="#services" class="nav-link" data-section="services">
-      <i class="fas fa-tools"></i>
+      <i class="fas fa-tools nav-icon"></i>
       <span>My Services</span>
     </a>
     <a href="#bookings" class="nav-link" data-section="bookings">
-      <i class="fas fa-calendar-check"></i>
+      <i class="fas fa-calendar-check nav-icon"></i>
       <span>Bookings</span>
     </a>
     <a href="#profile" class="nav-link" data-section="profile">
-      <i class="fas fa-user"></i>
+      <i class="fas fa-user nav-icon"></i>
       <span>Profile</span>
     </a>
     <a href="#settings" class="nav-link" data-section="settings">
-      <i class="fas fa-cog"></i>
+      <i class="fas fa-cog nav-icon"></i>
       <span>Settings</span>
     </a>
     <a href="#locations" class="nav-link" data-section="locations">
-      <i class="fas fa-map-marker-alt"></i>
+      <i class="fas fa-map-marker-alt nav-icon"></i>
       <span>Locations & Availability</span>
     </a>
     <a href="#banking" class="nav-link" data-section="banking">
-      <i class="fas fa-university"></i>
+      <i class="fas fa-university nav-icon"></i>
       <span>Banking & Payments</span>
     </a>
     <a href="/dashboard/registerService" class="nav-link">
-      <i class="fas fa-plus-circle"></i>
+      <i class="fas fa-plus-circle nav-icon"></i>
       <span>Register Service</span>
     </a>
+    <div class="sidebar-divider">
+      <span>Account</span>
+    </div>
     <a href="/logout" class="nav-link logout-link">
-      <i class="fas fa-sign-out-alt"></i>
+      <i class="fas fa-sign-out-alt nav-icon"></i>
       <span>Logout</span>
     </a>
   </nav>
@@ -55,221 +57,6 @@
 
 <!-- Add overlay for mobile -->
 <div class="sidebar-overlay"></div>
-
-<style>
-  /* Sidebar Overlay */
-  .sidebar-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 99;
-    /* Just below sidebar */
-  }
-
-  body.sidebar-open .sidebar-overlay {
-    display: block;
-  }
-
-  /* Sidebar Styles - Kept as sticky */
-  .sidebar {
-    width: 280px;
-    position: sticky;
-    /* Maintaining sticky as requested */
-    background-color: #ffffff;
-    top: 76px;
-    left: 0;
-    height: calc(100vh - 76px);
-    overflow-y: auto;
-    z-index: 100;
-    color: #333;
-    transition: transform 0.3s ease;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
-    padding-bottom: 76px;
-    /* Add gradient to indicate end */
-    border-right: 1px solid #f0f0f0;
-  }
-
-  /* Add scrollbar styling */
-  .sidebar::-webkit-scrollbar {
-    width: 5px;
-  }
-
-  .sidebar::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
-  }
-
-  .sidebar::-webkit-scrollbar-track {
-    background-color: rgba(0, 0, 0, 0.05);
-  }
-
-  .sidebar-toggle {
-    display: none;
-    position: fixed;
-    top: 85px;
-    left: 15px;
-    z-index: 1000;
-    padding: 12px;
-    background: #ffffff;
-    color: #333;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-  }
-
-  .sidebar-toggle:hover {
-    background-color: #f8f9fa;
-  }
-
-  .sidebar-header {
-    padding: 1.5rem;
-    text-align: center;
-    border-bottom: 1px solid #f0f0f0;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: white;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-  }
-
-  .sidebar-profile-img {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid rgba(255, 255, 255, 0.8);
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  .sidebar-name {
-    font-weight: 600;
-    color: white;
-    margin-bottom: 0.25rem;
-  }
-
-  .sidebar-email {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.875rem;
-  }
-
-  .sidebar-nav {
-    padding: 1.5rem 1rem;
-  }
-
-  .nav-link {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    color: #4b5563;
-    margin-bottom: 0.5rem;
-    transition: all 0.2s ease;
-    text-decoration: none;
-  }
-
-  .nav-link:hover {
-    background-color: #f3f4f6;
-    color: #4f46e5;
-  }
-
-  .nav-link.active {
-    background-color: #eef2ff;
-    color: #4f46e5;
-    font-weight: 500;
-  }
-
-  .nav-link i {
-    font-size: 1.1rem;
-    width: 24px;
-    text-align: center;
-  }
-
-  .logout-link {
-    color: #dc2626;
-    margin-top: 2rem;
-    border-top: 1px solid #f0f0f0;
-    padding-top: 1rem;
-  }
-
-  .logout-link:hover {
-    background-color: #fee2e2;
-    color: #dc2626;
-  }
-
-  /* Handle footer overlap for small screens */
-  @media (max-height: 700px) {
-    .sidebar {
-      padding-bottom: 100px;
-    }
-  }
-
-  /* Responsive sidebar */
-  @media (max-width: 768px) {
-    .sidebar-toggle {
-      display: block;
-    }
-
-    /* For mobile, override sticky position */
-    .sidebar {
-      position: fixed;
-      /* Need fixed for mobile slide-out menu */
-      transform: translateX(-280px);
-      /* Use exact pixel value instead of percentage */
-      width: 280px;
-      box-shadow: none;
-    }
-
-    .sidebar.active {
-      transform: translateX(0);
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    }
-
-    /* When sidebar active, move toggle button */
-    .sidebar.active~.sidebar-toggle,
-    body.sidebar-open .sidebar-toggle {
-      left: 290px;
-    }
-
-    /* Make main content full width on mobile */
-    .main-content {
-      width: 100%;
-      margin-left: 0;
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-
-    /* Add body class to prevent scrolling when sidebar is open */
-    body.sidebar-open {
-      overflow: hidden;
-    }
-  }
-
-  /* Extra small devices */
-  @media (max-width: 576px) {
-    .sidebar {
-      width: 260px;
-      transform: translateX(-260px);
-    }
-
-    .sidebar.active~.sidebar-toggle {
-      left: 270px;
-    }
-
-    .sidebar-toggle {
-      top: 80px;
-      left: 10px;
-      padding: 10px;
-    }
-  }
-</style>
 
 <script>
   // This ensures elements are defined before sidebarToggle.js runs

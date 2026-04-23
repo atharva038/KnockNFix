@@ -3,7 +3,7 @@ const Service = require("../../models/Service");
 exports.showMyServices = async (req, res) => {
   try {
     const services = await Service.find({ provider: req.user.id });
-    return res.render("myservices", { services });
+    return res.render("pages/providerDashboard/myservices", { services });
   } catch (err) {
     return res.status(500).send("Server error");
   }

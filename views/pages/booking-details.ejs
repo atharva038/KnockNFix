@@ -1,0 +1,176 @@
+<% layout("/layouts/boilerplate.ejs") %>
+
+<div class="container py-5">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="/booking/mybookings">My Bookings</a></li>
+      <li class="breadcrumb-item active">Booking Details</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+    <!-- Left Column: Booking Info -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between py-3">
+          <h5 class="mb-0 fw-bold">
+            <i class="fas fa-clipboard-list me-2 text-primary"></i>Booking #<%= booking._id %>
+          </h5>
+          <%
+            const statusMap = { pending:'warning', confirmed:'info', in_progress:'primary', completed:'success', cancelled:'danger', rejected:'secondary' };
+            const badge = statusMap[booking.status] || 'secondary';
+          %>
+          <span class="badge bg-<%= badge %> text-capitalize py-2 px-3 fs-6">
+            <%= (booking.status || 'unknown').replace('_', ' ') %>
+          </span>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="text-muted small fw-semibold text-uppercase">Service</label>
+              <p class="fw-semibold mb-0"><%= booking.service ? booking.service.name : 'Unknown Service' %></p>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small fw-semibold text-uppercase">Appointment Date</label>
+              <p class="fw-semibold mb-0">
+                <%= booking.date ? new Date(booking.date).toLocaleDateString('en-IN', {weekday:'long',day:'numeric',month:'long',year:'numeric'}) : 'TBD' %>
+              </p>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small fw-semibold text-uppercase">Address</label>
+              <p class="fw-semibold mb-0"><%= booking.address || 'Not provided' %></p>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small fw-semibold text-uppercase">Total Cost</label>
+              <p class="fw-semibold mb-0 text-primary fs-5">₹<%= booking.totalCost || booking.cost || 'N/A' %></p>
+            </div>
+            <% if (booking.notes) { %>
+            <div class="col-12">
+              <label class="text-muted small fw-semibold text-uppercase">Notes</label>
+              <p class="mb-0"><%= booking.notes %></p>
+            </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Status -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="mb-0 fw-bold"><i class="fas fa-credit-card me-2 text-success"></i>Payment</h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-sm-4 text-center">
+              <div class="p-3 rounded bg-light">
+                <div class="text-muted small mb-1">Status</div>
+                <span class="badge bg-<%= booking.paymentStatus === 'completed' ? 'success' : booking.paymentStatus === 'partially_paid' ? 'warning' : 'secondary' %>">
+                  <%= (booking.paymentStatus || 'pending').replace('_', ' ') %>
+                </span>
+              </div>
+            </div>
+            <div class="col-sm-4 text-center">
+              <div class="p-3 rounded bg-light">
+                <div class="text-muted small mb-1">Advance Paid</div>
+                <div class="fw-bold text-<%= booking.advancePayment?.paid ? 'success' : 'muted' %>">
+                  <%= booking.advancePayment?.paid ? '₹' + booking.advancePayment.amount : '—' %>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-4 text-center">
+              <div class="p-3 rounded bg-light">
+                <div class="text-muted small mb-1">Final Paid</div>
+                <div class="fw-bold text-<%= booking.finalPayment?.paid ? 'success' : 'muted' %>">
+                  <%= booking.finalPayment?.paid ? '₹' + booking.finalPayment.amount : '—' %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback -->
+      <% if (booking.status === 'completed') { %>
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="mb-0 fw-bold"><i class="fas fa-star me-2 text-warning"></i>Feedback</h5>
+        </div>
+        <div class="card-body p-4">
+          <% if (booking.feedback && booking.feedback.rating) { %>
+            <div class="d-flex align-items-center mb-2">
+              <% for(let i=1;i<=5;i++) { %>
+                <i class="fas fa-star <%= i <= booking.feedback.rating ? 'text-warning' : 'text-muted' %> me-1"></i>
+              <% } %>
+              <span class="ms-2 fw-semibold"><%= booking.feedback.rating %>/5</span>
+            </div>
+            <% if (booking.feedback.comment) { %>
+              <p class="text-muted mb-0">"<%= booking.feedback.comment %>"</p>
+            <% } %>
+          <% } else { %>
+            <p class="text-muted mb-3">You haven't submitted feedback for this booking yet.</p>
+            <a href="/feedback/<%= booking._id %>" class="btn btn-warning btn-sm">
+              <i class="fas fa-star me-1"></i>Leave Feedback
+            </a>
+          <% } %>
+        </div>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- Right Column: Provider Info -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="mb-0 fw-bold"><i class="fas fa-user-tie me-2 text-info"></i>Provider</h5>
+        </div>
+        <div class="card-body p-4 text-center">
+          <% if (booking.provider && booking.provider.user) { %>
+            <img src="<%= booking.provider.user.profileImage || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(booking.provider.user.name) %>"
+              class="rounded-circle mb-3" width="80" height="80" style="object-fit:cover;"
+              alt="<%= booking.provider.user.name %>">
+            <h6 class="fw-bold mb-1"><%= booking.provider.user.name %></h6>
+            <% if (booking.provider.user.phone) { %>
+              <p class="text-muted small mb-3"><i class="fas fa-phone me-1"></i><%= booking.provider.user.phone %></p>
+            <% } %>
+          <% } else { %>
+            <p class="text-muted">Provider information not available</p>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 d-grid gap-2">
+          <a href="/booking/mybookings" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Bookings
+          </a>
+          <% if (booking.status === 'pending' || booking.status === 'confirmed') { %>
+            <button class="btn btn-outline-danger" onclick="cancelBooking('<%= booking._id %>')">
+              <i class="fas fa-times me-2"></i>Cancel Booking
+            </button>
+          <% } %>
+          <a href="/complaints" class="btn btn-outline-warning btn-sm">
+            <i class="fas fa-flag me-2"></i>Report an Issue
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function cancelBooking(bookingId) {
+    if (!confirm('Are you sure you want to cancel this booking?')) return;
+    try {
+      const res = await fetch(`/booking/${bookingId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ reason: 'Cancelled by customer' })
+      });
+      const data = await res.json();
+      if (data.success) { window.location.href = '/booking/mybookings'; }
+      else { alert(data.error || 'Failed to cancel booking'); }
+    } catch (e) { alert('An error occurred. Please try again.'); }
+  }
+</script>

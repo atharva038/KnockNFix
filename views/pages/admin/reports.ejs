@@ -1,0 +1,38 @@
+<% layout("/layouts/admin-layout.ejs") %>
+<div class="admin-section-header mb-4">
+  <h1 class="h4 fw-bold text-dark mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>Reports</h1>
+  <p class="text-muted small mb-0">Platform analytics and reports</p>
+</div>
+<% if (stats) { %>
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="admin-card p-4 text-center">
+      <h3 class="fw-bold text-primary"><%= stats.totalBookings || 0 %></h3>
+      <p class="text-muted small mb-0">Total Bookings</p>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="admin-card p-4 text-center">
+      <h3 class="fw-bold text-success">₹<%= (stats.totalRevenue || 0).toLocaleString('en-IN') %></h3>
+      <p class="text-muted small mb-0">Total Revenue</p>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="admin-card p-4 text-center">
+      <h3 class="fw-bold text-info"><%= stats.totalProviders || 0 %></h3>
+      <p class="text-muted small mb-0">Active Providers</p>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="admin-card p-4 text-center">
+      <h3 class="fw-bold text-warning"><%= stats.totalCustomers || 0 %></h3>
+      <p class="text-muted small mb-0">Total Customers</p>
+    </div>
+  </div>
+</div>
+<% } %>
+<div class="admin-card p-5 text-center">
+  <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+  <h5 class="text-muted">Full Analytics Coming Soon</h5>
+  <p class="text-secondary small">Detailed charts and reporting are under development.</p>
+</div>

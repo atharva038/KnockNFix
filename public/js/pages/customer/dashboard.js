@@ -3,9 +3,9 @@
  * Handles booking management, payments, and user interactions
  */
 
-const knfCore = window.KNFCore || {};
-const knfApi = knfCore.api;
-const knfNotify = knfCore.notify;
+var knfCore = window.KNFCore || {};
+var knfApi = knfCore.api;
+var knfNotify = knfCore.notify;
 
 function notify(type, message, options) {
     if (knfNotify && typeof knfNotify[type] === 'function') {
@@ -266,7 +266,7 @@ async function fetchBookingDetails(bookingId) {
         updateBookingModal(booking);
 
         // Show the modal
-        const bookingModal = new bootstrap.Modal(document.getElementById('viewBookingModal'));
+        const bookingModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('viewBookingModal'));
         bookingModal.show();
 
     } catch (error) {

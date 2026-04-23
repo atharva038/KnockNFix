@@ -1,6 +1,6 @@
-const knfCore = window.KNFCore || {};
-const knfApi = knfCore.api;
-const knfNotify = knfCore.notify;
+var knfCore = window.KNFCore || {};
+var knfApi = knfCore.api;
+var knfNotify = knfCore.notify;
 
 function showToast(type, message, options) {
     if (knfNotify && typeof knfNotify[type] === 'function') {

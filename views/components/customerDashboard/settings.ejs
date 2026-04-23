@@ -1,8 +1,8 @@
 <section id="settings" class="dashboard-section">
-  <div class="section-header">
+  <div class="section-header" data-aos="fade-up">
     <h2><i class="fas fa-cog me-2"></i>Settings</h2>
   </div>
-  <div class="content-card">
+  <div class="content-card" data-aos="fade-up" data-aos-delay="100">
     <div class="settings-grid">
       <div class="setting-item">
         <div class="setting-header">
@@ -31,7 +31,7 @@
           <h3>Security</h3>
         </div>
         <div class="setting-content">
-          <button class="btn btn-outline-primary mb-2 w-100">
+          <button class="btn btn-outline-primary mb-3 w-100">
             <i class="fas fa-key me-2"></i>Change Password
           </button>
           <button class="btn btn-outline-primary w-100">
@@ -42,29 +42,3 @@
     </div>
   </div>
 </section>
-<style>
-  /* Settings Section */
-  .settings-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .setting-item {
-    background: #f8fafc;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-  }
-
-  .setting-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .setting-header i {
-    font-size: 1.5rem;
-    color: #3182ce;
-  }
-</style>

@@ -48,7 +48,7 @@ exports.showDashboard = async (req, res) => {
           .lean(),
       ]);
 
-      return res.render("dashboard/admin", {
+      return res.render("pages/admin/dashboard", {
         totalBookings,
         totalUsers,
         totalProviders,
@@ -64,6 +64,11 @@ exports.showDashboard = async (req, res) => {
     return res.redirect("/");
   } catch (err) {
     console.error("Dashboard error:", err);
+    // BUG-021: Surface provider profile missing as a clear, actionable error
+    if (err.code === 'PROVIDER_PROFILE_MISSING') {
+      req.flash("error", err.message);
+      return res.redirect("/");
+    }
     req.flash("error", "Error loading dashboard: " + err.message);
     return res.redirect("/");
   }

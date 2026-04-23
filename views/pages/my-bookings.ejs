@@ -1,0 +1,129 @@
+<% layout("/layouts/boilerplate.ejs") %>
+
+<div class="container py-5">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 fw-bold mb-0">
+      <i class="fas fa-calendar-check me-2 text-primary"></i>My Bookings
+    </h1>
+    <a href="/services" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus me-1"></i>Book a Service
+    </a>
+  </div>
+
+  <% if (!bookings || bookings.length === 0) { %>
+    <div class="card shadow-sm border-0 text-center py-5">
+      <div class="card-body">
+        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No bookings yet</h4>
+        <p class="text-secondary mb-4">You haven't booked any services yet. Explore our services to get started.</p>
+        <a href="/services" class="btn btn-primary">Browse Services</a>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="row g-4">
+      <% bookings.forEach(function(booking) { %>
+        <div class="col-12">
+          <div class="card shadow-sm border-0 hover-shadow">
+            <div class="card-body p-4">
+              <div class="row align-items-center">
+                <!-- Service Info -->
+                <div class="col-md-3 mb-3 mb-md-0">
+                  <% if (booking.service && booking.service.img) { %>
+                    <img src="<%= booking.service.img %>" alt="<%= booking.service.name %>"
+                      class="img-fluid rounded" style="height:70px;width:70px;object-fit:cover;">
+                  <% } %>
+                  <div class="mt-2">
+                    <h6 class="fw-bold mb-0"><%= booking.service ? booking.service.name : 'Unknown Service' %></h6>
+                    <small class="text-muted">
+                      <% if (booking.provider && booking.provider.user) { %>
+                        by <%= booking.provider.user.name %>
+                      <% } %>
+                    </small>
+                  </div>
+                </div>
+
+                <!-- Booking Details -->
+                <div class="col-md-4 mb-3 mb-md-0">
+                  <div class="text-muted small">
+                    <div><i class="fas fa-calendar me-1"></i>
+                      <%= booking.date ? new Date(booking.date).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) : 'Date TBD' %>
+                    </div>
+                    <div class="mt-1"><i class="fas fa-map-marker-alt me-1"></i>
+                      <%= booking.address || 'Address not provided' %>
+                    </div>
+                    <div class="mt-1"><i class="fas fa-rupee-sign me-1"></i>
+                      ₹<%= booking.totalCost || booking.cost || 'N/A' %>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Status -->
+                <div class="col-md-2 mb-3 mb-md-0">
+                  <%
+                    const statusMap = {
+                      pending: 'warning',
+                      confirmed: 'info',
+                      in_progress: 'primary',
+                      completed: 'success',
+                      cancelled: 'danger',
+                      rejected: 'secondary'
+                    };
+                    const badge = statusMap[booking.status] || 'secondary';
+                  %>
+                  <span class="badge bg-<%= badge %> text-capitalize py-2 px-3">
+                    <%= (booking.status || 'unknown').replace('_', ' ') %>
+                  </span>
+                </div>
+
+                <!-- Actions -->
+                <div class="col-md-3 text-md-end">
+                  <a href="/booking/<%= booking._id %>/details" class="btn btn-outline-primary btn-sm me-2">
+                    <i class="fas fa-eye me-1"></i>Details
+                  </a>
+                  <% if (booking.status === 'pending' || booking.status === 'confirmed') { %>
+                    <button
+                      class="btn btn-outline-danger btn-sm"
+                      onclick="cancelBooking('<%= booking._id %>')">
+                      <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                  <% } %>
+                  <% if (booking.status === 'completed' && !booking.feedback?.rating) { %>
+                    <a href="/feedback/<%= booking._id %>" class="btn btn-outline-success btn-sm mt-1">
+                      <i class="fas fa-star me-1"></i>Rate
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</div>
+
+<style>
+  .hover-shadow { transition: box-shadow 0.2s ease; }
+  .hover-shadow:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important; }
+</style>
+
+<script>
+  async function cancelBooking(bookingId) {
+    if (!confirm('Are you sure you want to cancel this booking?')) return;
+    try {
+      const res = await fetch(`/booking/${bookingId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ reason: 'Cancelled by customer' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        location.reload();
+      } else {
+        alert(data.error || 'Failed to cancel booking');
+      }
+    } catch (e) {
+      alert('An error occurred. Please try again.');
+    }
+  }
+</script>

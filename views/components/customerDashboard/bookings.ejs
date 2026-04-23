@@ -12,9 +12,33 @@
     </div>
   </div>
 
-  <div class="content-card">
+  <div class="booking-stats-row" data-aos="fade-up">
+    <div class="stat-card">
+      <div class="stat-icon total"><i class="fas fa-list-ul"></i></div>
+      <div class="stat-details">
+        <h4>Total Bookings</h4>
+        <p class="stat-number"><%= bookings.length %></p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon pending"><i class="fas fa-clock"></i></div>
+      <div class="stat-details">
+        <h4>Pending</h4>
+        <p class="stat-number"><%= bookings.filter(b => b.status === 'pending').length %></p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon completed"><i class="fas fa-check-circle"></i></div>
+      <div class="stat-details">
+        <h4>Completed</h4>
+        <p class="stat-number"><%= bookings.filter(b => b.status === 'completed').length %></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-card" data-aos="fade-up" data-aos-delay="100">
     <div class="table-responsive">
-      <table class="table table-hover booking-table">
+      <table class="table booking-table">
         <thead>
           <tr>
             <th>Service</th>
@@ -25,74 +49,86 @@
           </tr>
         </thead>
         <tbody>
-          <% bookings.forEach(booking=> { %>
+          <% if(bookings.length === 0) { %>
             <tr>
-              <td data-label="Service">
-                <div class="service-info">
-                  <i class="fas fa-tools service-icon"></i>
-                  <div>
-                    <div class="service-name">
-                      <%= booking.service.name %>
-                    </div>
-                    <div class="service-price">₹<%= booking.totalCost %>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td data-label="Provider">
-                <div class="provider-info">
-                  <% if (booking.provider && booking.provider.user) { %>
-                    <img src="<%= booking.provider.user.profileImage || '/img/default-avatar.png' %>" alt="Provider"
-                      class="provider-img" />
-                    <div class="provider-name">
-                      <%= booking.provider.user.name %>
-                    </div>
-                    <% } else { %>
-                      <img src="/img/default-avatar.png" alt="Provider" class="provider-img" />
-                      <div class="provider-name">
-                        <span class="text-muted">Provider not available</span>
-                      </div>
-                      <% } %>
-                </div>
-              </td>
-              <td data-label="Date & Time">
-                <div class="booking-time">
-                  <div class="booking-date">
-                    <% try { const bookingDate=new Date(booking.bookingDate); if (!isNaN(bookingDate.getTime())) { %>
-                      <%= bookingDate.toLocaleDateString('en-IN', { weekday: 'long' , year: 'numeric' , month: 'long' ,
-                        day: 'numeric' }) %>
-                        <% } else { %>Date not available<% } } catch (error) { %>Date error<% } %>
-                  </div>
-                  <div class="booking-hour">
-                    <% try { const bookingDate=new Date(booking.bookingDate); if (!isNaN(bookingDate.getTime())) { %>
-                      <%= bookingDate.toLocaleTimeString('en-IN', { hour: '2-digit' , minute: '2-digit' , hour12: true
-                        }) %>
-                        <% } else { %>Time not
-                          available<% } } catch (error) { %>Time error<% } %>
-                  </div>
-                </div>
-              </td>
-              <td data-label="Status">
-                <span class="status-badge status-<%= booking.status.toLowerCase() %>">
-                  <%= booking.status %>
-                </span>
-              </td>
-              <td data-label="Actions">
-                <div class="booking-actions">
-                  <button class="btn btn-sm btn-outline-primary view-booking-btn" title="View Details"
-                    data-id="<%= booking._id %>" data-bs-toggle="modal" data-bs-target="#viewBookingModal">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <% if (booking.status==='pending' ) { %>
-                    <button class="btn btn-sm btn-outline-danger cancel-booking-btn" title="Cancel Booking"
-                      data-id="<%= booking._id %>">
-                      <i class="fas fa-times"></i>
-                    </button>
-                    <% } %>
+              <td colspan="5">
+                <div class="no-bookings-message">
+                  <i class="fas fa-calendar-times"></i>
+                  <h4>No Bookings Yet</h4>
+                  <p>You haven't made any bookings. Explore our services to get started!</p>
+                  <a href="/services" class="btn btn-primary mt-3">Browse Services</a>
                 </div>
               </td>
             </tr>
-            <% }); %>
+          <% } else { %>
+            <% bookings.forEach(booking=> { %>
+              <tr data-aos="fade-up" data-aos-delay="150">
+                <td data-label="Service">
+                  <div class="service-info">
+                    <div class="service-icon"><i class="fas fa-tools"></i></div>
+                    <div>
+                      <div class="service-name">
+                        <%= booking.service.name %>
+                      </div>
+                      <div class="service-price">₹<%= booking.totalCost %>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Provider">
+                  <div class="provider-info">
+                    <% if (booking.provider && booking.provider.user) { %>
+                      <img src="<%= booking.provider.user.profileImage || '/img/default-avatar.png' %>" alt="Provider"
+                        class="provider-img" />
+                      <div class="provider-name">
+                        <%= booking.provider.user.name %>
+                      </div>
+                      <% } else { %>
+                        <img src="/img/default-avatar.png" alt="Provider" class="provider-img" />
+                        <div class="provider-name">
+                          <span class="text-muted">Not assigned</span>
+                        </div>
+                        <% } %>
+                  </div>
+                </td>
+                <td data-label="Date & Time">
+                  <div class="booking-time">
+                    <div class="booking-date">
+                      <% try { const bookingDate=new Date(booking.bookingDate); if (!isNaN(bookingDate.getTime())) { %>
+                        <%= bookingDate.toLocaleDateString('en-IN', { weekday: 'short' , year: 'numeric' , month: 'short' ,
+                          day: 'numeric' }) %>
+                          <% } else { %>N/A<% } } catch (error) { %>Error<% } %>
+                    </div>
+                    <div class="booking-hour">
+                      <% try { const bookingDate=new Date(booking.bookingDate); if (!isNaN(bookingDate.getTime())) { %>
+                        <%= bookingDate.toLocaleTimeString('en-IN', { hour: '2-digit' , minute: '2-digit' , hour12: true
+                          }) %>
+                          <% } else { %>N/A<% } } catch (error) { %>Error<% } %>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Status">
+                  <span class="status-badge status-<%= booking.status.toLowerCase() %>">
+                    <%= booking.status %>
+                  </span>
+                </td>
+                <td data-label="Actions">
+                  <div class="booking-actions">
+                    <button class="btn view-booking-btn" title="View Details"
+                      data-id="<%= booking._id %>" data-bs-toggle="modal" data-bs-target="#viewBookingModal">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <% if (booking.status==='pending' ) { %>
+                      <button class="btn cancel-booking-btn" title="Cancel Booking"
+                        data-id="<%= booking._id %>">
+                        <i class="fas fa-times"></i>
+                      </button>
+                      <% } %>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+          <% } %>
         </tbody>
       </table>
     </div>
@@ -104,7 +140,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="viewBookingModalLabel">
-            Booking Details
+            <i class="fas fa-calendar-check me-2 text-primary"></i>Booking Details
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
@@ -113,12 +149,12 @@
             <div class="row booking-header">
               <div class="col-md-8">
                 <h3 id="modal-service-name">Loading...</h3>
-                <p class="provider-name">
+                <p class="provider-name text-muted mt-2">
                   <i class="fas fa-user-tie me-2"></i>
                   <span id="modal-provider-name">Loading...</span>
                 </p>
               </div>
-              <div class="col-md-4 text-end">
+              <div class="col-md-4 text-md-end mt-3 mt-md-0">
                 <span id="modal-booking-status" class="status-badge">Loading...</span>
               </div>
             </div>
@@ -126,40 +162,40 @@
             <div class="row mt-4">
               <div class="col-md-6">
                 <div class="detail-group">
-                  <label>Booking Date</label>
+                  <label><i class="fas fa-calendar-day me-2"></i>Booking Date</label>
                   <p id="modal-booking-date">Loading...</p>
                 </div>
 
                 <div class="detail-group">
-                  <label>Booking Address</label>
+                  <label><i class="fas fa-map-marker-alt me-2"></i>Service Address</label>
                   <p id="modal-booking-address">Loading...</p>
                 </div>
 
                 <div class="detail-group">
-                  <label>Notes</label>
+                  <label><i class="fas fa-clipboard-list me-2"></i>Notes</label>
                   <p id="modal-booking-notes">Loading...</p>
                 </div>
               </div>
 
               <div class="col-md-6">
                 <div class="detail-group">
-                  <label>Total Cost</label>
-                  <h4 id="modal-booking-cost">Loading...</h4>
+                  <label><i class="fas fa-receipt me-2"></i>Total Cost</label>
+                  <h4 id="modal-booking-cost" class="text-primary">Loading...</h4>
                 </div>
 
                 <div class="detail-group">
-                  <label>Payment Status</label>
+                  <label><i class="fas fa-money-check-alt me-2"></i>Payment Status</label>
                   <p id="modal-payment-status">Loading...</p>
                 </div>
 
-                <div id="payment-info-container" class="mt-3">
+                <div id="payment-info-container" class="mt-4 pt-3 border-top">
                   <!-- Payment information will be injected here -->
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer border-top-0 bg-light rounded-bottom">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             Close
           </button>
@@ -171,229 +207,3 @@
     </div>
   </div>
 </section>
-<style>
-  /* Existing styles remain unchanged */
-  .booking-table th {
-    font-weight: 600;
-    color: #4a5568;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    padding: 1rem;
-  }
-
-  .service-info,
-  .provider-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .service-icon {
-    font-size: 1.5rem;
-    color: #3182ce;
-  }
-
-  .provider-img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  .status-badge {
-    padding: 0.5rem 1rem;
-    border-radius: 2rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-
-  .status-pending {
-    background-color: #fed7aa;
-    color: #9a3412;
-  }
-
-  .status-confirmed {
-    background-color: #bbf7d0;
-    color: #166534;
-  }
-
-  .status-completed {
-    background-color: #bfdbfe;
-    color: #1e40af;
-  }
-
-  .status-cancelled {
-    background-color: #fecaca;
-    color: #991b1b;
-  }
-
-  .booking-time {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .booking-date {
-    font-weight: 500;
-    color: #2d3748;
-  }
-
-  .booking-hour {
-    color: #4a5568;
-    font-size: 0.875rem;
-  }
-
-  /* Responsive Table Styling */
-  @media (max-width: 991.98px) {
-    .table-responsive {
-      border: none;
-      overflow-x: auto;
-    }
-
-    .booking-table {
-      min-width: 800px;
-      /* Ensure table has minimum width on small screens */
-    }
-  }
-
-  /* Mobile View - Card Layout */
-  @media (max-width: 767.98px) {
-    .table-responsive {
-      border: none;
-      overflow-x: visible;
-    }
-
-    .booking-table {
-      min-width: auto;
-    }
-
-    .booking-table thead {
-      display: none;
-      /* Hide table headers on mobile */
-    }
-
-    .booking-table tbody tr {
-      display: flex;
-      flex-direction: column;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      margin-bottom: 1rem;
-      background-color: white;
-      padding: 1rem;
-      position: relative;
-    }
-
-    .booking-table tbody td {
-      display: flex;
-      padding: 0.75rem 0;
-      border-top: none;
-      border-bottom: 1px solid #f0f0f0;
-    }
-
-    .booking-table tbody td:last-child {
-      border-bottom: none;
-    }
-
-    /* Add labels for each cell on mobile */
-    .booking-table tbody td::before {
-      content: attr(data-label);
-      font-weight: 600;
-      width: 120px;
-      min-width: 120px;
-      color: #4a5568;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      margin-right: 1rem;
-    }
-
-    /* Adjust specific elements for mobile */
-    .status-badge {
-      margin-left: auto;
-      align-self: center;
-    }
-
-    .booking-actions {
-      justify-content: flex-end;
-      display: flex;
-      gap: 0.5rem;
-      margin-left: auto;
-    }
-  }
-
-  /* Modal Responsive Styling */
-  @media (max-width: 767.98px) {
-    .modal-dialog {
-      margin: 0.5rem;
-    }
-
-    .modal-body {
-      padding: 1rem;
-    }
-
-    .booking-header {
-      flex-direction: column;
-    }
-
-    .booking-header .col-md-4 {
-      text-align: left;
-      margin-top: 0.5rem;
-    }
-
-    #modal-booking-cost {
-      font-size: 1.25rem;
-    }
-  }
-
-  /* Existing modal styles remain unchanged */
-  .detail-group {
-    margin-bottom: 1.5rem;
-  }
-
-  .detail-group label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #64748b;
-    margin-bottom: 0.5rem;
-  }
-
-  .detail-group p {
-    font-size: 1rem;
-    margin: 0;
-    color: #334155;
-  }
-
-  .booking-header {
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #e2e8f0;
-    margin-bottom: 1rem;
-  }
-
-  #modal-booking-cost {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #3182ce;
-    margin: 0;
-  }
-
-  .payment-action-btn {
-    margin-top: 1rem;
-  }
-
-  /* Status filter responsiveness */
-  @media (max-width: 575.98px) {
-    .section-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .section-actions {
-      width: 100%;
-      margin-top: 1rem;
-    }
-
-    .status-filter {
-      width: 100%;
-    }
-  }
-</style>

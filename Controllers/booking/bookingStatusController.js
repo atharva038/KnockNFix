@@ -55,7 +55,20 @@ exports.completeBooking = async (req, res) => {
 
         await booking.save();
 
-        console.log('Booking status updated to completed');
+        // BUG-037: Persist earnings at completion time (event-driven, not on dashboard load)
+        try {
+            const ServiceProvider = require('../../models/ServiceProvider');
+            if (booking.finalPayment?.amount) {
+                const commission = booking.commission || Math.round(booking.finalPayment.amount * 0.1);
+                const netEarned = booking.finalPayment.amount - commission;
+                await ServiceProvider.findByIdAndUpdate(
+                    booking.provider._id,
+                    { $inc: { earnings: netEarned } }
+                );
+            }
+        } catch (earningsError) {
+            console.error('Failed to update provider earnings:', earningsError);
+        }
 
         // Trigger automated provider payout
         try {

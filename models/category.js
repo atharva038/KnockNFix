@@ -1,4 +1,30 @@
-// models/category.js — backward-compat shim
-// All imports of models/category (lowercase) resolve here and are forwarded to Category.js.
-// Do NOT define a schema here — Category.js is the canonical definition.
-module.exports = require('./Category');
+const mongoose = require("mongoose");
+
+const categorySchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    img: {
+      type: String,
+      default: "",
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("Category", categorySchema);
+
+

@@ -1,109 +1,494 @@
-/* Dashboard Layout */
+/* --- GLOBAL VARIABLES --- */
+:root {
+  /* Colors */
+  --primary-color: #0f172a; /* Deep slate, modern aesthetic */
+  --primary-hover: #1e293b;
+  --secondary-color: #f8fafc;
+  --accent-color: #3b82f6; /* Subtle blue for accents */
+  --accent-hover: #2563eb;
+  
+  --bg-color: #f8fafc; /* Light gray background */
+  --surface-color: #ffffff; /* Clean white cards */
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  --border-color: #e2e8f0;
+  
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+
+  /* Layout */
+  --sidebar-width: 260px;
+  --header-height: 70px;
+  
+  /* Styling */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  --transition: all 0.2s ease-in-out;
+}
+
+/* --- BASE DASHBOARD LAYOUT --- */
 .dashboard-container {
   display: flex;
-  min-height: calc(100vh - 76px);
-  background-color: #f8f9fa;
+  min-height: calc(100vh - var(--header-height));
+  background-color: var(--bg-color);
   position: relative;
+  align-items: flex-start;
 }
 
-/* Main Content */
 .main-content {
   flex: 1;
-  /* margin-left: 280px; Same as sidebar width */
-  padding: 2rem;
-  background-color: #f8f9fa;
-  min-height: calc(100vh - 76px);
-  /* margin-top: 76px; */
+  padding: 2rem 2.5rem;
+  background-color: var(--bg-color);
+  min-height: calc(100vh - var(--header-height));
+  transition: var(--transition);
+  max-width: 1400px;
+  margin: 0 auto;
+  /* Ensure it doesn't overlap with absolute/fixed navbar if changed */
+  margin-left: 0; /* Default if sidebar is static, but we'll use sticky */
 }
 
+/* Removed glassmorphism blobs for a cleaner look */
+
+/* --- COMMON COMPONENTS --- */
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .section-header h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2d3748;
+  color: var(--text-primary);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  letter-spacing: -0.025em;
+}
+
+.section-header h2 i {
+  color: var(--text-secondary);
+  font-size: 1.25rem;
 }
 
 .content-card {
-  background: white;
-  border-radius: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 2rem;
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.content-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #cbd5e1;
+}
+
+/* Buttons (Modern SaaS look) */
+.btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Animations */
+.dashboard-section {
+  display: none;
+}
+
+.dashboard-section.active {
+  display: block;
+}
+
+/* --- BOOKINGS COMPONENT --- */
+/* Cleaned up Stat Cards */
+.booking-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--surface-color);
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: var(--transition);
+  border: 1px solid var(--border-color);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #cbd5e1;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.stat-icon.total { background: #f1f5f9; color: var(--text-secondary); }
+.stat-icon.pending { background: #fffbeb; color: var(--warning); }
+.stat-icon.completed { background: #f0fdf4; color: var(--success); }
+
+.stat-details h4 {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.25rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.stat-details .stat-number {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+/* Table Enhancements */
+.table-responsive {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+}
+
+.booking-table {
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.booking-table th {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  padding: 1rem 1.25rem;
+  background-color: #f8fafc;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.booking-table td {
+  padding: 1rem 1.25rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.booking-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.booking-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.service-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.service-icon {
+  font-size: 1.25rem;
+  color: var(--accent-color);
+  background: #eff6ff;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+}
+
+.service-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  margin-bottom: 0.1rem;
+}
+
+.service-price {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.provider-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.provider-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.provider-name {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-pending { background-color: #fef3c7; color: #92400e; }
+.status-confirmed { background-color: #d1fae5; color: #065f46; }
+.status-completed { background-color: #dbeafe; color: #1e40af; }
+.status-cancelled { background-color: #fee2e2; color: #991b1b; }
+
+.booking-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.booking-actions .btn {
+  border-radius: var(--radius-md);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* --- PROFILE COMPONENT --- */
+.profile-image-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 3px solid var(--surface-color);
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.image-overlay:hover { opacity: 1; }
+.image-overlay i { font-size: 1.5rem; margin-bottom: 0.25rem; }
+.image-overlay span { font-weight: 500; font-size: 0.8rem; }
+
+.user-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  letter-spacing: -0.025em;
+}
+
+.user-email {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.profile-details {
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
+  border: 1px solid var(--border-color);
 }
 
-.nav-link .fa-comments {
-    color: #4f46e5;
+.profile-details .detail-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.nav-link:hover .fa-comments,
-.nav-link.active .fa-comments {
-    color: white;
+.profile-details .detail-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.profile-details .detail-item:first-child { padding-top: 0; }
+
+.profile-details .detail-item label {
+  width: 140px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.9rem;
 }
 
-.nav-link[href="/chatbot"]:hover {
-    background: #4f46e5;
-    color: white;
+.profile-details .detail-item label i {
+  color: var(--text-muted);
+  width: 20px;
 }
 
-.status-filter {
-    min-width: 150px;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid #e2e8f0;
-    background-color: white;
-    color: #4a5568;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all 0.2s;
+.profile-details .detail-item p {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 0.95rem;
 }
 
-.status-filter:hover {
-    border-color: #3182ce;
+/* Address Cards */
+.address-card {
+  transition: var(--transition);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  box-shadow: var(--shadow-sm);
 }
 
-.status-filter:focus {
-    outline: none;
-    border-color: #3182ce;
-    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+.address-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #cbd5e1;
 }
 
-/* Add these classes for when no bookings are found */
-.no-bookings-message {
-    text-align: center;
-    padding: 2rem;
-    color: #4a5568;
-    font-size: 0.875rem;
-    display: none;
+.address-card.border-primary {
+  border-color: var(--accent-color);
+  background: #eff6ff; /* Soft blue background for default */
 }
 
-.no-bookings-message.show {
-    display: block;
+.address-card .card-body { padding: 1.25rem; }
+
+.badge.bg-primary {
+  background-color: var(--primary-color) !important;
 }
 
-@media (max-width: 576px) {
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-    top: 0;
-  }
-  .main-content {
-    padding: 1rem;
-  }
+.badge.bg-secondary {
+  background-color: var(--text-secondary) !important;
+}
 
-  .section-header {
+/* --- SETTINGS COMPONENT --- */
+.setting-item {
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.setting-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.setting-header i {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+}
+
+.setting-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.form-switch .form-check-input:checked {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+@media (max-width: 991.98px) {
+  .profile-details .detail-item {
     flex-direction: column;
-    gap: 1rem;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container { flex-direction: column; }
+  
+  .main-content {
+    padding: 1.5rem 1rem;
+    width: 100%;
+    margin-left: 0;
   }
 
-  .profile-image-container {
-    width: 150px;
-    height: 150px;
+  .booking-table thead { display: none; }
+  .booking-table tbody tr {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 0.5rem;
+  }
+  
+  .booking-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
   }
 }

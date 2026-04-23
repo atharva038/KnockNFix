@@ -1,0 +1,68 @@
+<% layout("/layouts/admin-layout.ejs") %>
+<div class="mb-4">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/admin/users">Users</a></li>
+      <li class="breadcrumb-item active">User Details</li>
+    </ol>
+  </nav>
+</div>
+<% if (user) { %>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="admin-card p-4 text-center">
+      <img src="<%= user.profileImage || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name || 'User') + '&background=4e73df&color=fff' %>"
+        class="rounded-circle mb-3" width="100" height="100" style="object-fit:cover;" alt="<%= user.name %>">
+      <h5 class="fw-bold mb-1"><%= user.name %></h5>
+      <p class="text-muted small mb-2"><%= user.email || 'No email' %></p>
+      <span class="badge bg-<%= user.role === 'admin' ? 'danger' : user.role === 'provider' ? 'info' : 'success' %> mb-3">
+        <%= user.role %>
+      </span>
+      <div class="d-grid gap-2 mt-3">
+        <a href="/admin/users/<%= user._id %>/edit" class="btn btn-outline-primary btn-sm">
+          <i class="fas fa-edit me-1"></i>Edit User
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="admin-card p-4">
+      <h5 class="fw-bold mb-4 border-bottom pb-3">Account Information</h5>
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <label class="text-muted small fw-semibold text-uppercase">Full Name</label>
+          <p class="fw-semibold mb-0"><%= user.name || '—' %></p>
+        </div>
+        <div class="col-sm-6">
+          <label class="text-muted small fw-semibold text-uppercase">Phone</label>
+          <p class="fw-semibold mb-0"><%= user.phone || '—' %></p>
+        </div>
+        <div class="col-sm-6">
+          <label class="text-muted small fw-semibold text-uppercase">Email</label>
+          <p class="fw-semibold mb-0"><%= user.email || '—' %></p>
+        </div>
+        <div class="col-sm-6">
+          <label class="text-muted small fw-semibold text-uppercase">Status</label>
+          <p class="mb-0">
+            <span class="badge bg-<%= user.status === 'active' ? 'success' : user.status === 'pending_approval' ? 'warning' : 'danger' %>">
+              <%= (user.status || 'unknown').replace('_', ' ') %>
+            </span>
+          </p>
+        </div>
+        <div class="col-sm-6">
+          <label class="text-muted small fw-semibold text-uppercase">Joined</label>
+          <p class="fw-semibold mb-0">
+            <%= user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'}) : '—' %>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<% } else { %>
+  <div class="admin-card p-5 text-center">
+    <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
+    <h5 class="text-muted">User not found</h5>
+    <a href="/admin/users" class="btn btn-outline-primary mt-3">Back to Users</a>
+  </div>
+<% } %>
