@@ -24,6 +24,10 @@ router.post(
 );
 
 // Booking confirmation page (before payment)
+router.get("/confirm", isLoggedIn, (req, res) => {
+  res.redirect("/services");
+});
+
 router.post(
   "/confirm",
   isLoggedIn,

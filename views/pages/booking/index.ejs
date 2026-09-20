@@ -1,1025 +1,1397 @@
 <% layout("/layouts/boilerplate.ejs") %>
 
-  <style>
-    /* Refactored booking styles - most layout moved to Bootstrap 5 utilities in EJS */
-    .booking-progress {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
+<style>
+  :root {
+    --knf-primary: #4f46e5;
+    --knf-primary-hover: #4338ca;
+    --knf-primary-light: #eef2ff;
+    --knf-secondary: #06b6d4;
+    --knf-dark: #0f172a;
+    --knf-gray: #64748b;
+    --knf-gray-light: #f8fafc;
+    --knf-border: #e2e8f0;
+    --knf-success: #10b981;
+    --knf-card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    --knf-card-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .booking-wrapper {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    min-height: calc(100vh - 70px);
+  }
+
+  /* Stepper Progress */
+  .stepper-container {
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+  }
+
+  .stepper-track {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .step-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .step-bullet {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid var(--knf-border);
+    color: var(--knf-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  .step-node.active .step-bullet {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 0 0 5px rgba(79, 70, 229, 0.18), 0 4px 12px rgba(79, 70, 229, 0.35);
+  }
+
+  .step-node.completed .step-bullet {
+    background: #10b981;
+    border-color: transparent;
+    color: #ffffff;
+  }
+
+  .step-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--knf-gray);
+    margin-top: 0.5rem;
+    transition: color 0.3s ease;
+  }
+
+  .step-node.active .step-label {
+    color: var(--knf-dark);
+  }
+
+  .stepper-line {
+    flex-grow: 1;
+    height: 3px;
+    background: var(--knf-border);
+    margin: 0 12px 1.5rem;
+    position: relative;
+    border-radius: 2px;
+  }
+
+  .stepper-line.active {
+    background: linear-gradient(90deg, #10b981, #4f46e5);
+  }
+
+  /* Main Booking Card */
+  .booking-main-card {
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: var(--knf-card-shadow);
+    overflow: hidden;
+  }
+
+  /* Card Header */
+  .booking-card-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    padding: 2rem 2.5rem;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .booking-card-header::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(0,0,0,0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* Service Showcase Box */
+  .service-showcase {
+    background: #f8fafc;
+    border: 1px solid var(--knf-border);
+    border-radius: 18px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .service-showcase:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  }
+
+  .service-avatar-img {
+    width: 90px;
+    height: 90px;
+    border-radius: 16px;
+    object-fit: cover;
+    border: 2px solid #ffffff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  }
+
+  .meta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #ffffff;
+    border: 1px solid var(--knf-border);
+    color: #334155;
+  }
+
+  .meta-badge.price {
+    background: #ecfdf5;
+    color: #065f46;
+    border-color: #a7f3d0;
+    font-size: 0.95rem;
+  }
+
+  .meta-badge.rating {
+    background: #fffbeb;
+    color: #92400e;
+    border-color: #fde68a;
+  }
+
+  /* Form Modern Sections */
+  .booking-section {
+    background: #ffffff;
+    border: 1px solid var(--knf-border);
+    border-radius: 18px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .booking-section:focus-within {
+    border-color: #c7d2fe;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.06);
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--knf-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-badge-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--knf-primary-light);
+    color: var(--knf-primary);
+    font-weight: 800;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Quick Date Selector */
+  .quick-chip-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .quick-chip {
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--knf-border);
+    background: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--knf-gray);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .quick-chip:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    color: var(--knf-dark);
+  }
+
+  .quick-chip.active {
+    background: var(--knf-primary);
+    border-color: var(--knf-primary);
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+  }
+
+  /* Time Slot Grid */
+  .time-slot-pill {
+    padding: 0.6rem 0.75rem;
+    border-radius: 12px;
+    border: 1px solid var(--knf-border);
+    background: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #334155;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+
+  .time-slot-pill:hover:not(.disabled) {
+    border-color: var(--knf-primary);
+    background: var(--knf-primary-light);
+    color: var(--knf-primary);
+  }
+
+  .time-slot-pill.active {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+  }
+
+  .time-slot-pill.disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  /* Modern Address Card Select */
+  .address-option-card {
+    border: 1.5px solid var(--knf-border);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .address-option-card:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+  }
+
+  .address-option-card.selected {
+    border-color: var(--knf-primary);
+    background: var(--knf-primary-light);
+  }
+
+  .address-option-card.out-of-city {
+    opacity: 0.55;
+    background: #f8fafc !important;
+    border: 1.5px dashed #cbd5e1 !important;
+    cursor: not-allowed !important;
+  }
+
+  .address-option-card.out-of-city input[type="radio"] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .address-option-card input[type="radio"] {
+    margin-top: 0.25rem;
+    accent-color: var(--knf-primary);
+  }
+
+  /* Form Control Overrides */
+  .form-control, .form-select {
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid var(--knf-border);
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: var(--knf-primary);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  }
+
+  /* Map Container */
+  #map {
+    height: 280px;
+    width: 100%;
+    border-radius: 16px;
+    border: 1px solid var(--knf-border);
+    margin-top: 0.75rem;
+    overflow: hidden;
+  }
+
+  /* Price Breakdown Summary */
+  .checkout-summary-card {
+    background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+    border-radius: 18px;
+    padding: 1.75rem;
+    color: #ffffff;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15);
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.92rem;
+    color: #cbd5e1;
+    margin-bottom: 0.75rem;
+  }
+
+  .summary-row.total {
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding-top: 1rem;
+    margin-top: 1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  /* CTA Button */
+  .btn-book-now {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    border: none;
+    border-radius: 14px;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .btn-book-now:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(79, 70, 229, 0.45);
+    color: #ffffff;
+  }
+
+  .btn-book-now:active {
+    transform: translateY(0);
+  }
+
+  /* Trust Banner */
+  .trust-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 14px;
+    border: 1px solid var(--knf-border);
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--knf-gray);
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .trust-item i {
+    color: #10b981;
+    font-size: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .booking-card-header {
+      padding: 1.5rem 1.25rem;
     }
-    .progress-step {
-      display: flex;
+    .booking-section {
+      padding: 1.25rem;
+    }
+    .service-avatar-img {
+      width: 70px;
+      height: 70px;
+    }
+    .stepper-container {
+      margin-bottom: 1.5rem;
+    }
+    .trust-banner {
       flex-direction: column;
-      align-items: center;
-      position: relative;
-      flex: 1;
+      align-items: flex-start;
+      gap: 0.5rem;
     }
-    .step-icon {
-      width: 35px;
-      height: 35px;
-      border-radius: 50%;
-      background-color: #e9ecef;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 0.5rem;
-      font-weight: bold;
-      color: #6c757d;
-      transition: all 0.3s ease;
-    }
-    .step-text {
-      font-size: 0.85rem;
-      color: #6c757d;
-      text-align: center;
-      font-weight: 500;
-    }
-    .progress-line {
-      height: 3px;
-      background-color: #e9ecef;
-      flex: 1;
-      margin: 0 10px;
-      margin-bottom: 25px;
-    }
-    .progress-step.active .step-icon {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-    .progress-step.active .step-text {
-      color: #495057;
-      font-weight: 600;
-    }
-    #map {
-      height: 250px;
-      width: 100%;
-      margin-top: 10px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      border: 1px solid #dee2e6;
-    }
-    .hidden-data, #datetime-combined {
-      display: none;
-    }
-    @media (max-width: 767px) {
-      .booking-progress {
-        padding: 0 0.5rem;
-      }
-      .step-text {
-        font-size: 0.75rem;
-      }
-      .progress-line {
-        margin-bottom: 30px;
-      }
-    }
-  </style>
+  }
+</style>
 
-  <!-- Enhanced Google Maps API key setup for booking page -->
-  <% if (typeof googleMapsApiKey !=='undefined' && googleMapsApiKey) { %>
-    <script>
-      window.googleMapsApiKey = '<%= googleMapsApiKey %>';
-      window.GOOGLE_MAPS_API_KEY = '<%= googleMapsApiKey %>';
+<!-- Google Maps API Setup -->
+<% if (typeof googleMapsApiKey !== 'undefined' && googleMapsApiKey) { %>
+  <script>
+    window.googleMapsApiKey = '<%= googleMapsApiKey %>';
+    window.GOOGLE_MAPS_API_KEY = '<%= googleMapsApiKey %>';
+  </script>
+<% } %>
 
-      document.addEventListener('DOMContentLoaded', function () {
-        try {
-          if (!document.querySelector('meta[name="google-maps-api-key"]')) {
-            const meta = document.createElement('meta');
-            meta.name = 'google-maps-api-key';
-            meta.content = '<%= googleMapsApiKey %>';
-            document.head.appendChild(meta);
-            console.log('✅ Google Maps API key added to booking page');
-          }
-        } catch (error) {
-          console.error('❌ Failed to add Google Maps API key to booking page:', error);
-        }
-      });
-    </script>
-    <% } else { %>
-      <script>
-        console.warn('⚠️ Google Maps API key not found in booking.ejs');
-      </script>
-      <% } %>
+<div class="booking-wrapper py-4 py-lg-5">
+  <div class="container" style="max-width: 960px;">
 
-        <link rel="stylesheet" href="/css/booking-fix.css">
+    <!-- Stepper Navigation -->
+    <div class="stepper-container">
+      <div class="stepper-track">
+        <div class="step-node completed">
+          <div class="step-bullet"><i class="fas fa-check"></i></div>
+          <div class="step-label">Select Service</div>
+        </div>
+        <div class="stepper-line active"></div>
+        <div class="step-node active">
+          <div class="step-bullet">2</div>
+          <div class="step-label">Book Details</div>
+        </div>
+        <div class="stepper-line"></div>
+        <div class="step-node">
+          <div class="step-bullet">3</div>
+          <div class="step-label">Confirm & Pay</div>
+        </div>
+      </div>
+    </div>
 
-        <div class="booking-page">
-          <div class="container py-4">
-            <div class="booking-progress mb-4">
-              <div class="progress-step active">
-                <div class="step-icon">1</div>
-                <div class="step-text">Select Service</div>
-              </div>
-              <div class="progress-line"></div>
-              <div class="progress-step active">
-                <div class="step-icon">2</div>
-                <div class="step-text">Book Service</div>
-              </div>
-              <div class="progress-line"></div>
-              <div class="progress-step">
-                <div class="step-icon">3</div>
-                <div class="step-text">Confirm & Pay</div>
-              </div>
+    <!-- Booking Card -->
+    <div class="booking-main-card">
+      
+      <!-- Card Top Header -->
+      <div class="booking-card-header">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <span class="badge rounded-pill px-3 py-1 mb-2" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); font-weight: 500; font-size: 0.75rem; letter-spacing: 0.5px;">
+              <i class="fas fa-shield-alt text-warning me-1"></i> VERIFIED PROFESSIONAL SERVICE
+            </span>
+            <h2 class="h3 fw-bold mb-1 text-white">Book Your Service Appointment</h2>
+            <p class="mb-0 text-white-50 small">Fill out the details below to schedule your verified specialist.</p>
+          </div>
+          <div class="d-none d-md-block text-end">
+            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
+              <i class="fas fa-bolt me-1"></i> Instant Confirmation
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 p-md-4 p-lg-5">
+
+        <!-- Service & Provider Summary Showcase -->
+        <div class="service-showcase mb-4">
+          <div class="row align-items-center g-3">
+            <div class="col-auto">
+              <img 
+                src="<%= service.img %>" 
+                alt="<%= service.name %>" 
+                class="service-avatar-img"
+                onerror="this.src='https://cdn-icons-png.flaticon.com/512/4202/4202841.png'" 
+              />
             </div>
-
-            <div class="card shadow-lg border-0 booking-card">
-              <div class="card-header text-white py-4">
-                <h2 class="text-center mb-0">
-                  <i class="fas fa-calendar-check me-2"></i>Book Your Service
-                </h2>
+            <div class="col">
+              <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2 py-1 rounded-2" style="font-size: 0.75rem;">
+                  <%= service.category?.name || 'Home Service' %>
+                </span>
+                <span class="meta-badge rating py-1 px-2">
+                  <i class="fas fa-star text-warning"></i> <%= service.ratings || '4.8' %>
+                </span>
               </div>
-
-              <div class="card-body p-4">
-                <!-- Service Overview -->
-                <div class="service-overview mb-4">
-                  <div class="row align-items-center">
-                    <div class="col-md-2 text-center mb-3 mb-md-0">
-                      <img src="<%= service.img %>" alt="<%= service.name %>" class="service-img"
-                        onerror="this.src='https://cdn-icons-png.flaticon.com/512/4202/4202841.png'" />
-                    </div>
-                    <div class="col-md-7 mb-3 mb-md-0">
-                      <h3 class="service-name">
-                        <%= service.name %>
-                      </h3>
-                      <p class="provider-name mb-2">
-                        <i class="fas fa-user-circle me-2"></i>
-                        <%= provider.user.name %>
-                      </p>
-                      <div class="service-details">
-                        <span class="price">₹<%= serviceDetails.customCost %></span>
-                        <span class="duration">
-                          <i class="far fa-clock me-1"></i>
-                          <%= service.duration %> mins
-                        </span>
-                        <% if (serviceDetails.experience) { %>
-                          <span class="experience">
-                            <i class="fas fa-briefcase me-1"></i>
-                            <%= serviceDetails.experience %>
-                          </span>
-                          <% } %>
-                      </div>
-                    </div>
-                    <div class="col-md-3 text-end">
-                      <div class="service-rating">
-                        <i class="fas fa-star"></i> 4.8
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Booking Form -->
-                <form action="/booking/confirm" method="post" id="bookingForm">
-                  <input type="hidden" name="serviceId" value="<%= service._id %>" />
-                  <input type="hidden" name="providerId" value="<%= provider._id %>" />
-
-                  <!-- Date & Time Section -->
-                  <div class="form-section">
-                    <div class="form-section-header">
-                      <span class="section-number">1</span> Choose Date & Time
-                    </div>
-                    <div class="form-section-body">
-                      <div class="mb-4">
-                        <label class="form-label">
-                          <i class="far fa-calendar-alt me-2"></i>Select Date and Time
-                        </label>
-
-                        <div class="date-time-container">
-                          <div class="row g-2">
-                            <div class="col-md-6">
-                              <input type="date" id="date-picker" class="form-control"
-                                min="<%= new Date().toISOString().split('T')[0] %>" required>
-                            </div>
-                            <div class="col-md-6">
-                              <select id="time-picker" class="form-control" required>
-                                <option value="" disabled selected>Select Time</option>
-                                <option value="07:00">07:00 AM</option>
-                                <option value="07:30">07:30 AM</option>
-                                <option value="08:00">08:00 AM</option>
-                                <option value="08:30">08:30 AM</option>
-                                <option value="09:00">09:00 AM</option>
-                                <option value="09:30">09:30 AM</option>
-                                <option value="10:00">10:00 AM</option>
-                                <option value="10:30">10:30 AM</option>
-                                <option value="11:00">11:00 AM</option>
-                                <option value="11:30">11:30 AM</option>
-                                <option value="12:00">12:00 PM</option>
-                                <option value="12:30">12:30 PM</option>
-                                <option value="13:00">01:00 PM</option>
-                                <option value="13:30">01:30 PM</option>
-                                <option value="14:00">02:00 PM</option>
-                                <option value="14:30">02:30 PM</option>
-                                <option value="15:00">03:00 PM</option>
-                                <option value="15:30">03:30 PM</option>
-                                <option value="16:00">04:00 PM</option>
-                                <option value="16:30">04:30 PM</option>
-                                <option value="17:00">05:00 PM</option>
-                                <option value="17:30">05:30 PM</option>
-                                <option value="18:00">06:00 PM</option>
-                                <option value="18:30">06:30 PM</option>
-                                <option value="19:00">07:00 PM</option>
-                                <option value="19:30">07:30 PM</option>
-                                <option value="20:00">08:00 PM</option>
-                                <option value="20:30">08:30 PM</option>
-                                <option value="21:00">09:00 PM</option>
-                              </select>
-                            </div>
-                          </div>
-                          <input type="hidden" id="datetime-combined" name="date" required>
-                        </div>
-
-                        <p class="selected-datetime mt-2 mb-0 text-primary d-none">
-                          <i class="fas fa-check-circle me-1"></i>
-                          <span id="selected-date-display"></span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Location Section -->
-                  <div class="form-section">
-                    <div class="form-section-header">
-                      <span class="section-number">2</span> Set Your Location
-                    </div>
-                    <div class="form-section-body">
-                      <% if (addresses && addresses.length> 0) { %>
-                        <div class="mb-3">
-                          <label class="form-label">
-                            <i class="fas fa-map-marker-alt me-2"></i>Choose Your Address
-                          </label>
-                          <select class="form-select" id="address-select" name="addressId">
-                            <option value="">Select an address...</option>
-                            <% addresses.forEach((address, index)=> { %>
-                              <option value="<%= index %>" <%=address.isDefault ? 'selected' : '' %>>
-                                <%= address.label %>: <%= address.street %>, <%= address.city %>, <%= address.state %> -
-                                        <%= address.pincode %>
-                              </option>
-                              <% }); %>
-                                <option value="new">+ Add a new address</option>
-                          </select>
-                        </div>
-
-                        <div id="new-address-section" class="mt-3 d-none">
-                          <hr>
-                          <h6>Enter New Address</h6>
-                          <% } %>
-
-                            <div id="map-section" class="<%= addresses && addresses.length > 0 ? 'd-none' : '' %>">
-                              <div class="mb-3">
-                                <label class="form-label">
-                                  <i class="fas fa-search me-2"></i>Search Location
-                                </label>
-                                <div class="input-group mb-2">
-                                  <input type="text" id="address-input" class="form-control"
-                                    placeholder="Search for your location..." />
-
-                                  <!-- Simplified Location Button -->
-                                  <button type="button" class="btn btn-outline-primary" id="detect-location-btn"
-                                    title="Detect your current location">
-                                    <i class="fas fa-location-arrow me-md-1"></i>
-                                    <span class="d-none d-md-inline">Detect Location</span>
-                                  </button>
-                                </div>
-
-                                <!-- Unified Status Display -->
-                                <div id="location-status" class="mb-2 d-none">
-                                  <div class="alert alert-info py-2 mb-2" role="alert">
-                                    <div class="d-flex align-items-center">
-                                      <div class="spinner-border spinner-border-sm me-2" role="status"
-                                        id="location-spinner">
-                                        <span class="visually-hidden">Loading...</span>
-                                      </div>
-                                      <small id="location-message">Detecting location...</small>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <!-- Location Methods -->
-                                <div id="location-methods" class="mb-2 d-none">
-                                  <div class="alert alert-warning py-2" role="alert">
-                                    <small class="mb-2 d-block">
-                                      <i class="fas fa-exclamation-triangle me-1"></i>
-                                      <strong>Can't detect location automatically?</strong>
-                                    </small>
-                                    <div class="btn-group-sm" role="group">
-                                      <button type="button" class="btn btn-outline-secondary btn-sm me-2"
-                                        id="ip-location-btn">
-                                        <i class="fas fa-globe me-1"></i>Use IP Location
-                                      </button>
-                                      <button type="button" class="btn btn-outline-info btn-sm" id="manual-input-btn">
-                                        <i class="fas fa-keyboard me-1"></i>Enter Manually
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div id="map" style="height: 300px; border-radius: 8px; border: 1px solid #ddd;">
-                                  <div class="d-flex align-items-center justify-content-center h-100 text-muted">
-                                    <div class="text-center">
-                                      <i class="fas fa-map-marked-alt fa-3x mb-3"></i>
-                                      <p>Loading map...</p>
-                                      <small class="text-muted">Please wait while we initialize the map</small>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div class="mt-3">
-                              <label class="form-label">
-                                <i class="fas fa-home me-2"></i>Detailed Address
-                              </label>
-                              <textarea id="detailed-address" name="detailedAddress" class="form-control" rows="2"
-                                placeholder="Enter flat/house number, landmark, etc." required></textarea>
-                            </div>
-
-                            <% if (addresses && addresses.length> 0) { %>
-                        </div>
-                        <% } %>
-                    </div>
-                  </div>
-
-                  <!-- Additional Info Section -->
-                  <div class="form-section">
-                    <div class="form-section-header">
-                      <span class="section-number">3</span> Additional Information
-                    </div>
-                    <div class="form-section-body">
-                      <div class="mb-3">
-                        <label class="form-label">
-                          <i class="fas fa-comment-alt me-2"></i>Special Instructions (Optional)
-                        </label>
-                        <textarea name="notes" class="form-control" rows="3"
-                          placeholder="Any specific requirements or instructions for the service provider..."></textarea>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Booking Summary -->
-                  <div class="booking-summary">
-                    <div class="summary-item">
-                      <div class="summary-label">Service Cost</div>
-                      <div class="summary-value">₹<%= serviceDetails.customCost %>
-                      </div>
-                    </div>
-                    <div class="summary-item">
-                      <div class="summary-label">Service Charge</div>
-                      <div class="summary-value">₹50</div>
-                    </div>
-                    <div class="summary-item total">
-                      <div class="summary-label">Total Amount</div>
-                      <div class="summary-value">₹<%= parseInt(serviceDetails.customCost) + 50 %>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button type="submit" class="btn btn-primary w-100 py-3">
-                    <i class="fas fa-check-circle me-2"></i>Confirm Booking
-                  </button>
-                </form>
-
-                <div id="addresses-data" style="display: none;">
-                  <%= JSON.stringify(addresses || []) %>
-                </div>
+              <h3 class="h5 fw-bold text-dark mb-1"><%= service.name %></h3>
+              <p class="text-muted small mb-2 d-flex align-items-center gap-1">
+                <i class="fas fa-user-check text-primary"></i>
+                <span class="fw-medium text-dark"><%= provider.user.name %></span>
+                <span class="mx-1">•</span>
+                <span class="text-secondary"><%= provider.businessAddress?.city || provider.serviceArea?.city || 'Verified Provider' %></span>
+              </p>
+              <div class="d-flex flex-wrap gap-2">
+                <span class="meta-badge price">
+                  <i class="fas fa-tag me-1"></i>₹<%= serviceDetails.customCost %>
+                </span>
+                <span class="meta-badge">
+                  <i class="far fa-clock text-primary"></i> <%= service.duration %> Mins
+                </span>
+                <% if (serviceDetails.experience) { %>
+                  <span class="meta-badge">
+                    <i class="fas fa-briefcase text-secondary"></i> <%= serviceDetails.experience %> Exp
+                  </span>
+                <% } %>
               </div>
             </div>
           </div>
         </div>
 
-        <div id="map-error" class="alert alert-danger d-none">
-          Could not load Google Maps. Please refresh the page or try again later.
+        <!-- Booking Form -->
+        <form action="/booking/confirm" method="post" id="bookingForm">
+          <input type="hidden" name="serviceId" value="<%= service._id %>" />
+          <input type="hidden" name="providerId" value="<%= provider._id %>" />
+          <input type="hidden" id="datetime-combined" name="date" required />
+
+          <!-- SECTION 1: Date & Time Selection -->
+          <div class="booking-section">
+            <div class="section-title">
+              <span class="section-badge-num">1</span>
+              <span>Select Date & Preferred Time Slot</span>
+            </div>
+
+            <!-- Quick Day Selector -->
+            <label class="form-label text-muted small fw-bold text-uppercase mb-2">Select Date</label>
+            <div class="quick-chip-group" id="quick-date-chips">
+              <button type="button" class="quick-chip active" data-offset="0">
+                <i class="fas fa-calendar-day me-1"></i> Today
+              </button>
+              <button type="button" class="quick-chip" data-offset="1">
+                <i class="fas fa-sun me-1"></i> Tomorrow
+              </button>
+              <button type="button" class="quick-chip" data-offset="2">
+                <i class="fas fa-calendar-plus me-1"></i> In 2 Days
+              </button>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0 text-muted">
+                    <i class="far fa-calendar-alt"></i>
+                  </span>
+                  <input 
+                    type="date" 
+                    id="date-picker" 
+                    class="form-control border-start-0 ps-0"
+                    min="<%= new Date().toISOString().split('T')[0] %>" 
+                    required 
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0 text-muted">
+                    <i class="far fa-clock"></i>
+                  </span>
+                  <select id="time-picker" class="form-select border-start-0 ps-0" required>
+                    <option value="" disabled selected>Choose Time Slot</option>
+                    <optgroup label="🌅 Morning Slots">
+                      <option value="08:00">08:00 AM</option>
+                      <option value="08:30">08:30 AM</option>
+                      <option value="09:00">09:00 AM</option>
+                      <option value="09:30">09:30 AM</option>
+                      <option value="10:00">10:00 AM</option>
+                      <option value="10:30">10:30 AM</option>
+                      <option value="11:00">11:00 AM</option>
+                      <option value="11:30">11:30 AM</option>
+                    </optgroup>
+                    <optgroup label="☀️ Afternoon Slots">
+                      <option value="12:00">12:00 PM</option>
+                      <option value="12:30">12:30 PM</option>
+                      <option value="13:00">01:00 PM</option>
+                      <option value="13:30">01:30 PM</option>
+                      <option value="14:00">02:00 PM</option>
+                      <option value="14:30">02:30 PM</option>
+                      <option value="15:00">03:00 PM</option>
+                      <option value="15:30">03:30 PM</option>
+                      <option value="16:00">04:00 PM</option>
+                      <option value="16:30">04:30 PM</option>
+                    </optgroup>
+                    <optgroup label="🌇 Evening Slots">
+                      <option value="17:00">05:00 PM</option>
+                      <option value="17:30">05:30 PM</option>
+                      <option value="18:00">06:00 PM</option>
+                      <option value="18:30">06:30 PM</option>
+                      <option value="19:00">07:00 PM</option>
+                      <option value="19:30">07:30 PM</option>
+                      <option value="20:00">08:00 PM</option>
+                    </optgroup>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Time Slot Chips Grid -->
+            <label class="form-label text-muted small fw-bold text-uppercase mb-2">Popular Time Slots</label>
+            <div class="row row-cols-3 row-cols-md-6 g-2 mb-3" id="quick-time-chips">
+              <div class="col"><div class="time-slot-pill" data-time="09:00"><i class="fas fa-sun text-warning me-1"></i>09:00 AM</div></div>
+              <div class="col"><div class="time-slot-pill" data-time="11:00"><i class="fas fa-sun text-warning me-1"></i>11:00 AM</div></div>
+              <div class="col"><div class="time-slot-pill" data-time="13:00"><i class="fas fa-cloud-sun text-info me-1"></i>01:00 PM</div></div>
+              <div class="col"><div class="time-slot-pill" data-time="15:00"><i class="fas fa-cloud-sun text-info me-1"></i>03:00 PM</div></div>
+              <div class="col"><div class="time-slot-pill" data-time="17:00"><i class="fas fa-moon text-primary me-1"></i>05:00 PM</div></div>
+              <div class="col"><div class="time-slot-pill" data-time="19:00"><i class="fas fa-moon text-primary me-1"></i>07:00 PM</div></div>
+            </div>
+
+            <!-- Selected Date-Time Banner -->
+            <div class="selected-datetime alert alert-success py-2 px-3 border-0 rounded-3 d-none align-items-center gap-2 mb-0" style="background: #ecfdf5; color: #065f46;">
+              <i class="fas fa-check-circle text-success fs-5"></i>
+              <div>
+                <strong class="d-block small">Confirmed Slot:</strong>
+                <span id="selected-date-display" class="fw-semibold"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2: Service Location & Address -->
+          <div class="booking-section">
+            <div class="section-title">
+              <span class="section-badge-num">2</span>
+              <span>Service Location & Address</span>
+            </div>
+
+            <% 
+              const providerCity = (provider.serviceArea?.city || provider.businessAddress?.city || '').trim();
+            %>
+
+            <% if (addresses && addresses.length > 0) { %>
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <label class="form-label text-muted small fw-bold text-uppercase mb-0">Select Saved Address</label>
+                <% if (providerCity) { %>
+                  <small class="text-primary fw-medium"><i class="fas fa-map-marker-alt me-1"></i> Specialist Servicing Area: <strong><%= providerCity %></strong></small>
+                <% } %>
+              </div>
+              
+              <div class="mb-3">
+                <% 
+                  let firstMatchingIndex = -1;
+                  addresses.forEach((address, index) => { 
+                    const addrCity = (address.city || '').trim().toLowerCase();
+                    const pCity = providerCity.toLowerCase();
+                    const isMatchingCity = !pCity || (addrCity && (addrCity.includes(pCity) || pCity.includes(addrCity)));
+                    if (isMatchingCity && firstMatchingIndex === -1) {
+                      firstMatchingIndex = index;
+                    }
+                %>
+                  <label 
+                    class="address-option-card <%= !isMatchingCity ? 'out-of-city' : '' %>" 
+                    id="addr-card-<%= index %>"
+                    <%= !isMatchingCity ? 'title="This provider only provides service in ' + providerCity + '"' : '' %>
+                  >
+                    <input 
+                      type="radio" 
+                      name="addressChoice" 
+                      value="<%= index %>" 
+                      <%= !isMatchingCity ? 'disabled' : '' %>
+                      class="form-check-input"
+                    />
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center justify-content-between flex-wrap gap-1 mb-1">
+                        <strong class="<%= !isMatchingCity ? 'text-muted' : 'text-dark' %>"><%= address.label || 'Saved Address' %></strong>
+                        <% if (isMatchingCity) { %>
+                          <span class="badge bg-success bg-opacity-10 text-success small"><i class="fas fa-check-circle me-1"></i> In <%= providerCity %></span>
+                        <% } else { %>
+                          <span class="badge bg-secondary bg-opacity-25 text-secondary small"><i class="fas fa-ban me-1"></i> Out of service area (<%= address.city || 'Other City' %>)</span>
+                        <% } %>
+                      </div>
+                      <p class="text-muted small mb-0">
+                        <%= address.street %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
+                      </p>
+                      <% if (!isMatchingCity) { %>
+                        <p class="text-danger opacity-75 small mb-0 mt-1" style="font-size: 0.75rem;">
+                          <i class="fas fa-info-circle me-1"></i> This provider only provides service in <%= providerCity %>.
+                        </p>
+                      <% } %>
+                    </div>
+                  </label>
+                <% }); %>
+
+                <label class="address-option-card" id="addr-card-new">
+                  <input type="radio" name="addressChoice" value="new" class="form-check-input" />
+                  <div>
+                    <strong class="text-primary"><i class="fas fa-plus-circle me-1"></i> Add a New Address in <%= providerCity || 'Area' %></strong>
+                    <p class="text-muted small mb-0">Pinpoint a new location on the map</p>
+                  </div>
+                </label>
+
+                <!-- Hidden select for compatibility -->
+                <select class="d-none" id="address-select" name="addressId">
+                  <option value="">Select...</option>
+                  <% addresses.forEach((address, index) => { %>
+                    <option value="<%= index %>"><%= address.street %></option>
+                  <% }); %>
+                  <option value="new">+ Add a new address</option>
+                </select>
+              </div>
+
+              <div id="new-address-section" class="mt-3 d-none">
+                <hr class="text-muted my-3">
+            <% } %>
+
+            <!-- Map Location Pinpoint Sub-Section -->
+            <div id="map-section" class="<%= addresses && addresses.length > 0 ? 'd-none' : '' %>">
+              <div class="mb-3">
+                <label class="form-label text-muted small fw-bold text-uppercase">Pinpoint on Map</label>
+                
+                <div class="input-group shadow-sm rounded-3">
+                  <span class="input-group-text bg-white border-end-0 text-muted">
+                    <i class="fas fa-search"></i>
+                  </span>
+                  <input 
+                    type="text" 
+                    id="address-input" 
+                    class="form-control border-start-0 border-end-0 ps-0" 
+                    placeholder="Search your area, landmark or street name..." 
+                  />
+                  <button 
+                    type="button" 
+                    class="btn btn-primary px-3 d-flex align-items-center gap-2" 
+                    id="detect-location-btn" 
+                    title="Detect Current GPS Location"
+                  >
+                    <i class="fas fa-location-arrow"></i>
+                    <span class="d-none d-sm-inline">Auto Detect</span>
+                  </button>
+                </div>
+
+                <!-- Detection Status Alert -->
+                <div id="location-status" class="mt-2 d-none">
+                  <div class="alert alert-info py-2 px-3 border-0 rounded-3 mb-0 d-flex align-items-center gap-2" role="alert">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status" id="location-spinner"></div>
+                    <small id="location-message" class="fw-semibold">Detecting location...</small>
+                  </div>
+                </div>
+
+                <!-- Alternative Detection Methods -->
+                <div id="location-methods" class="mt-2 d-none">
+                  <div class="alert alert-warning py-2 px-3 border-0 rounded-3 mb-0" role="alert">
+                    <small class="mb-2 d-block fw-bold"><i class="fas fa-exclamation-triangle me-1"></i> GPS Unavailable?</small>
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" id="ip-location-btn">
+                        <i class="fas fa-globe me-1"></i> Use IP Location
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-info rounded-pill" id="manual-input-btn">
+                        <i class="fas fa-keyboard me-1"></i> Enter Manually
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Google Map Canvas -->
+                <div id="map">
+                  <div class="d-flex align-items-center justify-content-center h-100 text-muted bg-light">
+                    <div class="text-center p-3">
+                      <i class="fas fa-map-marked-alt fa-2x mb-2 text-primary"></i>
+                      <p class="mb-0 fw-medium">Loading Map View...</p>
+                      <small class="text-muted">Interactive map loading with Google Maps</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detailed House / Flat Number Input -->
+            <div class="mt-3">
+              <label class="form-label text-muted small fw-bold text-uppercase">
+                <i class="fas fa-home me-1"></i> Complete House / Flat / Street Details
+              </label>
+              <textarea 
+                id="detailed-address" 
+                name="detailedAddress" 
+                class="form-control" 
+                rows="2" 
+                placeholder="E.g. Flat 402, Building A, Opposite City Hospital, Anand Nagar"
+                required
+              ></textarea>
+            </div>
+
+            <% if (addresses && addresses.length > 0) { %>
+              </div>
+            <% } %>
+
+          </div>
+
+          <!-- SECTION 3: Special Notes & Instructions -->
+          <div class="booking-section">
+            <div class="section-title">
+              <span class="section-badge-num">3</span>
+              <span>Additional Instructions (Optional)</span>
+            </div>
+            <div>
+              <textarea 
+                name="notes" 
+                class="form-control" 
+                rows="2" 
+                placeholder="Any special notes for the service specialist (e.g., please call before arriving, bring extra pipe fittings, etc.)"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Bill & Checkout Breakdown -->
+          <div class="checkout-summary-card mb-4">
+            <h4 class="h6 fw-bold text-uppercase text-white-50 letter-spacing-1 mb-3">
+              <i class="fas fa-receipt me-2 text-warning"></i>Payment Summary
+            </h4>
+            <div class="summary-row">
+              <span><%= service.name %> Service Cost</span>
+              <span class="fw-semibold text-white">₹<%= serviceDetails.customCost %></span>
+            </div>
+            <div class="summary-row">
+              <span>Platform & Convenience Fee</span>
+              <span class="fw-semibold text-white">₹50</span>
+            </div>
+            <div class="summary-row">
+              <span>Safety & Protection Coverage</span>
+              <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25">FREE</span>
+            </div>
+            <div class="summary-row total">
+              <span>Total Payable Amount</span>
+              <span class="text-warning">₹<%= parseInt(serviceDetails.customCost) + 50 %></span>
+            </div>
+          </div>
+
+          <!-- Submit CTA Button -->
+          <button type="submit" class="btn-book-now w-100 py-3" id="confirm-booking-btn">
+            <i class="fas fa-lock me-1"></i> Confirm Booking & Proceed 
+            <i class="fas fa-arrow-right ms-2"></i>
+          </button>
+
+        </form>
+
+        <!-- Trust Features -->
+        <div class="trust-banner">
+          <div class="trust-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Verified Professionals</span>
+          </div>
+          <div class="trust-item">
+            <i class="fas fa-shield-alt"></i>
+            <span>100% Service Guarantee</span>
+          </div>
+          <div class="trust-item">
+            <i class="fas fa-lock"></i>
+            <span>Secure Cash / Online Pay</span>
+          </div>
         </div>
 
-        <!-- Load mapBooking.js script -->
-        <script src="/js/pages/maps/mapBooking.js"></script>
+        <div id="addresses-data" style="display: none;">
+          <%= JSON.stringify(addresses || []) %>
+        </div>
 
-        <script>
-          document.addEventListener("DOMContentLoaded", function () {
-            // ===== UNIFIED LOCATION MANAGER =====
-            // This replaces conflicting location detection from multiple scripts
+      </div>
+    </div>
 
-            // Prevent conflicts with other geolocation scripts
-            if (window.locationDetectionInProgress) {
-              console.log('🔄 Location detection already in progress, skipping...');
-              return;
-            }
+  </div>
+</div>
 
-            const UnifiedLocationManager = {
-              isDetecting: false,
-              hasDetected: false,
+<div id="map-error" class="alert alert-danger d-none container my-3">
+  Could not load Google Maps. Please refresh the page or try again later.
+</div>
 
-              // UI Elements
-              elements: {
-                detectBtn: document.getElementById('detect-location-btn'),
-                ipLocationBtn: document.getElementById('ip-location-btn'),
-                manualInputBtn: document.getElementById('manual-input-btn'),
-                locationStatus: document.getElementById('location-status'),
-                locationMessage: document.getElementById('location-message'),
-                locationSpinner: document.getElementById('location-spinner'),
-                locationMethods: document.getElementById('location-methods'),
-                addressInput: document.getElementById('address-input'),
-                detailedAddress: document.getElementById('detailed-address')
-              },
+<!-- Load mapBooking.js script -->
+<script src="/js/pages/maps/mapBooking.js"></script>
 
-              // Show status message
-              showStatus: function (message, type = 'info', showSpinner = true) {
-                if (this.elements.locationStatus && this.elements.locationMessage) {
-                  this.elements.locationMessage.textContent = message;
-                  this.elements.locationStatus.classList.remove('d-none');
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // ===== UNIFIED LOCATION MANAGER =====
+    if (window.locationDetectionInProgress) {
+      console.log('🔄 Location detection already in progress, skipping...');
+      return;
+    }
 
-                  const alertEl = this.elements.locationStatus.querySelector('.alert');
-                  alertEl.className = `alert alert-${type} py-2 mb-2`;
+    const UnifiedLocationManager = {
+      isDetecting: false,
+      hasDetected: false,
 
-                  if (showSpinner && this.elements.locationSpinner) {
-                    this.elements.locationSpinner.classList.remove('d-none');
-                  } else if (this.elements.locationSpinner) {
-                    this.elements.locationSpinner.classList.add('d-none');
-                  }
+      elements: {
+        detectBtn: document.getElementById('detect-location-btn'),
+        ipLocationBtn: document.getElementById('ip-location-btn'),
+        manualInputBtn: document.getElementById('manual-input-btn'),
+        locationStatus: document.getElementById('location-status'),
+        locationMessage: document.getElementById('location-message'),
+        locationSpinner: document.getElementById('location-spinner'),
+        locationMethods: document.getElementById('location-methods'),
+        addressInput: document.getElementById('address-input'),
+        detailedAddress: document.getElementById('detailed-address')
+      },
 
-                  // Auto-hide success messages
-                  if (type === 'success') {
-                    setTimeout(() => this.hideStatus(), 4000);
-                  }
-                }
-              },
+      showStatus: function (message, type = 'info', showSpinner = true) {
+        if (this.elements.locationStatus && this.elements.locationMessage) {
+          this.elements.locationMessage.textContent = message;
+          this.elements.locationStatus.classList.remove('d-none');
 
-              // Hide status
-              hideStatus: function () {
-                if (this.elements.locationStatus) {
-                  this.elements.locationStatus.classList.add('d-none');
-                }
-              },
+          const alertEl = this.elements.locationStatus.querySelector('.alert');
+          if (alertEl) {
+            alertEl.className = `alert alert-${type} py-2 px-3 border-0 rounded-3 mb-0 d-flex align-items-center gap-2`;
+          }
 
-              // Show alternative methods
-              showMethods: function () {
-                if (this.elements.locationMethods) {
-                  this.elements.locationMethods.classList.remove('d-none');
-                }
-              },
+          if (showSpinner && this.elements.locationSpinner) {
+            this.elements.locationSpinner.classList.remove('d-none');
+          } else if (this.elements.locationSpinner) {
+            this.elements.locationSpinner.classList.add('d-none');
+          }
 
-              // Hide alternative methods
-              hideMethods: function () {
-                if (this.elements.locationMethods) {
-                  this.elements.locationMethods.classList.add('d-none');
-                }
-              },
+          if (type === 'success') {
+            setTimeout(() => this.hideStatus(), 4000);
+          }
+        }
+      },
 
-              // Show success notification
-              showSuccess: function (message) {
-                // Remove any existing success alerts
-                document.querySelectorAll('.location-success-alert').forEach(el => el.remove());
+      hideStatus: function () {
+        if (this.elements.locationStatus) {
+          this.elements.locationStatus.classList.add('d-none');
+        }
+      },
 
-                const successAlert = document.createElement('div');
-                successAlert.className = 'alert alert-success location-success-alert mt-2 fade show';
-                successAlert.innerHTML = `
+      showMethods: function () {
+        if (this.elements.locationMethods) {
+          this.elements.locationMethods.classList.remove('d-none');
+        }
+      },
+
+      hideMethods: function () {
+        if (this.elements.locationMethods) {
+          this.elements.locationMethods.classList.add('d-none');
+        }
+      },
+
+      showSuccess: function (message) {
+        document.querySelectorAll('.location-success-alert').forEach(el => el.remove());
+
+        const successAlert = document.createElement('div');
+        successAlert.className = 'alert alert-success location-success-alert mt-2 py-2 px-3 border-0 rounded-3 fade show';
+        successAlert.innerHTML = `
           <i class="fas fa-check-circle me-2"></i>${message}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          <button type="button" class="btn-close btn-sm float-end" data-bs-dismiss="alert"></button>
         `;
 
-                const mapSection = document.getElementById('map-section');
-                if (mapSection) {
-                  mapSection.insertBefore(successAlert, mapSection.firstChild);
-                }
+        const mapSection = document.getElementById('map-section');
+        if (mapSection) {
+          mapSection.insertBefore(successAlert, mapSection.firstChild);
+        }
 
-                setTimeout(() => {
-                  if (successAlert.parentNode) {
-                    successAlert.remove();
-                  }
-                }, 5000);
-              },
+        setTimeout(() => {
+          if (successAlert.parentNode) {
+            successAlert.remove();
+          }
+        }, 5000);
+      },
 
-              // Main location detection method
-              detectLocation: async function () {
-                if (this.isDetecting || this.hasDetected) return;
+      detectLocation: async function () {
+        if (this.isDetecting || this.hasDetected) return;
 
-                // Mark as in progress globally
-                window.locationDetectionInProgress = true;
-                this.isDetecting = true;
+        window.locationDetectionInProgress = true;
+        this.isDetecting = true;
 
-                // Update button state
-                const originalText = this.elements.detectBtn.innerHTML;
-                this.elements.detectBtn.disabled = true;
-                this.elements.detectBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i><span class="d-none d-md-inline">Detecting...</span>';
+        const originalText = this.elements.detectBtn.innerHTML;
+        this.elements.detectBtn.disabled = true;
+        this.elements.detectBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i><span>Detecting...</span>';
 
-                this.hideStatus();
-                this.hideMethods();
+        this.hideStatus();
+        this.hideMethods();
 
-                try {
-                  // Try GPS first with better error handling
-                  console.log('🔍 Starting unified location detection...');
-                  await this.tryGPSLocation();
-                } catch (gpsError) {
-                  console.warn('📍 GPS failed, trying IP location:', gpsError.message);
-                  try {
-                    await this.tryIPLocation();
-                  } catch (ipError) {
-                    console.error('❌ All location methods failed:', ipError.message);
-                    this.handleLocationFailure();
-                  }
-                } finally {
-                  // Reset button and global state
-                  this.elements.detectBtn.disabled = false;
-                  this.elements.detectBtn.innerHTML = originalText;
-                  this.isDetecting = false;
-                  window.locationDetectionInProgress = false;
-                }
-              },
+        try {
+          console.log('🔍 Starting location detection...');
+          await this.tryGPSLocation();
+        } catch (gpsError) {
+          console.warn('📍 GPS failed, trying IP fallback:', gpsError.message);
+          try {
+            await this.tryIPLocation();
+          } catch (ipError) {
+            console.error('❌ All location methods failed:', ipError.message);
+            this.handleLocationFailure();
+          }
+        } finally {
+          this.elements.detectBtn.disabled = false;
+          this.elements.detectBtn.innerHTML = originalText;
+          this.isDetecting = false;
+          window.locationDetectionInProgress = false;
+        }
+      },
 
-              // Try GPS location with single attempt (no conflicts)
-              tryGPSLocation: function () {
-                return new Promise((resolve, reject) => {
-                  if (!navigator.geolocation) {
-                    reject(new Error('Geolocation not supported'));
-                    return;
-                  }
+      tryGPSLocation: function () {
+        return new Promise((resolve, reject) => {
+          if (!navigator.geolocation) {
+            reject(new Error('Geolocation not supported'));
+            return;
+          }
 
-                  this.showStatus('Detecting your location...', 'info', true);
+          this.showStatus('Detecting your GPS location...', 'info', true);
 
-                  // Single attempt with optimized settings for macOS/Safari
-                  const options = {
-                    enableHighAccuracy: false, // More compatible with indoor/desktop
-                    timeout: 12000, // Reasonable timeout
-                    maximumAge: 600000 // 10 minutes cache
-                  };
+          const options = {
+            enableHighAccuracy: false,
+            timeout: 12000,
+            maximumAge: 600000
+          };
 
-                  navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                      const lat = position.coords.latitude;
-                      const lng = position.coords.longitude;
-                      const accuracy = position.coords.accuracy;
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const lat = position.coords.latitude;
+              const lng = position.coords.longitude;
+              const accuracy = position.coords.accuracy;
 
-                      console.log('📍 GPS location detected:', lat, lng, 'accuracy:', Math.round(accuracy), 'm');
+              console.log('📍 GPS detected:', lat, lng, 'accuracy:', Math.round(accuracy), 'm');
+              this.processLocationSuccess(lat, lng, `GPS location pinned (±${Math.round(accuracy)}m)`);
+              resolve({ lat, lng, accuracy });
+            },
+            (error) => {
+              console.warn('📍 GPS failed:', error.message);
+              reject(error);
+            },
+            options
+          );
+        });
+      },
 
-                      this.processLocationSuccess(lat, lng, `GPS location (±${Math.round(accuracy)}m)`);
-                      resolve({ lat, lng, accuracy });
-                    },
-                    (error) => {
-                      console.warn('📍 GPS location failed:', error.message, 'Code:', error.code);
-                      reject(error);
-                    },
-                    options
-                  );
-                });
-              },
+      tryIPLocation: function () {
+        return new Promise(async (resolve, reject) => {
+          try {
+            this.showStatus('Getting network location...', 'info', true);
 
-              // Try IP-based location
-              tryIPLocation: function () {
-                return new Promise(async (resolve, reject) => {
-                  try {
-                    this.showStatus('Getting approximate location...', 'info', true);
-
-                    const response = await fetch('https://ipapi.co/json/', {
-                      signal: AbortSignal.timeout(8000) // 8 second timeout
-                    });
-
-                    if (!response.ok) {
-                      throw new Error(`HTTP ${response.status}`);
-                    }
-
-                    const data = await response.json();
-
-                    if (data.latitude && data.longitude && !data.error) {
-                      const lat = parseFloat(data.latitude);
-                      const lng = parseFloat(data.longitude);
-
-                      console.log('📍 IP location detected:', lat, lng, 'City:', data.city);
-
-                      this.processLocationSuccess(lat, lng, `Approximate location: ${data.city}, ${data.region}`);
-                      resolve({ lat, lng, city: data.city, region: data.region });
-                    } else {
-                      throw new Error(data.reason || 'No location data available');
-                    }
-                  } catch (error) {
-                    console.error('🌐 IP location failed:', error.message);
-                    reject(error);
-                  }
-                });
-              },
-
-              // Process successful location detection
-              processLocationSuccess: function (lat, lng, successMessage) {
-                this.hasDetected = true;
-                this.hideStatus();
-                this.hideMethods();
-
-                // Update map if available
-                if (window.bookingMap && window.bookingMarker) {
-                  const pos = { lat, lng };
-                  window.bookingMap.setCenter(pos);
-                  window.bookingMap.setZoom(17);
-                  window.bookingMarker.setPosition(pos);
-                }
-
-                // Update form coordinates
-                this.updateCoordinates(lat, lng);
-
-                // Reverse geocode to get address
-                this.reverseGeocode(lat, lng);
-
-                // Show success message
-                this.showSuccess(successMessage);
-              },
-
-              // Handle complete location failure
-              handleLocationFailure: function () {
-                this.hideStatus();
-                this.showMethods();
-                console.log('📍 All location detection methods failed, showing alternatives');
-              },
-
-              // Update coordinate form fields
-              updateCoordinates: function (lat, lng) {
-                let latInput = document.getElementById('latitude');
-                let lngInput = document.getElementById('longitude');
-
-                if (!latInput) {
-                  latInput = document.createElement('input');
-                  latInput.type = 'hidden';
-                  latInput.id = 'latitude';
-                  latInput.name = 'latitude';
-                  document.getElementById('bookingForm').appendChild(latInput);
-                }
-
-                if (!lngInput) {
-                  lngInput = document.createElement('input');
-                  lngInput.type = 'hidden';
-                  lngInput.id = 'longitude';
-                  lngInput.name = 'longitude';
-                  document.getElementById('bookingForm').appendChild(lngInput);
-                }
-
-                latInput.value = lat.toFixed(6);
-                lngInput.value = lng.toFixed(6);
-
-                console.log('📍 Coordinates updated:', lat.toFixed(6), lng.toFixed(6));
-              },
-
-              // Reverse geocode coordinates to address
-              reverseGeocode: function (lat, lng) {
-                if (window.bookingGeocoder) {
-                  const latlng = { lat, lng };
-
-                  window.bookingGeocoder.geocode({ location: latlng }, (results, status) => {
-                    if (status === 'OK' && results && results[0]) {
-                      const address = results[0].formatted_address;
-
-                      if (this.elements.addressInput) {
-                        this.elements.addressInput.value = address;
-                        this.elements.addressInput.classList.remove('is-invalid');
-                        this.elements.addressInput.classList.add('is-valid');
-                      }
-
-                      if (this.elements.detailedAddress && !this.elements.detailedAddress.value.trim()) {
-                        this.elements.detailedAddress.value = address;
-                        this.elements.detailedAddress.classList.remove('is-invalid');
-                        this.elements.detailedAddress.classList.add('is-valid');
-                      }
-
-                      console.log('🏠 Address geocoded:', address);
-                    }
-                  });
-                }
-              }
-            };
-
-            // Event Listeners
-            if (UnifiedLocationManager.elements.detectBtn) {
-              UnifiedLocationManager.elements.detectBtn.addEventListener('click', () => {
-                UnifiedLocationManager.detectLocation();
-              });
-            }
-
-            if (UnifiedLocationManager.elements.ipLocationBtn) {
-              UnifiedLocationManager.elements.ipLocationBtn.addEventListener('click', async () => {
-                UnifiedLocationManager.elements.ipLocationBtn.disabled = true;
-                UnifiedLocationManager.elements.ipLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Getting...';
-
-                try {
-                  await UnifiedLocationManager.tryIPLocation();
-                } catch (error) {
-                  UnifiedLocationManager.showStatus('Could not get location via IP. Please enter manually.', 'warning', false);
-                } finally {
-                  UnifiedLocationManager.elements.ipLocationBtn.disabled = false;
-                  UnifiedLocationManager.elements.ipLocationBtn.innerHTML = '<i class="fas fa-globe me-1"></i>Use IP Location';
-                }
-              });
-            }
-
-            if (UnifiedLocationManager.elements.manualInputBtn) {
-              UnifiedLocationManager.elements.manualInputBtn.addEventListener('click', () => {
-                UnifiedLocationManager.hideStatus();
-                UnifiedLocationManager.hideMethods();
-                UnifiedLocationManager.elements.addressInput.focus();
-                UnifiedLocationManager.elements.addressInput.placeholder = 'Please enter your address manually...';
-              });
-            }
-
-            // ===== DATE & TIME HANDLING =====
-            const datePicker = document.getElementById('date-picker');
-            const timePicker = document.getElementById('time-picker');
-            const combinedInput = document.getElementById('datetime-combined');
-            const selectedDateDisplay = document.getElementById('selected-date-display');
-            const selectedDateContainer = document.querySelector('.selected-datetime');
-
-            function formatDisplayDate(date, time) {
-              if (!date) return '';
-              const dateObj = new Date(date);
-              const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-              const dateStr = dateObj.toLocaleDateString('en-US', options);
-              return `${dateStr} at ${formatTime(time)}`;
-            }
-
-            function formatTime(timeStr) {
-              if (!timeStr) return '';
-              const [hours, minutes] = timeStr.split(':');
-              const hour = parseInt(hours, 10);
-              const ampm = hour >= 12 ? 'PM' : 'AM';
-              const hour12 = hour % 12 || 12;
-              return `${hour12}:${minutes} ${ampm}`;
-            }
-
-            function updateDateTime() {
-              const date = datePicker.value;
-              const time = timePicker.value;
-
-              if (date && time) {
-                combinedInput.value = `${date} ${time}`;
-                selectedDateDisplay.textContent = formatDisplayDate(date, time);
-                selectedDateContainer.classList.remove('d-none');
-                datePicker.classList.add('is-valid');
-                timePicker.classList.add('is-valid');
-                datePicker.classList.remove('is-invalid');
-                timePicker.classList.remove('is-invalid');
-              } else {
-                combinedInput.value = '';
-                selectedDateContainer.classList.add('d-none');
-              }
-            }
-
-            function updateTimeOptions() {
-              const selectedDate = datePicker.value;
-              const now = new Date();
-              const currentDate = now.toISOString().split('T')[0];
-              const isToday = selectedDate === currentDate;
-
-              const options = Array.from(timePicker.options);
-              options.forEach(option => {
-                if (option.value) {
-                  option.disabled = false;
-                  option.style.display = '';
-                }
-              });
-
-              if (isToday) {
-                const currentHour = now.getHours();
-                const currentMinute = now.getMinutes();
-                const currentTimeValue = currentHour * 60 + currentMinute;
-
-                options.forEach(option => {
-                  if (option.value) {
-                    const [hours, minutes] = option.value.split(':').map(num => parseInt(num));
-                    const optionTimeValue = hours * 60 + minutes;
-                    if (optionTimeValue <= currentTimeValue + 15) {
-                      option.disabled = true;
-                      option.style.display = 'none';
-                    }
-                  }
-                });
-              }
-            }
-
-            datePicker.addEventListener('change', function () {
-              updateDateTime();
-              updateTimeOptions();
+            const response = await fetch('https://ipapi.co/json/', {
+              signal: AbortSignal.timeout(8000)
             });
-            timePicker.addEventListener('change', updateDateTime);
-            updateTimeOptions();
 
-            // ===== ADDRESS SELECTION HANDLING =====
-            const addressSelect = document.getElementById('address-select');
-            if (addressSelect) {
-              const newAddressSection = document.getElementById('new-address-section');
-              const mapSection = document.getElementById('map-section');
-              const detailedAddressInput = document.getElementById('detailed-address');
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
 
-              let addressesData = [];
-              try {
-                const addressDataElement = document.getElementById('addresses-data');
-                if (addressDataElement) {
-                  addressesData = JSON.parse(addressDataElement.textContent || '[]');
-                }
-              } catch (e) {
-                console.error('Error parsing addresses data:', e);
+            const data = await response.json();
+
+            if (data.latitude && data.longitude && !data.error) {
+              const lat = parseFloat(data.latitude);
+              const lng = parseFloat(data.longitude);
+
+              console.log('📍 IP location detected:', lat, lng, 'City:', data.city);
+              this.processLocationSuccess(lat, lng, `Approximate Location: ${data.city}, ${data.region}`);
+              resolve({ lat, lng, city: data.city, region: data.region });
+            } else {
+              throw new Error(data.reason || 'No location data available');
+            }
+          } catch (error) {
+            console.error('🌐 IP location failed:', error.message);
+            reject(error);
+          }
+        });
+      },
+
+      processLocationSuccess: function (lat, lng, successMessage) {
+        this.hasDetected = true;
+        this.hideStatus();
+        this.hideMethods();
+
+        if (window.bookingMap && window.bookingMarker) {
+          const pos = { lat, lng };
+          window.bookingMap.setCenter(pos);
+          window.bookingMap.setZoom(17);
+          window.bookingMarker.setPosition(pos);
+        }
+
+        this.updateCoordinates(lat, lng);
+        this.reverseGeocode(lat, lng);
+        this.showSuccess(successMessage);
+      },
+
+      handleLocationFailure: function () {
+        this.hideStatus();
+        this.showMethods();
+      },
+
+      updateCoordinates: function (lat, lng) {
+        let latInput = document.getElementById('latitude');
+        let lngInput = document.getElementById('longitude');
+
+        if (!latInput) {
+          latInput = document.createElement('input');
+          latInput.type = 'hidden';
+          latInput.id = 'latitude';
+          latInput.name = 'latitude';
+          document.getElementById('bookingForm').appendChild(latInput);
+        }
+
+        if (!lngInput) {
+          lngInput = document.createElement('input');
+          lngInput.type = 'hidden';
+          lngInput.id = 'longitude';
+          lngInput.name = 'longitude';
+          document.getElementById('bookingForm').appendChild(lngInput);
+        }
+
+        latInput.value = lat.toFixed(6);
+        lngInput.value = lng.toFixed(6);
+      },
+
+      reverseGeocode: function (lat, lng) {
+        if (window.bookingGeocoder) {
+          const latlng = { lat, lng };
+
+          window.bookingGeocoder.geocode({ location: latlng }, (results, status) => {
+            if (status === 'OK' && results && results[0]) {
+              const address = results[0].formatted_address;
+
+              if (this.elements.addressInput) {
+                this.elements.addressInput.value = address;
               }
 
-              addressSelect.addEventListener('change', function () {
-                const selectedValue = this.value;
-
-                if (selectedValue === 'new') {
-                  if (newAddressSection) newAddressSection.classList.remove('d-none');
-                  mapSection.classList.remove('d-none');
-                  detailedAddressInput.value = '';
-
-                  setTimeout(() => {
-                    if (window.bookingMapManager && !window.bookingMapManager.isInitialized()) {
-                      window.bookingMapManager.initBookingMapWhenReady();
-                    }
-                  }, 100);
-                } else if (selectedValue !== '') {
-                  if (newAddressSection) newAddressSection.classList.add('d-none');
-                  mapSection.classList.add('d-none');
-
-                  const addressIndex = parseInt(selectedValue);
-                  if (addressesData[addressIndex]) {
-                    const address = addressesData[addressIndex];
-                    detailedAddressInput.value = `${address.street}, ${address.city}, ${address.state} - ${address.pincode}`;
-
-                    // Update coordinates
-                    if (address.coordinates) {
-                      UnifiedLocationManager.updateCoordinates(
-                        address.coordinates.latitude,
-                        address.coordinates.longitude
-                      );
-                    }
-                  }
-                } else {
-                  if (newAddressSection) newAddressSection.classList.add('d-none');
-                  mapSection.classList.add('d-none');
-                  detailedAddressInput.value = '';
-                }
-              });
-
-              addressSelect.dispatchEvent(new Event('change'));
-            } else {
-              setTimeout(() => {
-                if (window.bookingMapManager && !window.bookingMapManager.isInitialized()) {
-                  window.bookingMapManager.initBookingMapWhenReady();
-                }
-              }, 100);
+              if (this.elements.detailedAddress && !this.elements.detailedAddress.value.trim()) {
+                this.elements.detailedAddress.value = address;
+              }
             }
-
-            // ===== FORM VALIDATION =====
-            const bookingForm = document.getElementById('bookingForm');
-            if (bookingForm) {
-              bookingForm.addEventListener('submit', function (e) {
-                let isValid = true;
-
-                // Date/time validation
-                if (!combinedInput.value) {
-                  e.preventDefault();
-                  datePicker.classList.add('is-invalid');
-                  timePicker.classList.add('is-invalid');
-                  isValid = false;
-                }
-
-                // Location validation
-                const addressInput = document.getElementById('detailed-address');
-                const latitude = document.getElementById('latitude');
-                const longitude = document.getElementById('longitude');
-
-                if (!addressInput.value.trim()) {
-                  e.preventDefault();
-                  addressInput.classList.add('is-invalid');
-                  isValid = false;
-                }
-
-                if (!latitude?.value || !longitude?.value) {
-                  e.preventDefault();
-                  isValid = false;
-                }
-
-                if (!isValid) {
-                  alert('Please fill in all required fields and select a valid location.');
-                }
-              });
-            }
-
-            console.log('✅ Unified location manager initialized');
           });
-        </script>
+        }
+      }
+    };
 
-        <style>
-          .location-alert {
-            border-radius: 6px;
-            font-size: 0.875rem;
+    // Event Listeners for Location
+    if (UnifiedLocationManager.elements.detectBtn) {
+      UnifiedLocationManager.elements.detectBtn.addEventListener('click', () => {
+        UnifiedLocationManager.detectLocation();
+      });
+    }
+
+    if (UnifiedLocationManager.elements.ipLocationBtn) {
+      UnifiedLocationManager.elements.ipLocationBtn.addEventListener('click', async () => {
+        UnifiedLocationManager.elements.ipLocationBtn.disabled = true;
+        try {
+          await UnifiedLocationManager.tryIPLocation();
+        } catch (error) {
+          UnifiedLocationManager.showStatus('Could not get IP location. Please type manually.', 'warning', false);
+        } finally {
+          UnifiedLocationManager.elements.ipLocationBtn.disabled = false;
+        }
+      });
+    }
+
+    if (UnifiedLocationManager.elements.manualInputBtn) {
+      UnifiedLocationManager.elements.manualInputBtn.addEventListener('click', () => {
+        UnifiedLocationManager.hideStatus();
+        UnifiedLocationManager.hideMethods();
+        UnifiedLocationManager.elements.addressInput.focus();
+      });
+    }
+
+    // ===== DATE & TIME HANDLING =====
+    const datePicker = document.getElementById('date-picker');
+    const timePicker = document.getElementById('time-picker');
+    const combinedInput = document.getElementById('datetime-combined');
+    const selectedDateDisplay = document.getElementById('selected-date-display');
+    const selectedDateContainer = document.querySelector('.selected-datetime');
+    const quickDateChips = document.querySelectorAll('#quick-date-chips .quick-chip');
+    const quickTimeChips = document.querySelectorAll('#quick-time-chips .time-slot-pill');
+
+    function formatDisplayDate(date, time) {
+      if (!date) return '';
+      const dateObj = new Date(date);
+      const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+      const dateStr = dateObj.toLocaleDateString('en-US', options);
+      return `${dateStr} @ ${formatTime(time)}`;
+    }
+
+    function formatTime(timeStr) {
+      if (!timeStr) return '';
+      const [hours, minutes] = timeStr.split(':');
+      const hour = parseInt(hours, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      return `${hour12}:${minutes} ${ampm}`;
+    }
+
+    function updateDateTime() {
+      const date = datePicker.value;
+      const time = timePicker.value;
+
+      if (date && time) {
+        combinedInput.value = `${date} ${time}`;
+        selectedDateDisplay.textContent = formatDisplayDate(date, time);
+        selectedDateContainer.classList.remove('d-none');
+        selectedDateContainer.classList.add('d-flex');
+        datePicker.classList.remove('is-invalid');
+        timePicker.classList.remove('is-invalid');
+      } else {
+        combinedInput.value = '';
+        selectedDateContainer.classList.add('d-none');
+        selectedDateContainer.classList.remove('d-flex');
+      }
+
+      // Sync active time pill
+      quickTimeChips.forEach(pill => {
+        if (pill.dataset.time === time) {
+          pill.classList.add('active');
+        } else {
+          pill.classList.remove('active');
+        }
+      });
+    }
+
+    // Set initial date to today
+    const today = new Date();
+    datePicker.value = today.toISOString().split('T')[0];
+
+    // Quick Date Chip Click Handling
+    quickDateChips.forEach(chip => {
+      chip.addEventListener('click', function () {
+        quickDateChips.forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+
+        const offsetDays = parseInt(this.dataset.offset || '0', 10);
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + offsetDays);
+        datePicker.value = targetDate.toISOString().split('T')[0];
+        updateDateTime();
+      });
+    });
+
+    // Quick Time Chip Click Handling
+    quickTimeChips.forEach(chip => {
+      chip.addEventListener('click', function () {
+        if (this.classList.contains('disabled')) return;
+        const timeVal = this.dataset.time;
+        timePicker.value = timeVal;
+        updateDateTime();
+      });
+    });
+
+    datePicker.addEventListener('change', function () {
+      quickDateChips.forEach(c => c.classList.remove('active'));
+      updateDateTime();
+    });
+
+    timePicker.addEventListener('change', updateDateTime);
+
+    // Auto-select first available time slot
+    if (!timePicker.value) {
+      timePicker.value = "10:00";
+      updateDateTime();
+    }
+
+    // ===== ADDRESS RADIO & SELECT HANDLING =====
+    const addressRadios = document.querySelectorAll('input[name="addressChoice"]');
+    const addressSelect = document.getElementById('address-select');
+    const newAddressSection = document.getElementById('new-address-section');
+    const mapSection = document.getElementById('map-section');
+    const detailedAddressInput = document.getElementById('detailed-address');
+
+    let addressesData = [];
+    try {
+      const addressDataElement = document.getElementById('addresses-data');
+      if (addressDataElement) {
+        addressesData = JSON.parse(addressDataElement.textContent || '[]');
+      }
+    } catch (e) {
+      console.error('Error parsing addresses:', e);
+    }
+
+    function applySelectedAddress(val) {
+      document.querySelectorAll('.address-option-card').forEach(card => card.classList.remove('selected'));
+
+      if (val === 'new') {
+        const newCard = document.getElementById('addr-card-new');
+        if (newCard) newCard.classList.add('selected');
+
+        if (newAddressSection) newAddressSection.classList.remove('d-none');
+        if (mapSection) mapSection.classList.remove('d-none');
+        detailedAddressInput.value = '';
+
+        setTimeout(() => {
+          if (window.bookingMapManager && !window.bookingMapManager.isInitialized()) {
+            window.bookingMapManager.initBookingMapWhenReady();
           }
+        }, 150);
+      } else if (val !== '') {
+        const card = document.getElementById(`addr-card-${val}`);
+        if (card) card.classList.add('selected');
 
-          .alert.py-2 {
-            padding-top: 0.375rem !important;
-            padding-bottom: 0.375rem !important;
+        if (newAddressSection) newAddressSection.classList.add('d-none');
+        if (mapSection) mapSection.classList.add('d-none');
+
+        const addressIndex = parseInt(val, 10);
+        if (addressesData[addressIndex]) {
+          const addr = addressesData[addressIndex];
+          detailedAddressInput.value = `${addr.street}, ${addr.city}, ${addr.state} - ${addr.pincode}`;
+
+          if (addr.coordinates) {
+            UnifiedLocationManager.updateCoordinates(
+              addr.coordinates.latitude,
+              addr.coordinates.longitude
+            );
           }
+        }
+      }
+    }
 
-          .form-section {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid #e9ecef;
+    addressRadios.forEach(radio => {
+      radio.addEventListener('change', function () {
+        if (addressSelect) addressSelect.value = this.value;
+        applySelectedAddress(this.value);
+      });
+    });
+
+    // Initialize address selection on load (only pick valid in-city addresses)
+    const availableRadios = Array.from(addressRadios).filter(r => !r.disabled && r.value !== 'new');
+    if (availableRadios.length > 0) {
+      availableRadios[0].checked = true;
+      if (addressSelect) addressSelect.value = availableRadios[0].value;
+      applySelectedAddress(availableRadios[0].value);
+    } else {
+      const newRadio = document.querySelector('input[name="addressChoice"][value="new"]');
+      if (newRadio) {
+        newRadio.checked = true;
+        if (addressSelect) addressSelect.value = 'new';
+        applySelectedAddress('new');
+      } else if (!addressesData || addressesData.length === 0) {
+        if (mapSection) mapSection.classList.remove('d-none');
+        setTimeout(() => {
+          if (window.bookingMapManager && !window.bookingMapManager.isInitialized()) {
+            window.bookingMapManager.initBookingMapWhenReady();
           }
+        }, 200);
+      }
+    }
 
-          .form-section-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-            font-weight: 600;
-            color: #495057;
-          }
+    // ===== FORM SUBMISSION VALIDATION =====
+    const bookingForm = document.getElementById('bookingForm');
+    if (bookingForm) {
+      bookingForm.addEventListener('submit', function (e) {
+        let isValid = true;
 
-          .section-number {
-            background: #007bff;
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 0.75rem;
-            font-size: 0.875rem;
-          }
+        if (!combinedInput.value) {
+          e.preventDefault();
+          datePicker.classList.add('is-invalid');
+          timePicker.classList.add('is-invalid');
+          isValid = false;
+        }
 
-          .service-img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid #e9ecef;
-          }
+        const addressInput = document.getElementById('detailed-address');
+        const latitude = document.getElementById('latitude');
+        const longitude = document.getElementById('longitude');
 
-          .booking-summary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            color: white;
-          }
+        if (!addressInput.value.trim()) {
+          e.preventDefault();
+          addressInput.classList.add('is-invalid');
+          isValid = false;
+        }
 
-          .summary-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
-          }
+        // Fallback default coordinates if user typed address directly without map
+        if (!latitude?.value || !longitude?.value) {
+          UnifiedLocationManager.updateCoordinates(19.1383, 77.3210);
+        }
 
-          .summary-item.total {
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
-            padding-top: 0.75rem;
-            margin-top: 1rem;
-            font-weight: 600;
-            font-size: 1.1rem;
-          }
+        if (!isValid) {
+          alert('Please select both a date/time and fill in your service address.');
+        }
+      });
+    }
 
-          .booking-progress {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 2rem;
-          }
-
-          .progress-step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            opacity: 0.5;
-          }
-
-          .progress-step.active {
-            opacity: 1;
-          }
-
-          .step-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #6c757d;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-          }
-
-          .progress-step.active .step-icon {
-            background: #007bff;
-          }
-
-          .progress-line {
-            width: 60px;
-            height: 2px;
-            background: #dee2e6;
-            margin: 0 1rem;
-          }
-
-          @media (max-width: 768px) {
-            .booking-progress {
-              display: none;
-            }
-
-            .form-section {
-              padding: 1rem;
-            }
-
-            .service-img {
-              width: 60px;
-              height: 60px;
-            }
-          }
-        </style>
+  });
+</script>

@@ -73,7 +73,7 @@ async function findProvidersForService(serviceId, options = {}) {
   return allProviders;
 }
 
-// Enhanced filter function with better regional coverage
+// Filter function with precise city and distance matching
 function filterProvidersByLocationAndDistance(
   provider,
   userLocation,
@@ -83,103 +83,58 @@ function filterProvidersByLocationAndDistance(
   let hasNearbyServiceArea = false;
   let minDistance = Infinity;
 
-  console.log(`Filtering provider ${provider.user.name}:`, {
-    userLocation: userLocation
-      ? `${userLocation.latitude}, ${userLocation.longitude}`
-      : "None",
-    distance,
-    location,
-    providerServiceArea: provider.serviceArea,
-    providerServiceAreas: provider.serviceAreas?.length || 0,
-  });
+  const providerCity = extractCityName(
+    provider.serviceArea?.city || provider.businessAddress?.city || ""
+  );
 
-  // ENHANCED REGIONAL MATCHING - Check city/state level first
-  if (location) {
-    const locationLower = location.toLowerCase();
+  // 1. City / Location-based matching
+  if (location && location.trim() !== "") {
+    const cityFromLocation = extractCityName(location.toLowerCase());
 
-    // Extract city name from location string (remove state, country, etc.)
-    const cityFromLocation = extractCityName(locationLower);
+    if (cityFromLocation) {
+      // Check main city
+      const cityMatch = providerCity && areInSameCity(providerCity, cityFromLocation);
 
-    // Check if provider serves the same city/region
-    const cityMatch =
-      provider.serviceArea &&
-      provider.serviceArea.city &&
-      (provider.serviceArea.city.toLowerCase().includes(cityFromLocation) ||
-        cityFromLocation.includes(provider.serviceArea.city.toLowerCase()) ||
-        areInSameCity(
-          provider.serviceArea.city.toLowerCase(),
-          cityFromLocation
-        ));
+      // Check specific service areas
+      let areaMatch = false;
+      if (provider.serviceAreas && provider.serviceAreas.length > 0) {
+        areaMatch = provider.serviceAreas.some((area) => {
+          const areaName = extractCityName((area.name || "").toLowerCase());
+          const areaAddress = extractCityName((area.address || "").toLowerCase());
+          return (
+            (areaName && areInSameCity(areaName, cityFromLocation)) ||
+            (areaAddress && areInSameCity(areaAddress, cityFromLocation))
+          );
+        });
+      }
 
-    const stateMatch =
-      provider.serviceArea &&
-      provider.serviceArea.state &&
-      (provider.serviceArea.state.toLowerCase().includes(locationLower) ||
-        locationLower.includes(provider.serviceArea.state.toLowerCase()));
-
-    // Check specific service areas for city matches
-    const areaMatch =
-      provider.serviceAreas &&
-      provider.serviceAreas.some((area) => {
-        if (!area.name && !area.address) return false;
-
-        const areaName = (area.name || "").toLowerCase();
-        const areaAddress = (area.address || "").toLowerCase();
-
-        return (
-          areaName.includes(cityFromLocation) ||
-          cityFromLocation.includes(areaName) ||
-          areaAddress.includes(cityFromLocation) ||
-          cityFromLocation.includes(areaAddress) ||
-          areInSameCity(areaName, cityFromLocation) ||
-          areInSameCity(areaAddress, cityFromLocation)
-        );
-      });
-
-    // If we have a city/regional match, include this provider regardless of distance
-    if (cityMatch || stateMatch || areaMatch) {
-      hasNearbyServiceArea = true;
-      minDistance = 10; // Set a default reasonable distance for regional matches
-      console.log(
-        `Provider ${provider.user.name} matched by REGIONAL location: ${location}`
-      );
+      if (cityMatch || areaMatch) {
+        hasNearbyServiceArea = true;
+        minDistance = 10;
+      }
     }
   }
 
-  // If we have user coordinates, do distance-based filtering (but be more lenient for regional matches)
-  if (userLocation && !hasNearbyServiceArea) {
-    // Check main service area coordinates
-    if (provider.serviceArea && provider.serviceArea.coordinates) {
+  // 2. Coordinate-based distance matching
+  if (userLocation && userLocation.latitude && userLocation.longitude) {
+    // Check business address / main coordinates
+    const mainCoords =
+      provider.businessAddress?.coordinates || provider.serviceArea?.coordinates;
+    if (mainCoords && mainCoords.latitude && mainCoords.longitude) {
       const providerDistance = calculateDistance(
         userLocation.latitude,
         userLocation.longitude,
-        provider.serviceArea.coordinates.latitude,
-        provider.serviceArea.coordinates.longitude
+        mainCoords.latitude,
+        mainCoords.longitude
       );
 
-      console.log(
-        `Provider ${
-          provider.user.name
-        } main area distance: ${providerDistance.toFixed(2)}km`
-      );
-
-      // Use larger radius for city-level searches
-      const effectiveDistance = location ? Math.max(distance, 50) : distance; // 50km for regional searches
-
-      if (providerDistance <= effectiveDistance) {
+      if (providerDistance <= distance) {
         minDistance = Math.min(minDistance, providerDistance);
         hasNearbyServiceArea = true;
-        console.log(
-          `Provider ${
-            provider.user.name
-          } included by DISTANCE (${providerDistance.toFixed(
-            2
-          )}km <= ${effectiveDistance}km)`
-        );
       }
     }
 
-    // Check specific service areas with more flexible radius
+    // Check specific service area coordinates
     if (provider.serviceAreas && provider.serviceAreas.length > 0) {
       provider.serviceAreas.forEach((area) => {
         if (area.lat && area.lng) {
@@ -190,105 +145,39 @@ function filterProvidersByLocationAndDistance(
             area.lng
           );
 
-          console.log(
-            `Provider ${provider.user.name} area "${
-              area.name
-            }" distance: ${areaDistance.toFixed(2)}km`
-          );
-
-          // Use provider's area radius plus a buffer for regional coverage
-          const providerRadius = area.radius || 20;
-          const regionalBuffer = location ? 30 : 10; // Add 30km buffer for city searches
-          const effectiveRadius = Math.max(
-            providerRadius + regionalBuffer,
-            distance
-          );
-
-          if (areaDistance <= effectiveRadius) {
+          const maxRadius = area.radius || distance;
+          if (areaDistance <= maxRadius) {
             minDistance = Math.min(minDistance, areaDistance);
             hasNearbyServiceArea = true;
-            console.log(
-              `Provider ${
-                provider.user.name
-              } included by AREA DISTANCE (${areaDistance.toFixed(
-                2
-              )}km <= ${effectiveRadius}km)`
-            );
           }
         }
       });
     }
   }
 
-  // Fallback: Include providers with large service areas (state/multi-city coverage)
-  if (!hasNearbyServiceArea && provider.serviceAreas) {
-    const hasLargeServiceArea = provider.serviceAreas.some(
-      (area) => (area.radius || 0) >= 30
-    ); // 30km+ radius
-
-    if (hasLargeServiceArea) {
-      hasNearbyServiceArea = true;
-      minDistance = 25; // Default for large service areas
-      console.log(
-        `Provider ${provider.user.name} included via LARGE SERVICE AREA`
-      );
-    }
-  }
-
-  // Final fallback: Include providers who serve the same state
-  if (!hasNearbyServiceArea && location && provider.serviceArea) {
-    const stateKeywords = extractStateKeywords(location.toLowerCase());
-    const providerStateKeywords = extractStateKeywords(
-      (provider.serviceArea.state || "").toLowerCase()
-    );
-
-    if (stateKeywords.length > 0 && providerStateKeywords.length > 0) {
-      const hasStateMatch = stateKeywords.some((keyword) =>
-        providerStateKeywords.some(
-          (providerKeyword) =>
-            keyword.includes(providerKeyword) ||
-            providerKeyword.includes(keyword)
-        )
-      );
-
-      if (hasStateMatch) {
-        hasNearbyServiceArea = true;
-        minDistance = 40; // Default for state-level matches
-        console.log(`Provider ${provider.user.name} included via STATE MATCH`);
-      }
-    }
-  }
-
-  // Set the calculated distance on the provider
+  // Set calculated distance on provider
   if (hasNearbyServiceArea && minDistance !== Infinity) {
-    provider.distance = minDistance;
+    provider.distance = Math.round(minDistance * 10) / 10;
   }
-
-  console.log(
-    `Provider ${provider.user.name} result: ${
-      hasNearbyServiceArea ? "INCLUDED" : "EXCLUDED"
-    }, distance: ${
-      minDistance !== Infinity ? minDistance.toFixed(1) + "km" : "N/A"
-    }`
-  );
 
   return hasNearbyServiceArea;
 }
 
-// Helper function to extract city name from location string
+// Helper function to extract clean city name from location string
 function extractCityName(locationString) {
-  // Remove common suffixes and clean up the location string
+  if (!locationString || typeof locationString !== "string") return "";
   let cityName = locationString
+    .toLowerCase()
     .replace(/,.*$/g, "") // Remove everything after first comma
     .replace(
-      /\b(state|district|city|town|village|area|sector|block|ward)\b/gi,
+      /\b(state|district|city|town|village|area|sector|block|ward|surrounding|suburbs)\b/gi,
       ""
     )
     .replace(/\b(india|bharat)\b/gi, "")
+    .replace(/[&]/g, "")
     .replace(/\s+/g, " ")
     .trim();
 
-  // Handle specific patterns like "City Name, State"
   if (cityName.includes(",")) {
     cityName = cityName.split(",")[0].trim();
   }
@@ -300,24 +189,22 @@ function extractCityName(locationString) {
 function areInSameCity(city1, city2) {
   if (!city1 || !city2) return false;
 
-  // Clean up city names
-  const cleanCity1 = city1
-    .replace(/\b(city|district|town|nagar|pur|bad|ganj)\b/gi, "")
-    .trim();
-  const cleanCity2 = city2
-    .replace(/\b(city|district|town|nagar|pur|bad|ganj)\b/gi, "")
-    .trim();
+  const cleanCity1 = extractCityName(city1);
+  const cleanCity2 = extractCityName(city2);
 
-  // Check for partial matches (useful for cities with different spellings)
-  if (cleanCity1.length >= 3 && cleanCity2.length >= 3) {
-    return (
-      cleanCity1.includes(cleanCity2) ||
-      cleanCity2.includes(cleanCity1) ||
-      levenshteinDistance(cleanCity1, cleanCity2) <= 2 // Allow for minor spelling differences
-    );
+  if (!cleanCity1 || !cleanCity2) return false;
+  if (cleanCity1 === cleanCity2) return true;
+
+  // Exact word boundary or equality match
+  if (
+    cleanCity1.length >= 3 &&
+    cleanCity2.length >= 3 &&
+    (cleanCity1.includes(cleanCity2) || cleanCity2.includes(cleanCity1))
+  ) {
+    return true;
   }
 
-  return cleanCity1 === cleanCity2;
+  return false;
 }
 
 // Helper function to extract state keywords

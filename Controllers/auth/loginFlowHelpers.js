@@ -177,7 +177,7 @@ function resolvePostLoginRedirect(user, serviceProvider, options = {}) {
 
   if (user.role === "provider") {
     if (serviceProvider && serviceProvider.dashboardAccess) {
-      return "/provider/dashboard";
+      return "/dashboard";
     }
 
     return "/provider/pending-approval";

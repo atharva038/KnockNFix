@@ -1,822 +1,830 @@
 <% layout("/layouts/boilerplate.ejs") %>
 
-  <div class="booking-confirm-page">
-    <div class="container py-5">
-      <!-- Progress Tracker -->
-      <div class="booking-progress mb-4">
-        <div class="progress-step completed">
-          <div class="step-icon">
-            <i class="fas fa-check"></i>
-          </div>
-          <div class="step-text">Select Service</div>
+<style>
+  :root {
+    --knf-primary: #4f46e5;
+    --knf-primary-hover: #4338ca;
+    --knf-primary-light: #eef2ff;
+    --knf-secondary: #06b6d4;
+    --knf-dark: #0f172a;
+    --knf-gray: #64748b;
+    --knf-gray-light: #f8fafc;
+    --knf-border: #e2e8f0;
+    --knf-success: #10b981;
+    --knf-card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    --knf-card-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .booking-confirm-wrapper {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    min-height: calc(100vh - 70px);
+    padding: 2.5rem 0 4rem;
+  }
+
+  /* Stepper */
+  .stepper-container {
+    max-width: 620px;
+    margin: 0 auto 2.5rem;
+  }
+
+  .stepper-track {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .step-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .step-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    background: #ffffff;
+    color: var(--knf-gray);
+    border: 2px solid var(--knf-border);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+  }
+
+  .step-node.completed .step-circle {
+    background: var(--knf-success);
+    border-color: var(--knf-success);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .step-node.active .step-circle {
+    background: linear-gradient(135deg, var(--knf-primary) 0%, var(--knf-secondary) 100%);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+    transform: scale(1.08);
+  }
+
+  .step-title {
+    margin-top: 0.55rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--knf-gray);
+  }
+
+  .step-node.active .step-title {
+    color: var(--knf-primary);
+    font-weight: 700;
+  }
+
+  .step-node.completed .step-title {
+    color: var(--knf-dark);
+  }
+
+  .step-bar {
+    flex: 1;
+    height: 3px;
+    background: var(--knf-border);
+    margin: 0 12px 1.4rem;
+    position: relative;
+    border-radius: 2px;
+  }
+
+  .step-bar.filled {
+    background: linear-gradient(90deg, var(--knf-success) 0%, var(--knf-primary) 100%);
+  }
+
+  /* Main Card */
+  .confirm-main-card {
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: var(--knf-card-shadow);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .confirm-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%);
+    padding: 2.25rem 2rem;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .confirm-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .confirm-header h2 {
+    font-size: 1.65rem;
+    font-weight: 800;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .confirm-header p {
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  .confirm-body {
+    padding: 2.25rem;
+  }
+
+  /* Service Card */
+  .service-showcase-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .service-showcase-card:hover {
+    border-color: #cbd5e1;
+    background: #ffffff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+  }
+
+  .category-pill {
+    position: absolute;
+    top: -12px;
+    left: 1.5rem;
+    background: linear-gradient(135deg, var(--knf-primary) 0%, #4338ca 100%);
+    color: #ffffff;
+    padding: 0.3rem 0.9rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 0 3px 8px rgba(79, 70, 229, 0.25);
+  }
+
+  .service-details-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 0.35rem;
+  }
+
+  .service-thumb {
+    width: 90px;
+    height: 90px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+  }
+
+  .service-info-col {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .service-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--knf-dark);
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+  }
+
+  .provider-badge-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .pro-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .pro-name {
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+
+  .rating-tag {
+    background: #fef3c7;
+    color: #b45309;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .service-cost-tag {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .cost-number {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--knf-dark);
+    line-height: 1.1;
+  }
+
+  .duration-number {
+    font-size: 0.85rem;
+    color: var(--knf-gray);
+    font-weight: 500;
+    margin-top: 0.2rem;
+  }
+
+  /* Booking Details Grid */
+  .section-label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--knf-dark);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .info-tiles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .info-tile {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.15rem;
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    transition: all 0.2s ease;
+  }
+
+  .info-tile:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  }
+
+  .tile-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--knf-primary-light);
+    color: var(--knf-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .tile-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tile-caption {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--knf-gray);
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+  }
+
+  .tile-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--knf-dark);
+    margin: 0;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+
+  /* Payment Section */
+  .payment-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .breakdown-table {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0;
+    font-size: 0.95rem;
+    color: #334155;
+  }
+
+  .breakdown-row:not(:last-child) {
+    border-bottom: 1px dashed #e2e8f0;
+  }
+
+  .breakdown-row.deposit-row {
+    color: var(--knf-primary);
+    font-weight: 700;
+    font-size: 1.02rem;
+  }
+
+  .breakdown-row.balance-row {
+    color: var(--knf-gray);
+    font-size: 0.9rem;
+  }
+
+  .breakdown-row.total-row {
+    border-top: 2px solid #e2e8f0;
+    margin-top: 0.4rem;
+    padding-top: 0.85rem;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--knf-dark);
+    border-bottom: none;
+  }
+
+  /* Protection Shield Guarantee */
+  .protection-banner {
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    border: 1px solid #c7d2fe;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .shield-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--knf-primary);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 3px 8px rgba(79, 70, 229, 0.25);
+  }
+
+  .shield-text h6 {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1e1b4b;
+    margin: 0 0 0.15rem;
+  }
+
+  .shield-text p {
+    font-size: 0.82rem;
+    color: #4338ca;
+    margin: 0;
+    line-height: 1.35;
+  }
+
+  /* Payment Trust Badges */
+  .payment-trust-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .methods-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.35rem;
+    color: #64748b;
+  }
+
+  .ssl-guarantee {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: #475569;
+    font-weight: 500;
+  }
+
+  /* Action Buttons */
+  .actions-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .btn-pay-now {
+    flex: 2;
+    background: linear-gradient(135deg, var(--knf-primary) 0%, #4338ca 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 14px;
+    padding: 1.1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35);
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+
+  .btn-pay-now:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.45);
+    background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+    color: #ffffff;
+  }
+
+  .btn-pay-now:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .btn-back-link {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 1.1rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #475569;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .btn-back-link:hover {
+    background: #f1f5f9;
+    color: var(--knf-dark);
+    border-color: #94a3b8;
+  }
+
+  @media (max-width: 768px) {
+    .info-tiles-grid {
+      grid-template-columns: 1fr;
+    }
+    .service-details-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .service-cost-tag {
+      text-align: left;
+      margin-top: 0.5rem;
+    }
+    .actions-group {
+      flex-direction: column;
+    }
+    .btn-pay-now, .btn-back-link {
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="booking-confirm-wrapper">
+  <div class="container">
+    
+    <!-- Modern Step Tracker -->
+    <div class="stepper-container">
+      <div class="stepper-track">
+        <div class="step-node completed">
+          <div class="step-circle"><i class="fas fa-check"></i></div>
+          <div class="step-title">Select Service</div>
         </div>
-        <div class="progress-line completed"></div>
-        <div class="progress-step completed">
-          <div class="step-icon">
-            <i class="fas fa-check"></i>
-          </div>
-          <div class="step-text">Book Service</div>
+        <div class="step-bar filled"></div>
+        <div class="step-node completed">
+          <div class="step-circle"><i class="fas fa-check"></i></div>
+          <div class="step-title">Book Service</div>
         </div>
-        <div class="progress-line"></div>
-        <div class="progress-step active">
-          <div class="step-icon">3</div>
-          <div class="step-text">Confirm & Pay</div>
+        <div class="step-bar filled"></div>
+        <div class="step-node active">
+          <div class="step-circle">3</div>
+          <div class="step-title">Confirm & Pay</div>
         </div>
       </div>
+    </div>
 
-      <div class="booking-card">
-        <!-- Header -->
-        <div class="card-header">
-          <h2><i class="fas fa-clipboard-check me-2"></i>Confirm Your Booking</h2>
-        </div>
-
-        <!-- Body -->
-        <div class="card-body">
-          <!-- Service Overview -->
-          <div class="service-overview">
-            <div class="service-badge">
-              <%= service.category.name %>
-            </div>
-            <div class="service-details-container">
-              <div class="service-image">
-                <img src="<%= service.img %>" alt="<%= service.name %>" />
+    <!-- Main Confirmation Card -->
+    <div class="row justify-content-center">
+      <div class="col-lg-10 col-xl-9">
+        <div class="confirm-main-card">
+          
+          <!-- Header Banner -->
+          <div class="confirm-header">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <h2><i class="fas fa-shield-alt text-warning"></i> Confirm Your Booking</h2>
+                <p>Review your booking details and reserve your slot with verified professionals</p>
               </div>
-              <div class="service-info">
-                <h3 class="service-name">
-                  <%= service.name %>
-                </h3>
-                <div class="provider-details">
-                  <img class="provider-avatar" src="<%= (provider.user.profileImage && 
-           provider.user.profileImage !== 'data:;base64,=' && 
-           provider.user.profileImage.trim() !== '' && 
-           !provider.user.profileImage.includes('data:;base64,=')) 
-           ? provider.user.profileImage 
-           : 'https://cdn-icons-png.flaticon.com/512/4202/4202841.png' %>" alt="Provider"
-                    onerror="this.src='https://cdn-icons-png.flaticon.com/512/4202/4202841.png'">
-                  <div>
-                    <p class="provider-name">
-                      <%= provider.user.name %>
-                    </p>
-                    <div class="provider-rating">
-                      <i class="fas fa-star"></i>
-                      <span>4.8</span>
-                      <small>(120+ bookings)</small>
+              <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-25 px-3 py-2 rounded-pill font-monospace">
+                <i class="fas fa-lock me-1"></i> 256-Bit Encrypted
+              </span>
+            </div>
+          </div>
+
+          <div class="confirm-body">
+            
+            <!-- Service & Pro Showcase -->
+            <div class="service-showcase-card">
+              <span class="category-pill"><%= service.category ? service.category.name : 'Home Service' %></span>
+              
+              <div class="service-details-row">
+                <img 
+                  src="<%= service.img %>" 
+                  alt="<%= service.name %>" 
+                  class="service-thumb"
+                  onerror="this.src='https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=300'"
+                />
+                
+                <div class="service-info-col">
+                  <h3 class="service-title"><%= service.name %></h3>
+                  <div class="provider-badge-group">
+                    <img 
+                      class="pro-avatar" 
+                      src="<%= (provider.user && provider.user.profileImage && 
+                              provider.user.profileImage !== 'data:;base64,=' && 
+                              provider.user.profileImage.trim() !== '' && 
+                              !provider.user.profileImage.includes('data:;base64,=')) 
+                              ? provider.user.profileImage 
+                              : 'https://cdn-icons-png.flaticon.com/512/4202/4202841.png' %>" 
+                      alt="Provider"
+                      onerror="this.src='https://cdn-icons-png.flaticon.com/512/4202/4202841.png'"
+                    />
+                    <div>
+                      <p class="pro-name"><%= provider.user ? provider.user.name : 'Verified Professional' %></p>
+                      <div class="d-flex align-items-center gap-2 mt-1">
+                        <span class="rating-tag"><i class="fas fa-star text-warning"></i> 4.9</span>
+                        <span class="text-muted small"><i class="fas fa-check-circle text-primary me-1"></i>Verified Pro (120+ Jobs)</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div class="service-price">
-                <span class="price-label">Price</span>
-                <span class="price-value">₹<%= serviceDetails.customCost %></span>
-                <span class="price-duration">
-                  <%= service.duration %> min
-                </span>
+
+                <div class="service-cost-tag">
+                  <div class="cost-number">₹<%= serviceDetails.customCost %></div>
+                  <div class="duration-number"><i class="far fa-clock me-1"></i><%= service.duration || 60 %> mins duration</div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Booking Details -->
-          <div class="details-section">
-            <h4><i class="far fa-calendar-check me-2"></i>Booking Details</h4>
-            <div class="details-grid">
-              <div class="detail-item">
-                <div class="detail-icon">
-                  <i class="far fa-calendar-alt"></i>
-                </div>
-                <div class="detail-content">
-                  <label>Date</label>
-                  <p>
-                    <%= new Date(bookingData.date).toLocaleDateString('en-US', {weekday: 'long' , year: 'numeric' ,
-                      month: 'long' , day: 'numeric' }) %>
-                  </p>
-                </div>
+            <!-- Booking Details Grid -->
+            <div class="mb-4">
+              <div class="section-label">
+                <i class="far fa-calendar-check text-primary"></i> Service Schedule & Location
               </div>
-
-              <div class="detail-item">
-                <div class="detail-icon">
-                  <i class="far fa-clock"></i>
+              
+              <div class="info-tiles-grid">
+                <!-- Date Tile -->
+                <div class="info-tile">
+                  <div class="tile-icon"><i class="far fa-calendar-alt"></i></div>
+                  <div class="tile-body">
+                    <div class="tile-caption">Selected Date</div>
+                    <p class="tile-value">
+                      <%= new Date(bookingData.date).toLocaleDateString('en-US', {
+                        weekday: 'short', 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                      }) %>
+                    </p>
+                  </div>
                 </div>
-                <div class="detail-content">
-                  <label>Time</label>
-                  <p>
-                    <% const bookingTime=new Date(bookingData.date).toLocaleTimeString('en-US', {hour: '2-digit' ,
-                      minute: '2-digit' , hour12: true}); %>
+
+                <!-- Time Tile -->
+                <div class="info-tile">
+                  <div class="tile-icon"><i class="far fa-clock"></i></div>
+                  <div class="tile-body">
+                    <div class="tile-caption">Arrival Time</div>
+                    <p class="tile-value">
+                      <% const bookingTime = new Date(bookingData.date).toLocaleTimeString('en-US', {
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        hour12: true
+                      }); %>
                       <%= bookingTime %>
-                  </p>
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div class="detail-item">
-                <div class="detail-icon">
-                  <i class="fas fa-map-marker-alt"></i>
-                </div>
-                <div class="detail-content">
-                  <label>Service Location</label>
-                  <p>
-                    <%= bookingData.detailedAddress %>
-                  </p>
+                <!-- Location Tile -->
+                <div class="info-tile">
+                  <div class="tile-icon"><i class="fas fa-map-marker-alt"></i></div>
+                  <div class="tile-body">
+                    <div class="tile-caption">Service Address</div>
+                    <p class="tile-value">
+                      <%= bookingData.detailedAddress %>
+                    </p>
+                  </div>
                 </div>
               </div>
 
               <% if (bookingData.notes) { %>
-                <div class="detail-item">
-                  <div class="detail-icon">
-                    <i class="fas fa-comment-alt"></i>
-                  </div>
-                  <div class="detail-content">
-                    <label>Special Instructions</label>
-                    <p>
-                      <%= bookingData.notes %>
-                    </p>
+                <div class="info-tile mt-2">
+                  <div class="tile-icon"><i class="far fa-sticky-note"></i></div>
+                  <div class="tile-body">
+                    <div class="tile-caption">Special Instructions</div>
+                    <p class="tile-value text-muted"><%= bookingData.notes %></p>
                   </div>
                 </div>
-                <% } %>
-            </div>
-          </div>
-
-          <!-- Payment Details -->
-          <div class="details-section payment-section">
-            <h4><i class="fas fa-credit-card me-2"></i>Payment Summary</h4>
-
-            <div class="payment-breakdown">
-              <div class="payment-row">
-                <span>Service Cost</span>
-                <span>₹<%= serviceDetails.customCost %></span>
-              </div>
-
-              <div class="payment-row highlight">
-                <span>Booking Deposit (15%)</span>
-                <span>₹<%= Math.round(serviceDetails.customCost * 0.15) %></span>
-              </div>
-
-              <div class="payment-row muted">
-                <span>Remaining Payment (85% on completion)</span>
-                <span>₹<%= Math.round(serviceDetails.customCost * 0.85) %></span>
-              </div>
-
-              <div class="payment-row total">
-                <span>Total Service Cost</span>
-                <span>₹<%= serviceDetails.customCost %></span>
-              </div>
+              <% } %>
             </div>
 
-            <!-- Automated Payment Flow Info -->
-            <div class="automation-info-card">
-              <h6><i class="fas fa-robot me-2"></i>Automated Payment Flow</h6>
-              <div class="automation-steps">
-                <div class="automation-step">
-                  <i class="fas fa-check-circle text-primary"></i>
-                  <span>Deposit goes directly to platform account</span>
+            <!-- Payment Summary Card -->
+            <div class="payment-card">
+              <div class="section-label mb-3">
+                <i class="fas fa-receipt text-primary"></i> Payment Breakdown
+              </div>
+
+              <div class="breakdown-table">
+                <div class="breakdown-row">
+                  <span>Standard Service Fee</span>
+                  <span>₹<%= serviceDetails.customCost %></span>
                 </div>
-                <div class="automation-step">
-                  <i class="fas fa-clock text-warning"></i>
-                  <span>Funds held until service completion</span>
+
+                <div class="breakdown-row deposit-row">
+                  <span><i class="fas fa-lock text-primary me-1"></i> Advance Booking Deposit (15%)</span>
+                  <span>₹<%= Math.round(serviceDetails.customCost * 0.15) %></span>
                 </div>
-                <div class="automation-step">
-                  <i class="fas fa-exchange-alt text-success"></i>
-                  <span>Remaining payment auto-split after completion</span>
+
+                <div class="breakdown-row balance-row">
+                  <span>Remaining Balance (85% payable after service completion)</span>
+                  <span>₹<%= Math.round(serviceDetails.customCost * 0.85) %></span>
                 </div>
-                <div class="automation-step">
-                  <i class="fas fa-piggy-bank text-info"></i>
-                  <span>10% platform commission, 90% to provider</span>
+
+                <div class="breakdown-row total-row">
+                  <span>Total Payable</span>
+                  <span>₹<%= serviceDetails.customCost %></span>
                 </div>
               </div>
-            </div>
 
-            <div class="payment-methods">
-              <div class="payment-method-title">Supported Payment Methods</div>
-              <div class="payment-icons">
-                <i class="fab fa-cc-visa"></i>
-                <i class="fab fa-cc-mastercard"></i>
-                <i class="fab fa-cc-amex"></i>
-                <i class="fab fa-google-pay"></i>
-                <i class="fas fa-university"></i>
-                <i class="fas fa-wallet"></i>
+              <!-- KnockNFix Protection Shield -->
+              <div class="protection-banner">
+                <div class="shield-icon">
+                  <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="shield-text">
+                  <h6>KnockNFix Escrow & Quality Protection</h6>
+                  <p>Your 15% deposit is held safely in escrow and only released after your service is completed satisfactorily.</p>
+                </div>
               </div>
+
+              <!-- Payment Trust Bar -->
+              <div class="payment-trust-bar">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="small text-muted font-weight-bold">Accepted:</span>
+                  <div class="methods-group">
+                    <i class="fab fa-google-pay" title="Google Pay"></i>
+                    <i class="fab fa-cc-visa" title="Visa"></i>
+                    <i class="fab fa-cc-mastercard" title="Mastercard"></i>
+                    <i class="fas fa-university" title="NetBanking"></i>
+                    <i class="fas fa-wallet" title="UPI & Wallets"></i>
+                  </div>
+                </div>
+                <div class="ssl-guarantee">
+                  <i class="fas fa-lock text-success"></i> Powered by Razorpay Automated Gateway
+                </div>
+              </div>
+
+              <!-- Payment Flow Info hook -->
+              <div id="payment-flow-info" class="payment-flow-container mt-2"></div>
             </div>
 
-            <!-- Payment Flow Information -->
-            <div id="payment-flow-info" class="payment-flow-container"></div>
-          </div>
+            <!-- Action Buttons -->
+            <div class="actions-group">
+              <button type="button" id="rzp-button" class="btn-pay-now" disabled>
+                <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                <i class="fas fa-bolt me-1"></i>
+                <span class="button-text">
+                  Pay <span id="payment-amount">₹<%= Math.round(serviceDetails.customCost * 0.15) %></span> & Confirm Slot
+                </span>
+              </button>
+              
+              <a href="javascript:history.back()" class="btn-back-link">
+                <i class="fas fa-arrow-left"></i> Modify Details
+              </a>
+            </div>
 
-          <!-- Action Buttons -->
-          <div class="action-buttons">
-            <button type="button" id="rzp-button" class="btn-pay" disabled>
-              <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
-              <span class="button-text">Pay <span id="payment-amount">₹<%= Math.round(serviceDetails.customCost * 0.15)
-                    %></span> Now</span>
-            </button>
-            <br>
-            <a href="javascript:history.back()" class="btn-back">
-              <i class="fas fa-arrow-left me-2"></i>Go Back
-            </a>
-          </div>
-
-          <div class="secure-payment">
-            <i class="fas fa-lock me-2"></i> Secure automated payment processed by Razorpay
           </div>
         </div>
       </div>
     </div>
+
   </div>
-
-  <!-- Hidden inputs for automated payment system -->
-  <input type="hidden" id="payment-type" value="advance" />
-
-  <input type="hidden" id="booking-data" value='<%= JSON.stringify({
-      date: bookingData.date,
-      detailedAddress: bookingData.detailedAddress,
-      notes: bookingData.notes || "",
-      bookingId: null
-  }) %>' />
-
-  <input type="hidden" id="user-data" value='<%= JSON.stringify({
-      name: user.name,
-      email: user.username,
-      phone: user.phone || "",
-      razorpayKeyId: process.env.RAZORPAY_KEY_ID,
-      platformAccountId: process.env.PLATFORM_ACCOUNT_ID || "platform_default_account"
-  }) %>' />
-
-  <input type="hidden" id="service-data" value='<%= JSON.stringify({
-      serviceId: service._id,
-      providerId: provider._id,
-      customCost: serviceDetails.customCost,
-      priceRange: serviceDetails.priceRange || null
-  }) %>' />
-
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-  <script src="/js/core/dom.js"></script>
-  <script src="/js/core/api.js"></script>
-  <script src="/js/core/notify.js"></script>
-  <script src="/js/pages/payment/payment.js"></script>
-
-  <style>
-    .booking-confirm-page {
-      background-color: #f5f7fa;
-      min-height: calc(100vh - 76px);
-      padding-bottom: 3rem;
-    }
-
-    /* Progress Tracker Styles */
-    .booking-progress {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2.5rem;
-    }
-
-    .progress-step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      flex: 1;
-      position: relative;
-    }
-
-    .step-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 0.75rem;
-      font-weight: 600;
-      color: #6c757d;
-      border: 2px solid #e9ecef;
-      background-color: #fff;
-      transition: all 0.3s ease;
-    }
-
-    .step-text {
-      font-size: 0.85rem;
-      color: #6c757d;
-      text-align: center;
-      font-weight: 500;
-    }
-
-    .progress-line {
-      height: 3px;
-      flex: 1;
-      background-color: #e9ecef;
-      margin: 0 10px;
-      margin-bottom: 28px;
-    }
-
-    .progress-step.active .step-icon {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border-color: transparent;
-      box-shadow: 0 5px 15px rgba(118, 75, 162, 0.3);
-    }
-
-    .progress-step.completed .step-icon {
-      background-color: #28a745;
-      border-color: #28a745;
-      color: white;
-    }
-
-    .progress-line.completed {
-      background-color: #28a745;
-    }
-
-    /* Booking Card Styles */
-    .booking-card {
-      background-color: #fff;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 15px 35px rgba(50, 50, 93, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
-      margin-bottom: 2rem;
-    }
-
-    .card-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 1.75rem;
-      color: white;
-    }
-
-    .card-header h2 {
-      margin: 0;
-      font-size: 1.75rem;
-      font-weight: 600;
-      text-align: center;
-    }
-
-    .card-body {
-      padding: 2rem;
-    }
-
-    /* Service Overview Styles */
-    .service-overview {
-      position: relative;
-      border-radius: 12px;
-      background-color: #f8f9fa;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .service-badge {
-      position: absolute;
-      top: -12px;
-      left: 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .service-details-container {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 1.5rem;
-    }
-
-    .service-image {
-      width: 100px;
-      height: 100px;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      flex-shrink: 0;
-    }
-
-    .service-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .service-info {
-      flex: 1;
-      min-width: 250px;
-    }
-
-    .service-name {
-      margin: 0 0 0.75rem;
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #343a40;
-    }
-
-    .provider-details {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .provider-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #fff;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .provider-name {
-      margin: 0;
-      font-weight: 500;
-      font-size: 1rem;
-      color: #495057;
-    }
-
-    .provider-rating {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      color: #ffa41c;
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    .provider-rating small {
-      color: #6c757d;
-      font-weight: normal;
-    }
-
-    .service-price {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      flex-shrink: 0;
-    }
-
-    .price-label {
-      font-size: 0.85rem;
-      color: #6c757d;
-      margin-bottom: 0.25rem;
-    }
-
-    .price-value {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: #343a40;
-      margin-bottom: 0.25rem;
-    }
-
-    .price-duration {
-      font-size: 0.85rem;
-      color: #6c757d;
-    }
-
-    /* Details Section Styles */
-    .details-section {
-      margin-bottom: 2rem;
-      padding: 1.5rem;
-      border-radius: 12px;
-      background-color: #fff;
-      border: 1px solid #e9ecef;
-    }
-
-    .details-section h4 {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #343a40;
-      margin-bottom: 1.25rem;
-      display: flex;
-      align-items: center;
-    }
-
-    .details-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .detail-item {
-      display: flex;
-      gap: 1rem;
-    }
-
-    .detail-icon {
-      width: 40px;
-      height: 40px;
-      background-color: rgba(102, 126, 234, 0.1);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #667eea;
-      font-size: 1.1rem;
-      flex-shrink: 0;
-    }
-
-    .detail-content {
-      flex: 1;
-    }
-
-    .detail-content label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: #6c757d;
-      margin-bottom: 0.35rem;
-    }
-
-    .detail-content p {
-      margin: 0;
-      color: #343a40;
-      font-weight: 500;
-    }
-
-    /* Payment Section Styles */
-    .payment-section {
-      background-color: #f8fafd;
-    }
-
-    .payment-breakdown {
-      background-color: #fff;
-      border-radius: 10px;
-      padding: 1.25rem;
-      margin-bottom: 1.5rem;
-      border: 1px solid #e9ecef;
-    }
-
-    .payment-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.75rem 0;
-      font-size: 1rem;
-    }
-
-    .payment-row:not(:last-child) {
-      border-bottom: 1px dashed #e9ecef;
-    }
-
-    .payment-row.highlight {
-      color: #0066cc;
-      font-weight: 600;
-    }
-
-    .payment-row.muted {
-      color: #6c757d;
-      font-size: 0.9rem;
-    }
-
-    .payment-row.total {
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: #343a40;
-      border-top: 2px solid #e9ecef;
-      margin-top: 0.5rem;
-      padding-top: 1rem;
-      border-bottom: none;
-    }
-
-    /* Automation Info Styles */
-    .automation-info-card {
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      border-radius: 10px;
-      padding: 1.25rem;
-      margin-bottom: 1.5rem;
-      border: 1px solid #dee2e6;
-    }
-
-    .automation-info-card h6 {
-      color: #495057;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      font-size: 1rem;
-    }
-
-    .automation-steps {
-      display: grid;
-      gap: 0.75rem;
-    }
-
-    .automation-step {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 0.9rem;
-      color: #495057;
-    }
-
-    .automation-step i {
-      font-size: 1rem;
-    }
-
-    /* Payment Flow Info */
-    .payment-flow-container {
-      margin-top: 1rem;
-    }
-
-    .automation-info {
-      background-color: #fff;
-      border-radius: 8px;
-      padding: 1rem;
-      border-left: 4px solid #667eea;
-    }
-
-    .automation-info h6 {
-      color: #495057;
-      margin-bottom: 0.75rem;
-    }
-
-    .flow-step {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    .flow-step:last-child {
-      margin-bottom: 0;
-    }
-
-    .automation-success {
-      margin-top: 1rem;
-      border-radius: 8px;
-    }
-
-    .payment-methods {
-      background-color: #fff;
-      border-radius: 10px;
-      padding: 1rem;
-      border: 1px solid #e9ecef;
-      text-align: center;
-    }
-
-    .payment-method-title {
-      font-size: 0.85rem;
-      color: #6c757d;
-      margin-bottom: 0.75rem;
-    }
-
-    .payment-icons {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .payment-icons i {
-      font-size: 1.75rem;
-      color: #6c757d;
-    }
-
-    /* Button Styles */
-    .action-buttons {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 1rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .btn-pay {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 1rem 1.5rem;
-      margin-left: 10px;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(118, 75, 162, 0.3);
-    }
-
-    .btn-pay:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 7px 14px rgba(118, 75, 162, 0.4);
-    }
-
-    .btn-pay:disabled {
-      background: linear-gradient(135deg, #a5b1e9 0%, #b597cb 100%);
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .btn-back {
-      background-color: transparent;
-      color: #6c757d;
-      border: 1px solid #ced4da;
-      padding: 1rem 1.5rem;
-      margin-left: 10px;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 1rem;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-    }
-
-    .btn-back:hover {
-      background-color: #f8f9fa;
-      color: #495057;
-    }
-
-    .secure-payment {
-      text-align: center;
-      color: #6c757d;
-      font-size: 0.85rem;
-    }
-
-    /* Responsive Adjustments */
-    @media (max-width: 768px) {
-      .card-body {
-        padding: 1.5rem;
-      }
-
-      .service-details-container {
-        gap: 1rem;
-      }
-
-      .service-price {
-        width: 100%;
-        align-items: flex-start;
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid #e9ecef;
-      }
-
-      .details-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .action-buttons {
-        grid-template-columns: 1fr;
-      }
-
-      .progress-step .step-text {
-        font-size: 0.75rem;
-      }
-
-      .step-icon {
-        width: 35px;
-        height: 35px;
-        font-size: 0.9rem;
-      }
-
-      .automation-steps {
-        gap: 0.5rem;
-      }
-
-      .automation-step {
-        font-size: 0.85rem;
-      }
-    }
-
-    @media (max-width: 576px) {
-      .card-header h2 {
-        font-size: 1.4rem;
-      }
-
-      .service-name {
-        font-size: 1.25rem;
-      }
-
-      .price-value {
-        font-size: 1.5rem;
-      }
-
-      .payment-row {
-        font-size: 0.9rem;
-      }
-
-      .payment-row.total {
-        font-size: 1rem;
-      }
-
-      .service-image {
-        width: 80px;
-        height: 80px;
-      }
-
-      .automation-info-card {
-        padding: 1rem;
-      }
-    }
-  </style>
-
-  <script>
-    // Enable the payment button after the page loads
-    document.addEventListener('DOMContentLoaded', function () {
-      const rzpButton = document.getElementById('rzp-button');
-
-      // Show loading state initially
-      rzpButton.disabled = true;
-      rzpButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Setting up automated payment...';
-
-      // Enable button after payment system is initialized
-      setTimeout(() => {
+</div>
+
+<!-- Hidden inputs for automated payment system -->
+<input type="hidden" id="payment-type" value="advance" />
+
+<input type="hidden" id="booking-data" value='<%= JSON.stringify({
+    date: bookingData.date,
+    detailedAddress: bookingData.detailedAddress,
+    notes: bookingData.notes || "",
+    bookingId: null
+}) %>' />
+
+<input type="hidden" id="user-data" value='<%= JSON.stringify({
+    name: user.name,
+    email: user.username,
+    phone: user.phone || "",
+    razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+    platformAccountId: process.env.PLATFORM_ACCOUNT_ID || "platform_default_account"
+}) %>' />
+
+<input type="hidden" id="service-data" value='<%= JSON.stringify({
+    serviceId: service._id,
+    providerId: provider._id,
+    customCost: serviceDetails.customCost,
+    priceRange: serviceDetails.priceRange || null
+}) %>' />
+
+<!-- Core Payment Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="/js/core/dom.js"></script>
+<script src="/js/core/api.js"></script>
+<script src="/js/core/notify.js"></script>
+<script src="/js/pages/payment/payment.js"></script>
+
+<script>
+  // Ensure the payment button enables smoothly
+  document.addEventListener('DOMContentLoaded', function () {
+    const rzpButton = document.getElementById('rzp-button');
+    if (!rzpButton) return;
+
+    // Show setting up state
+    rzpButton.disabled = true;
+    
+    setTimeout(() => {
+      try {
         const serviceData = JSON.parse(document.getElementById('service-data').value);
         const depositAmount = Math.round(serviceData.customCost * 0.15);
-
         rzpButton.disabled = false;
-        rzpButton.innerHTML = `Pay ₹${depositAmount} Now`;
-      }, 2000);
-    });
-  </script>
+        const btnText = rzpButton.querySelector('.button-text');
+        if (btnText) {
+          btnText.innerHTML = `Pay ₹${depositAmount} & Confirm Slot`;
+        }
+      } catch (err) {
+        rzpButton.disabled = false;
+      }
+    }, 1000);
+  });
+</script>

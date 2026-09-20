@@ -10,6 +10,9 @@ const router = express.Router();
 
 router.use(isLoggedIn, isServiceProvider);
 
+// Redirect /provider/dashboard to universal /dashboard
+router.get("/dashboard", (req, res) => res.redirect("/dashboard"));
+
 // Route for service providers to view their services
 router.get("/myservices", providerController.showMyServices);
 

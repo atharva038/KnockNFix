@@ -7,14 +7,14 @@ exports.addAddress = async (req, res) => {
 
     if (!city || !state || !pincode) {
       req.flash("error", "City, state and pincode are required");
-      return res.redirect("back");
+      return res.redirect(req.get("Referrer") || "/");
     }
 
     const user = await User.findById(req.user._id);
 
     if (!user) {
       req.flash("error", "User not found");
-      return res.redirect("back");
+      return res.redirect(req.get("Referrer") || "/");
     }
 
     const newAddress = {
@@ -57,14 +57,14 @@ exports.updateAddress = async (req, res) => {
 
     if (!city || !state || !pincode || isNaN(addressIndex)) {
       req.flash("error", "Required fields missing or invalid address index");
-      return res.redirect("back");
+      return res.redirect(req.get("Referrer") || "/");
     }
 
     const user = await User.findById(req.user._id);
 
     if (!user || !user.addresses[addressIndex]) {
       req.flash("error", "Address not found");
-      return res.redirect("back");
+      return res.redirect(req.get("Referrer") || "/");
     }
 
     user.addresses[addressIndex].street = street || "";
@@ -114,14 +114,14 @@ exports.deleteAddress = async (req, res) => {
 
     if (isNaN(addressIndex)) {
       req.flash("error", "Invalid address index");
-      return res.redirect("back");
+      return res.redirect(req.get("Referrer") || "/");
     }
 
     const user = await User.findById(req.user._id);
 
     if (!user || !user.addresses[addressIndex]) {
       req.flash("error", "Address not found");
-      return res.redirect("back");
+      return res.redirect(req.get("Referrer") || "/");
     }
 
     const wasDefault = user.addresses[addressIndex].isDefault;
@@ -149,14 +149,14 @@ exports.setDefaultAddress = async (req, res) => {
 
     if (isNaN(addressIndex)) {
       req.flash("error", "Invalid address index");
-      return res.redirect("back");
+      return res.redirect(req.get("Referrer") || "/");
     }
 
     const user = await User.findById(req.user._id);
 
     if (!user || !user.addresses[addressIndex]) {
       req.flash("error", "Address not found");
-      return res.redirect("back");
+      return res.redirect(req.get("Referrer") || "/");
     }
 
     user.addresses.forEach((address, i) => {

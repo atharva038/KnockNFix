@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
+    "seed": "node scripts/seedDemoData.js",
     "smoke:validation": "node scripts/validation-smoke.js",
     "smoke:auth": "node scripts/auth-smoke.js"
   },

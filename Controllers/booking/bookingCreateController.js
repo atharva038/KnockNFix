@@ -101,7 +101,7 @@ exports.confirmBooking = async (req, res) => {
 
         // Get service and provider details
         const [service, provider] = await Promise.all([
-            Service.findById(serviceId),
+            Service.findById(serviceId).populate('category'),
             ServiceProvider.findById(providerId)
                 .populate('user')
                 .populate('servicesOffered')
@@ -150,7 +150,7 @@ exports.confirmBooking = async (req, res) => {
         const bookingDate = new Date(date);
         if (isNaN(bookingDate.getTime()) || bookingDate <= new Date()) {
             req.flash('error', 'Please select a valid future date');
-            return res.redirect('back');
+            return res.redirect(req.get('Referrer') || '/services');
         }
 
         // Create booking data object

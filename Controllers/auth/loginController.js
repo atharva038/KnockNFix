@@ -59,7 +59,14 @@ const loginController = {
             `🎉 Welcome back, ${user.name}! (Dev Mode - OTP Skipped)`
           );
 
-          return res.redirect("/");
+          let serviceProvider = null;
+          if (user.role === "provider") {
+            serviceProvider = await ServiceProvider.findOne({
+              user: user._id,
+            });
+          }
+
+          return res.redirect(resolvePostLoginRedirect(user, serviceProvider));
         });
         return;
       }
